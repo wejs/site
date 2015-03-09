@@ -1,0 +1,27 @@
+{
+  "name": "we.js v0.3.x project test",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./app.js",
+  "scripts": {
+    "start": "grunt && node app.js"
+  },
+  "dependencies": {
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-copy": "^0.8.0",
+    "lodash": "^3.3.1",
+    "we-theme-admin-default": "0.0.5",
+    "we-theme-site-wejs": "0.0.4"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-clean": "^0.6.0",
+    "grunt-contrib-concat": "^0.5.1",
+    "grunt-contrib-copy": "^0.8.0",
+    "grunt-contrib-cssmin": "^0.12.2",
+    "grunt-contrib-uglify": "^0.8.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-fileindex": "^0.1.0",
+    "grunt-we-ember-template": "0.0.3"
+  }
+}
