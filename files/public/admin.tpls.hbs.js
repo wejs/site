@@ -1,4 +1,22 @@
-Ember.TEMPLATES['components/we-auth-modal-login'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+Ember.TEMPLATES['components/list'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n  ");
+  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "comment/item", "", options) : helperMissing.call(depth0, "render", "comment/item", "", options))));
+  data.buffer.push("\n");
+  return buffer;
+  }
+
+  stack1 = helpers.each.call(depth0, {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[],types:[],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
+  
+});Ember.TEMPLATES['components/we-auth-modal-login'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
   var buffer = '', helper, options, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
@@ -126,6 +144,124 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
 
 
   data.buffer.push("<!-- home-carousel -->\n<div id=\"home-carousel\" class=\"carousel slide\" data-ride=\"carousel\" data-interval=\"7000\">\n\n  <ol class=\"carousel-indicators\">\n    <li data-target=\"#home-carousel\" data-slide-to=\"0\" class=\"active\"></li>\n    <li data-target=\"#home-carousel\" data-slide-to=\"1\"></li>\n    <li data-target=\"#home-carousel\" data-slide-to=\"2\"></li>\n  </ol>\n\n  <!-- carousel-inner -->\n  <div class=\"carousel-inner\">\n\n    <!-- carousel-item-01 -->\n    <div class=\"item active\" style=\"background: url('/theme/assets/img/home-slide-01.jpg') center;\">\n      <a href=\"https://cursos.atencaobasica.org.br/sobre\"\n         style=\"position: absolute; width: 66%; height: 530px; top: 0; left: 18%; z-index: 999\">\n      </a>\n    </div>\n    <!-- /carousel-item-01 -->\n\n    <!-- carousel-item-02 -->\n    <div class=\"item\" style=\"background: url('/theme/assets/img/home-slide-02.jpg') center;\">\n      <a href=\"https://blog.atencaobasica.org.br/2014/12/01/novidades-da-comunidade\"\n      style=\"position: absolute; width: 66%; height: 530px; top: 0; left: 18%; z-index: 999\">\n      </a>\n    </div>\n    <!-- /carousel-item-02 -->\n\n    <!-- carousel-item-03 -->\n    <div class=\"item\" style=\"background: url('/theme/assets/img/home-slide-03.jpg') center;\">\n      <a href=\"https://blog.atencaobasica.org.br/2014/12/01/trocando-ideias-sobre-os-resultados-do-2o-ciclo-do-pmaq/\"\n      style=\"position: absolute; width: 66%; height: 530px; top: 0; left: 18%; z-index: 999\">\n      </a>\n    </div>\n    <!-- /carousel-item-03 -->\n\n  </div>\n  <!-- /carousel-inner -->\n\n  <!-- controls -->\n  <a class=\"left carousel-control\" href=\"#home-carousel\" role=\"button\" data-slide=\"prev\">\n    <i style=\"font-size: 3em;\" class=\"fa fa-angle-left\"></i>\n  </a>\n  <a class=\"right carousel-control\" href=\"#home-carousel\" role=\"button\" data-slide=\"next\">\n    <i style=\"font-size: 3em;\" class=\"fa fa-angle-right\"></i>\n  </a>\n  <!-- /controls -->\n</div>\n<!-- /home-carousel -->");
+  
+});Ember.TEMPLATES['components/we-comment-form'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n  <div class=\"comment-form\">\n    <div class=\"user-avatar-area pull-left\">\n      <span class=\"creator-avatar avatar-small\">\n        ");
+  data.buffer.push(escapeExpression((helper = helpers['user-avatar'] || (depth0 && depth0['user-avatar']),options={hash:{
+    'user': ("currentUser"),
+    'size': ("thumbnail")
+  },hashTypes:{'user': "ID",'size': "STRING"},hashContexts:{'user': depth0,'size': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "user-avatar", options))));
+  data.buffer.push("\n      </span>\n    </div>\n    <div class=\"comment-right\">\n     <div class=\"comment-body\">\n      ");
+  stack1 = helpers['if'].call(depth0, "isOpenComentTextarea", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(4, program4, data),fn:self.program(2, program2, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n     </div>\n    </div>\n  </div>\n");
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n        <div class=\"comment-textarea form-group\">\n          ");
+  data.buffer.push(escapeExpression((helper = helpers['we-wysiwyg-editor'] || (depth0 && depth0['we-wysiwyg-editor']),options={hash:{
+    'name': ("body"),
+    'value': ("body"),
+    'onChangeText': ("onChangeBodyText"),
+    'onPasteText': ("onPasteBodyText"),
+    'focus': ("true")
+  },hashTypes:{'name': "STRING",'value': "ID",'onChangeText': "STRING",'onPasteText': "STRING",'focus': "STRING"},hashContexts:{'name': depth0,'value': depth0,'onChangeText': depth0,'onPasteText': depth0,'focus': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-wysiwyg-editor", options))));
+  data.buffer.push("\n        </div>\n        <div class=\"actions\">\n          <div class=\"btn-group btn-group-xs\">\n            <button type=\"button\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "sendComment", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-primary\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Send", options) : helperMissing.call(depth0, "t", "Send", options))));
+  data.buffer.push("</button>\n            <button type=\"button\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "closeComentTextarea", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-default\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Cancel", options) : helperMissing.call(depth0, "t", "Cancel", options))));
+  data.buffer.push("</button>\n          </div>\n        </div>\n      ");
+  return buffer;
+  }
+
+function program4(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n        <div ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "openComentTextarea", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"comment-placeholder\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Add comment", options) : helperMissing.call(depth0, "t", "Add comment", options))));
+  data.buffer.push("</div>\n      ");
+  return buffer;
+  }
+
+function program6(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n  <div>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{
+    'loginUrlBinding': ("auth.loginUrl"),
+    'registerUrlBinding': ("auth.register")
+  },hashTypes:{'loginUrlBinding': "ID",'registerUrlBinding': "ID"},hashContexts:{'loginUrlBinding': depth0,'registerUrlBinding': depth0},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "comments.notAuthenticated", options) : helperMissing.call(depth0, "t", "comments.notAuthenticated", options))));
+  data.buffer.push("</div>\n");
+  return buffer;
+  }
+
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "comment_create", options) : helperMissing.call(depth0, "can", "comment_create", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
+  
+});Ember.TEMPLATES['components/we-comments'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n    ");
+  stack1 = helpers['if'].call(depth0, "hasMoreComments", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(4, program4, data),fn:self.program(2, program2, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  ");
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n      <div class=\"comments-header\">\n        <span class=\"comment-total\">\n          ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{
+    'lengthBinding': ("comments.length"),
+    'totalBinding': ("meta.count")
+  },hashTypes:{'lengthBinding': "ID",'totalBinding': "ID"},hashContexts:{'lengthBinding': depth0,'totalBinding': depth0},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "comments.list.length", options) : helperMissing.call(depth0, "t", "comments.list.length", options))));
+  data.buffer.push("\n        </span> -\n        <a href=\"javascript:;\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "loadAllComments", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "comments.loadAll", options) : helperMissing.call(depth0, "t", "comments.loadAll", options))));
+  data.buffer.push("</a>\n      </div>\n    ");
+  return buffer;
+  }
+
+function program4(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n      <div class=\"comment-total\">\n        ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{
+    'lengthBinding': ("comments.length")
+  },hashTypes:{'lengthBinding': "ID"},hashContexts:{'lengthBinding': depth0},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "comments.list.length.all", options) : helperMissing.call(depth0, "t", "comments.list.length.all", options))));
+  data.buffer.push("\n      </div>\n    ");
+  return buffer;
+  }
+
+  data.buffer.push("<div class=\"comments\">\n  ");
+  stack1 = helpers['if'].call(depth0, "comments", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  ");
+  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "comments/list", "comments", options) : helperMissing.call(depth0, "render", "comments/list", "comments", options))));
+  data.buffer.push("\n</div>");
+  return buffer;
   
 });Ember.TEMPLATES['components/we-connection-status'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];

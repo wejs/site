@@ -267,8 +267,8 @@ th {
 }
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url('/theme/assets/fonts/glyphicons-halflings-regular.eot');
-  src: url('/theme/assets/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('/theme/assets/fonts/glyphicons-halflings-regular.woff2') format('woff2'), url('/theme/assets/fonts/glyphicons-halflings-regular.woff') format('woff'), url('/theme/assets/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('/theme/assets/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+  src: url('/public/theme/we-theme-site-wejs/fonts/glyphicons-halflings-regular.eot');
+  src: url('/public/theme/we-theme-site-wejs/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('/public/theme/we-theme-site-wejs/fonts/glyphicons-halflings-regular.woff2') format('woff2'), url('/public/theme/we-theme-site-wejs/fonts/glyphicons-halflings-regular.woff') format('woff'), url('/public/theme/we-theme-site-wejs/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('/public/theme/we-theme-site-wejs/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
 }
 .glyphicon {
   position: relative;
@@ -6714,7 +6714,7 @@ input:focus,
 }
 
 .navbar-btn {
-  margin-top: 0px; 
+  margin-top: 0px;
   margin-bottom: 0px;
 }
 

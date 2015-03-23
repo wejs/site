@@ -7,10 +7,7 @@ module.exports = {
    * Index page route /
    */
   index: function(req, res) {
-    var we = req.we;
-    var context = req.context;
-
-    we.log.info('rodou o main.index', context);
+    var we = req.getWe();
 
     res.locals.template = 'home/index';
 

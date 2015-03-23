@@ -32,7 +32,7 @@ App.ApplicationController = Ember.Controller.extend({
   }.property('App.currentUser'),
 
   isAuthenticated: function(){
-    if(App.auth.get('isAuthenticated') ) {
+    if(App.get('auth.isAuthenticated') ) {
       return true;
     }else{
       return false;
@@ -41,7 +41,9 @@ App.ApplicationController = Ember.Controller.extend({
 
   init: function() {
     this._super();
-    this.setConnectionStatus();
+    if (window.io && window.io.socket) {
+      this.setConnectionStatus();
+    }
   },
 
   setConnectionStatus: function() {
@@ -49,31 +51,31 @@ App.ApplicationController = Ember.Controller.extend({
     if(window.io.socket.socket && window.io.socket.socket.connected){
       self.setProperties({
         isConnected: true,
-        status: we.i18n('connected')
+        status: Ember.I18n.t('connected')
       });
     }
     we.events.on('socketIoConnect',function(){
       self.setProperties({
         isConnected: true,
-        status: we.i18n('connected')
+        status: Ember.I18n.t('connected')
       });
     });
     we.events.on('socketIoDisconnect',function(){
       self.setProperties({
         isConnected: false,
-        status: we.i18n('disconnected')
+        status: Ember.I18n.t('disconnected')
       });
     });
     we.events.on('socketIoReconnect',function(){
       self.setProperties({
         isConnected: true,
-        status: we.i18n('connected')
+        status: Ember.I18n.t('connected')
       });
     });
     we.events.on('socketIoReconnecting',function(){
       self.setProperties({
         isConnected: false,
-        status: we.i18n('reconnecting')
+        status: Ember.I18n.t('reconnecting')
       });
     });
   }
