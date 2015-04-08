@@ -164,17 +164,20 @@
   "post.contentType.relato": "o relato",
   "Convite Comunidade": "Convite Comunidade",
 
-  "article.form.about.label": "About",
-  "article.form.body.label": "Text:",
-  "article.form.category.label": "Categories",
-  "article.form.tag.label": "Tags",
-  "article.form.published.label": "Published?",
+  "page.form.about.label": "About",
+  "page.form.body.label": "Text:",
+  "page.form.category.label": "Categories",
+  "page.form.tag.label": "Tags",
+  "page.form.published.label": "Published?",
 
-  "articles.title": "Blog articles",
-  "articles.subTitle": " ",
-  "article.create": "Create article",
-  "articles.link.older": "Old articles",
-  "article.created.by": "Created by",
+  "pages.title": "Blog articles",
+
+  "page.form.title.label": "Write the title here",
+
+  "pages.subTitle": " ",
+  "page.create": "Create article",
+  "pages.link.older": "Old articles",
+  "page.created.by": "Created by",
 
   "auth.register.email.label": "Your email",
   "auth.register.confirmEmail.label": "Repeat the email",
@@ -208,7 +211,7 @@
   "menu.link.user" : "People",
   "menu.link.permissions" : "Permissions",
   "menu.link.comments" : "Comments",
-  "menu.link.articles" : "Articles",
+  "menu.link.page" : "Articles",
   "menu.link.manage": "Manage",
 
   "admin.vocabularies.title": "Vocabularies",

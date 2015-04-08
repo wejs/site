@@ -34,7 +34,7 @@ module.exports.clientside = {
             text: 'Features',
             type: 'resource',
             model: 'page',
-            modelId: '1'
+            modelId: '3'
           },
           {
             text: 'Github',
@@ -45,31 +45,30 @@ module.exports.clientside = {
         ]
       },
 
-      sidebar: {
+      'Get started': {
         links: [
           {
-            text: 'Get Started',
+            text: 'About',
             type: 'resource',
             model: 'page',
             modelId: '1'
           },
           {
-            text: 'Generators',
+            text: 'Instalation',
             type: 'resource',
             model: 'page',
             modelId: '2'
           },
+        ]
+      },
+
+      'Features': {
+        links: [
           {
-            text: 'Plugins',
+            text: 'Features',
             type: 'resource',
             model: 'page',
             modelId: '3'
-          },
-          {
-            text: 'Themes',
-            type: 'resource',
-            model: 'page',
-            modelId: '4'
           }
         ]
       },
@@ -93,8 +92,15 @@ module.exports.clientside = {
           {
             i18nText: 'menu.link.page',
             type: 'resource',
-            model: 'page'
+            model: 'pages'
           },
+
+          // {
+          //   i18nText: 'menu.link.url',
+          //   type: 'resource',
+          //   model: 'urls'
+          // },
+
 
           {
             i18nText: 'menu.link.vocabulary',
@@ -117,4 +123,4 @@ module.exports.clientside = {
       }
     }
   } // end publicVars
-}
+};
