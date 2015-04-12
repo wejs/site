@@ -232,5 +232,15 @@
 	"auth.register.email.exists": "auth.register.email.exists",
 	"auth.login.user.incorrect.password.or.email": "auth.login.user.incorrect.password.or.email",
 	"auth.change-password.reset-password": "auth.change-password.reset-password",
-	"auth.change-password.success": "auth.change-password.success"
+	"auth.change-password.success": "auth.change-password.success",
+
+	"group.form.name.label": "Nome",
+	"group.form.name.placeholder": "",
+
+	"group.form.description.label": "Descrição",
+	"group.form.description.placeholder": "",
+
+	"group.form.category.label": "Categorias",
+	"group.form.submit": "Salvar comunidade"
+
 }

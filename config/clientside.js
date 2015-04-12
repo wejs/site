@@ -37,6 +37,11 @@ module.exports.clientside = {
             modelId: '3'
           },
           {
+            text: 'Forum',
+            type: 'page',
+            model: 'groups'
+          },
+          {
             text: 'Github',
             external: true,
             href: 'https://github.com/wejs/we',

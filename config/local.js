@@ -5,13 +5,15 @@ module.exports = {
   },
 
   acl: {
-    disabled: false
+    disabled: true
   },
 
   database: {
     dev: {
-      // by default log to info
-      //logging: false
+      dialect: 'mysql',
+      database: '3we',
+      username: 'root',
+      password: ''
     }
   }
 }
