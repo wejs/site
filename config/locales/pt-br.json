@@ -153,6 +153,8 @@
 	"membership.button.active": "Sair da comunidade",
 	"membership.button.requested": "Solicitação Enviada",
 	"membership.button.request": "Participar",
+	"membership.button.loading": "Carregando ...",
+	"membership.leaveGroup.confirm": "Você tem certeza que deseja sair do grupo?",
 	"groupRequest.deny": "Rejeitar",
 	"groupRequest.accept": "Aceitar",
 	"groupRequest.noRequest": "Nenhuma nova solicitação",

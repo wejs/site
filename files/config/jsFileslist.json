@@ -92,6 +92,7 @@
   "public/plugin/we-core/client/app/controllers/imageCropController.js",
   "public/plugin/we-core/client/app/models/ActivityModel.js",
   "public/plugin/we-core/client/app/models/FlagModel.js",
+  "public/plugin/we-core/client/app/models/GroupModel.js",
   "public/plugin/we-core/client/app/models/ImageModel.js",
   "public/plugin/we-core/client/app/models/MembershipModel.js",
   "public/plugin/we-core/client/app/models/MessagesModel.js",
