@@ -129,6 +129,7 @@
   "public/plugin/we-core/client/app/components/WeFieldUrlAliasComponent.js",
   "public/plugin/we-core/client/app/components/WeFlagComponent.js",
   "public/plugin/we-core/client/app/components/WeFollowComponent.js",
+  "public/plugin/we-core/client/app/components/WeGroupInviteListComponent.js",
   "public/plugin/we-core/client/app/components/WeGroupJoinButtonComponent.js",
   "public/plugin/we-core/client/app/components/WeGroupListComponent.js",
   "public/plugin/we-core/client/app/components/WeGroupMembersComponent.js",

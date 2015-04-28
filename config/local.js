@@ -5,7 +5,7 @@ module.exports = {
   },
 
   acl: {
-    disabled: true
+    disabled: false
   },
 
   database: {

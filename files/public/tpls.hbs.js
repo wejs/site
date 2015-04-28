@@ -1227,6 +1227,61 @@ function program9(depth0,data) {
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   else { data.buffer.push(''); }
   
+});Ember.TEMPLATES['components/we-group-invite-list'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n  <p>");
+  data.buffer.push(escapeExpression((helper = helpers['we-loading'] || (depth0 && depth0['we-loading']),options={hash:{
+    'isLoading': ("isLoading")
+  },hashTypes:{'isLoading': "ID"},hashContexts:{'isLoading': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-loading", options))));
+  data.buffer.push("</p>\n");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n  <table class=\"table\">\n    <thead>\n      <tr>\n        <th>ID</th>\n        <th>Name</th>\n        <th>Email</th>\n      </tr>\n    </thead>\n    <tbody>\n      ");
+  stack1 = helpers.each.call(depth0, "record", "in", "records", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[depth0,depth0,depth0],types:["ID","ID","ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    </tbody>\n  </table>\n");
+  return buffer;
+  }
+function program4(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n        <tr>\n          <td>");
+  stack1 = helpers._triageMustache.call(depth0, "record.id", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</td>\n          <td>");
+  stack1 = helpers._triageMustache.call(depth0, "record.name", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</td>\n          <td>");
+  stack1 = helpers._triageMustache.call(depth0, "record.email", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</td>\n        </tr>\n      ");
+  return buffer;
+  }
+
+function program6(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n        <tr>\n          <p>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.list.empty", options) : helperMissing.call(depth0, "t", "group.invite.list.empty", options))));
+  data.buffer.push("</p>\n        </td>\n      ");
+  return buffer;
+  }
+
+  stack1 = helpers['if'].call(depth0, "isLoading", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n");
+  return buffer;
+  
 });Ember.TEMPLATES['components/we-group-list'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
@@ -2074,8 +2129,8 @@ function program4(depth0,data) {
 function program5(depth0,data) {
   
   var buffer = '', stack1;
-  data.buffer.push("\n        ");
-  stack1 = helpers['if'].call(depth0, "group.name", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(12, program12, data),fn:self.program(6, program6, data),contexts:[depth0],types:["ID"],data:data});
+  data.buffer.push("\n\n        ");
+  stack1 = helpers['if'].call(depth0, "model.name", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(12, program12, data),fn:self.program(6, program6, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n      ");
   return buffer;
@@ -2085,16 +2140,16 @@ function program6(depth0,data) {
   var buffer = '', stack1, helper, options;
   data.buffer.push("\n          <div class=\"col-md-3\">\n            <div class=\"group group-teaser teaser panel panel-default text-center\">\n              <div class=\"panel-content\">\n                ");
   stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
-    'title': ("group.name")
-  },hashTypes:{'title': "ID"},hashContexts:{'title': depth0},inverse:self.noop,fn:self.program(7, program7, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group", "group.id", options) : helperMissing.call(depth0, "link-to", "group", "group.id", options));
+    'title': ("model.name")
+  },hashTypes:{'title': "ID"},hashContexts:{'title': depth0},inverse:self.noop,fn:self.program(7, program7, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group", "model.id", options) : helperMissing.call(depth0, "link-to", "group", "model.id", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n              </div>\n              <div class=\"panel-footer\">\n                <span><i class=\"glyphicon glyphicon-user\"></i>");
-  stack1 = helpers._triageMustache.call(depth0, "group.data.meta.membersCount", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  stack1 = helpers._triageMustache.call(depth0, "model.data.meta.membersCount", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push(" ");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.members", options) : helperMissing.call(depth0, "t", "group.members", options))));
   data.buffer.push("</span> -\n                <span><i class=\"glyphicon glyphicon-file\"></i>");
-  stack1 = helpers._triageMustache.call(depth0, "group.data.meta.contentsCount", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  stack1 = helpers._triageMustache.call(depth0, "model.data.meta.contentsCount", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push(" ");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.contents", options) : helperMissing.call(depth0, "t", "group.contents", options))));
@@ -2105,12 +2160,12 @@ function program7(depth0,data) {
   
   var buffer = '', stack1, helper, options;
   data.buffer.push("\n                  ");
-  stack1 = helpers['if'].call(depth0, "group.logo", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(10, program10, data),fn:self.program(8, program8, data),contexts:[depth0],types:["ID"],data:data});
+  stack1 = helpers['if'].call(depth0, "model.logo", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(10, program10, data),fn:self.program(8, program8, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n                  ");
   data.buffer.push(escapeExpression((helper = helpers.substr || (depth0 && depth0.substr),options={hash:{
     'max': (25)
-  },hashTypes:{'max': "INTEGER"},hashContexts:{'max': depth0},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "group.name", options) : helperMissing.call(depth0, "substr", "group.name", options))));
+  },hashTypes:{'max': "INTEGER"},hashContexts:{'max': depth0},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "model.name", options) : helperMissing.call(depth0, "substr", "model.name", options))));
   data.buffer.push("\n                ");
   return buffer;
   }
@@ -2119,7 +2174,7 @@ function program8(depth0,data) {
   var buffer = '';
   data.buffer.push("\n                    <img width=\"40px\" ");
   data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
-    'src': ("group.logo.urls.thumbnail")
+    'src': ("model.logo.urls.thumbnail")
   },hashTypes:{'src': "STRING"},hashContexts:{'src': depth0},contexts:[],types:[],data:data})));
   data.buffer.push(" />\n                  ");
   return buffer;
@@ -2424,6 +2479,12 @@ function program15(depth0,data) {
 
 function program17(depth0,data) {
   
+  
+  data.buffer.push("\n            Members\n          ");
+  }
+
+function program19(depth0,data) {
+  
   var buffer = '', helper, options;
   data.buffer.push("\n            ");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Edit", options) : helperMissing.call(depth0, "t", "Edit", options))));
@@ -2431,10 +2492,10 @@ function program17(depth0,data) {
   return buffer;
   }
 
-function program19(depth0,data) {
+function program21(depth0,data) {
   
   
-  data.buffer.push("\n            Convidar Pessoa\n          ");
+  data.buffer.push("\n            Convites\n          ");
   }
 
   data.buffer.push("<div class=\"container bs-docs-container\">\n  <div class=\"row\">\n    <div class=\"col-md-3\">\n      <div class=\"group-name\">\n        ");
@@ -2475,22 +2536,27 @@ function program19(depth0,data) {
   data.buffer.push("\n\n          ");
   stack1 = helpers['if'].call(depth0, "group.canInvite", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(12, program12, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n\n          ");
+  data.buffer.push("\n          ");
   stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
     'classNames': ("list-group-item")
   },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(15, program15, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.content", options) : helperMissing.call(depth0, "link-to", "group.content", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n          ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("list-group-item")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(17, program17, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.members", "group.id", options) : helperMissing.call(depth0, "link-to", "group.members", "group.id", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n        </div>\n      </div>\n\n      <div class=\"administer-widget widget widget-type-menu\">\n        <div class=\"widget-header\">\n          <h4>\n            <span class=\"glyphicon glyphicon-cog\"></span>\n            <span class=\"icon-title\">");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "manage", options) : helperMissing.call(depth0, "t", "manage", options))));
   data.buffer.push("</span>\n          </h4>\n        </div>\n        <div class=\"widget-content\">\n          ");
   stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
     'classNames': ("list-group-item")
-  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(17, program17, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.edit", "group.id", options) : helperMissing.call(depth0, "link-to", "group.edit", "group.id", options));
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(19, program19, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.edit", "group.id", options) : helperMissing.call(depth0, "link-to", "group.edit", "group.id", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n          ");
   stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
     'classNames': ("list-group-item")
-  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(19, program19, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.addMember", "group.id", options) : helperMissing.call(depth0, "link-to", "group.addMember", "group.id", options));
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(21, program21, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.addMember", "group.id", options) : helperMissing.call(depth0, "link-to", "group.addMember", "group.id", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n        </div>\n      </div>\n\n      ");
   data.buffer.push(escapeExpression((helper = helpers['we-group-members'] || (depth0 && depth0['we-group-members']),options={hash:{
@@ -2530,72 +2596,92 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
 });Ember.TEMPLATES['group/addMember'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
-  var buffer = '', stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+  var buffer = '', stack1, helper, options, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
 
 function program1(depth0,data) {
   
   var buffer = '', stack1, helper, options;
-  data.buffer.push("\n    <div class=\"text-center\">\n      <span class=\"avatar-large\">");
-  data.buffer.push(escapeExpression((helper = helpers['we-avatar'] || (depth0 && depth0['we-avatar']),options={hash:{
-    'userId': ("user.id"),
-    'size': ("medium")
-  },hashTypes:{'userId': "ID",'size': "STRING"},hashContexts:{'userId': depth0,'size': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-avatar", options))));
-  data.buffer.push("</span>\n      <h3>");
-  stack1 = helpers._triageMustache.call(depth0, "user.displayName", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  data.buffer.push("\n  <h4>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.title", options) : helperMissing.call(depth0, "t", "group.invite.form.title", options))));
+  data.buffer.push("</h4>\n  ");
+  stack1 = helpers['if'].call(depth0, "isLoading", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(4, program4, data),fn:self.program(2, program2, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("</h3>\n      <p>");
-  stack1 = helpers._triageMustache.call(depth0, "user.bio", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("</p>\n      <button ");
-  data.buffer.push(escapeExpression(helpers.action.call(depth0, "inviteUser", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-  data.buffer.push(" class=\"btn btn-primary addMember\" type=\"button\" data-loading-text=\"Processando...\">Adicionar</button>\n    </div>\n  ");
+  data.buffer.push("\n");
   return buffer;
+  }
+function program2(depth0,data) {
+  
+  
+  data.buffer.push("\n    Enviando ...\n  ");
   }
 
-function program3(depth0,data) {
-  
-  var buffer = '', stack1;
-  data.buffer.push("\n    ");
-  stack1 = helpers['if'].call(depth0, "notFound", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n  ");
-  return buffer;
-  }
 function program4(depth0,data) {
   
-  
-  data.buffer.push("\n    <div class=\"alert alert-warning text-center\" role=\"alert\">          \n      <strong>Nenhum usuário encontrado!</strong>\n    </div>\n    ");
+  var buffer = '', helper, options;
+  data.buffer.push("\n    <form role=\"form\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "invite", {hash:{
+    'on': ("submit")
+  },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">\n      <div class=\"form-group\">\n        <label>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.user.email", options) : helperMissing.call(depth0, "t", "group.invite.form.user.email", options))));
+  data.buffer.push("</label>\n        ");
+  data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{
+    'name': ("email"),
+    'value': ("newInvite.email"),
+    'type': ("email"),
+    'required': ("true"),
+    'classNames': ("form-control")
+  },hashTypes:{'name': "STRING",'value': "ID",'type': "STRING",'required': "STRING",'classNames': "STRING"},hashContexts:{'name': depth0,'value': depth0,'type': depth0,'required': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "input", options))));
+  data.buffer.push("\n      </div>\n\n      <div class=\"form-group\">\n        <label>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.user.name", options) : helperMissing.call(depth0, "t", "group.invite.form.user.name", options))));
+  data.buffer.push("</label>\n        ");
+  data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{
+    'name': ("name"),
+    'value': ("newInvite.name"),
+    'type': ("text"),
+    'required': ("true"),
+    'classNames': ("form-control")
+  },hashTypes:{'name': "STRING",'value': "ID",'type': "STRING",'required': "STRING",'classNames': "STRING"},hashContexts:{'name': depth0,'value': depth0,'type': depth0,'required': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "input", options))));
+  data.buffer.push("\n      </div>\n\n      <div class=\"form-group\">\n        <label>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.text", options) : helperMissing.call(depth0, "t", "group.invite.form.text", options))));
+  data.buffer.push("</label>\n        ");
+  data.buffer.push(escapeExpression((helper = helpers['we-editor'] || (depth0 && depth0['we-editor']),options={hash:{
+    'value': ("newInvite.text"),
+    'style': ("small")
+  },hashTypes:{'value': "ID",'style': "STRING"},hashContexts:{'value': depth0,'style': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-editor", options))));
+  data.buffer.push("\n      </div>\n\n      <div class=\"form-group\">\n        <button class=\"btn btn-primary\" type=\"submit\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.submit", options) : helperMissing.call(depth0, "t", "group.invite.form.submit", options))));
+  data.buffer.push("</button>\n        <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "cancelInvite", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-default\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.cancel", options) : helperMissing.call(depth0, "t", "group.invite.form.cancel", options))));
+  data.buffer.push("</button>\n      </div>\n    </form>\n  ");
+  return buffer;
   }
 
 function program6(depth0,data) {
   
-  
-  data.buffer.push("\n  <div class=\"alert alert-success text-center\" role=\"alert\">          \n    Convite enviado com sucesso! \n  </div>\n  ");
+  var buffer = '', helper, options;
+  data.buffer.push("\n  <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "showInvite", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-default\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.show", options) : helperMissing.call(depth0, "t", "group.invite.form.show", options))));
+  data.buffer.push("</button>\n");
+  return buffer;
   }
 
-  data.buffer.push("<h3>Convidar membros para a comunidade</h3>\n\n<p>\nDigite o nome de usuário no campo abaixo para convidar um usuário para o grupo <br>\nExemplo de nome de usuário: @alberto\n<p>\n\n<div>\n\n<form role=\"form\" ");
-  data.buffer.push(escapeExpression(helpers.action.call(depth0, "findOneUserByUsername", {hash:{
-    'on': ("submit")
-  },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
-  data.buffer.push(">\n  <div class=\"form-group\">\n    <div class=\"input-group\">\n      <label for=\"name\" class=\"input-group-addon\">Nome de usuário:</label>\n      ");
-  data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{
-    'id': ("name"),
-    'name': ("name"),
-    'value': ("username"),
-    'type': ("text"),
-    'placeholder': ("Ex.: albertosouza"),
-    'required': ("true"),
-    'classNames': ("form-control")
-  },hashTypes:{'id': "STRING",'name': "STRING",'value': "ID",'type': "STRING",'placeholder': "STRING",'required': "STRING",'classNames': "STRING"},hashContexts:{'id': depth0,'name': depth0,'value': depth0,'type': depth0,'placeholder': depth0,'required': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "input", options))));
-  data.buffer.push("\n      <span class=\"input-group-btn\">\n        <button ");
-  data.buffer.push(escapeExpression(helpers.action.call(depth0, "findOneUserByUsername", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-  data.buffer.push(" class=\"btn btn-primary\" type=\"button\">Buscar</button>\n      </span>\n    </div>\n  </div>\n</form>\n\n  ");
-  stack1 = helpers['if'].call(depth0, "user", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  data.buffer.push("<h2>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.title", options) : helperMissing.call(depth0, "t", "group.invite.title", options))));
+  data.buffer.push("</h2>\n\n");
+  stack1 = helpers['if'].call(depth0, "showInviteForm", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("  \n\n  ");
-  stack1 = helpers['if'].call(depth0, "success", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(6, program6, data),contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n</div>\n");
+  data.buffer.push("\n\n<h4>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.list.title", options) : helperMissing.call(depth0, "t", "group.invite.list.title", options))));
+  data.buffer.push("</h4>\n\n");
+  data.buffer.push(escapeExpression((helper = helpers['we-group-invite-list'] || (depth0 && depth0['we-group-invite-list']),options={hash:{
+    'groupId': ("group.id")
+  },hashTypes:{'groupId': "ID"},hashContexts:{'groupId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-group-invite-list", options))));
+  data.buffer.push("\n");
   return buffer;
   
 });Ember.TEMPLATES['group/edit'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
