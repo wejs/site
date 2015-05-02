@@ -1,4 +1,3 @@
-@import url("//fonts.googleapis.com/css?family=Roboto:400,500");
 /*!
  * bootswatch v3.3.2
  * Homepage: http://bootswatch.com
@@ -1072,7 +1071,7 @@ html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 body {
-  font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 1.42857143;
   color: #3e3f3a;
@@ -8346,7 +8345,7 @@ h1[id] {
 }
 
 .creator-avatar img {
-  width: 45px;
+  width: 35px;
 }
 
 .comment-right {
@@ -8367,7 +8366,7 @@ h1[id] {
 }
 
 .comment-form .creator-avatar img {
-  width: 45px
+  width: 35px
 }
 
 .comment-placeholder {
@@ -8379,4 +8378,13 @@ h1[id] {
 .no-bg {
   min-height: 65px;
   background-color: #666;
+}
+
+.post .creator-avatar {
+  float: left;
+  margin-right: 10px;
+}
+
+.post .header {
+  min-height: 50px;
 }

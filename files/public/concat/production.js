@@ -75096,6 +75096,21 @@ Ember.WeApplication = Ember.Application.extend({
   }
 });
 
+// -- set title
+Ember.ObjectController.reopen({
+  updateTitle: function() {
+    var title = App.get('configs.appName');
+
+    if (this.get('model.record.title')) {
+      title =  this.get('model.record.title') + ' | ' + title
+    } else if (this.get('model.record.displayName')) {
+      title =  this.get('model.record.displayName') + ' | ' + title;
+    }
+
+    document.title = title;
+  }.observes('model.record.title', 'model.record.displayName')
+})
+
 // add set body class on route change
 Ember.Route.reopen({
   activate: function() {
@@ -75765,12 +75780,7 @@ Permissions = {
    *
    * @type {Object}
    */
-  defaultRoles: {
-    authenticated: 'authenticated',
-    unAuthenticated: 'unAuthenticated',
-    owner: 'owner',
-    administrator: 'administrator'
-  },
+  roles: {},
 
   currentUserRolesCache: null,
 
@@ -75795,7 +75805,7 @@ Permissions = {
     // if dont have cache
     // unAuthenticated
     if ( !App.get('currentUser.id') ) {
-      return [ Permissions.defaultRoles.unAuthenticated ];
+      return [ 'unAuthenticated' ];
     }
 
     var rolesObj = App.get('currentUser.roles').toArray();
@@ -75804,7 +75814,7 @@ Permissions = {
       roles.push(Ember.get(rolesObj[i], 'name'));
     }
 
-    roles.push(Permissions.defaultRoles.authenticated);
+    roles.push('authenticated');
 
     Permissions.currentUserRolesCache = roles;
 
@@ -75826,33 +75836,21 @@ Permissions = {
     var canName = Permissions.makeCanName(name, modelName, model);
 
     // check if has a can cache
-    if (typeof(Permissions.canCache[canName]) !== 'undefined' )
-      return Permissions.canCache[canName];
+    if (typeof(Permissions.canCache[canName]) !== 'undefined' ) return Permissions.canCache[canName];
 
     // load roles
     var roles = Permissions.currentUserRoles();
     // add owner role
-    if (Permissions.isOwner(modelName, model))
-      roles.push(Permissions.defaultRoles.owner);
+    if (Permissions.isOwner(modelName, model)) roles.push('owner');
 
     // return true if has admin role
     if ( roles.indexOf('administrator') > -1 ) return true;
 
-    var permission = Permissions.get(name);
-    if (!permission) {
-      // set cache and return
-      return Permissions.canCache[canName] = false;
-    }
-
-    var permissionRoles = permission.roles;
-
     // return false if this permission dont have roles
-    if (!permissionRoles || permissionRoles.length < 1) {
-      return false;
-    }
+    if (!Permissions.roles) return false;
 
-    for (var i = permissionRoles.length - 1; i >= 0; i--) {
-      if ( roles.indexOf(permissionRoles[i]) > -1 ) {
+    for (var i = roles.length - 1; i >= 0; i--) {
+      if (Permissions.roles[roles[i]].permissions && Permissions.roles[roles[i]].permissions.indexOf(name) >= 0) {
         return Permissions.canCache[canName] = true;
       }
     }
@@ -75869,6 +75867,7 @@ Permissions = {
   isOwner: function(modelName, model) {
     var currentUserId = App.get('currentUser.id');
     if (!currentUserId || !model) return false;
+    if (!model.id) return true; // recent created model
 
     if (modelName === 'user') {
       if (model.id == App.get('currentUser.id')) {
@@ -75912,14 +75911,11 @@ Permissions = {
       return $.getJSON( rolesUrl )
       .done(function afterLoadData(data) {
         if (data.role) {
-          store.pushMany('role', data.role);
           data.role.forEach(function(role) {
-            Permissions.defaultRoles[role.name] = role.name;
+            Permissions.roles[role.name] = role;
           })
-
           Permissions.rolesIsLoaded = true;
         }
-
         resolve();
       })
       .fail(function (result) {
@@ -75931,45 +75927,45 @@ Permissions = {
     });
   },
 
-  /**
-   * Load and register all permissions and roles, use in app bootstrap
-   *
-   * @param  {Object} store Ember data store
-   * @return {Object}       Promisse Ember.RSVP
-   */
-  loadAndRegisterAllPermissions: function(store) {
-    return new Ember.RSVP.Promise(function(resolve, reject) {
-      var permissionsUrl = '/permission';
-      var permissionsHost = Ember.get('App.configs.permissionHost');
-      if ( permissionsHost ) {
-        permissionsUrl = permissionsHost + permissionsUrl;
-      }
+  // /**
+  //  * Load and register all permissions and roles, use in app bootstrap
+  //  *
+  //  * @param  {Object} store Ember data store
+  //  * @return {Object}       Promisse Ember.RSVP
+  //  */
+  // loadAndRegisterAllPermissions: function(store) {
+  //   return new Ember.RSVP.Promise(function(resolve, reject) {
+  //     var permissionsUrl = '/permission';
+  //     var permissionsHost = Ember.get('App.configs.permissionHost');
+  //     if ( permissionsHost ) {
+  //       permissionsUrl = permissionsHost + permissionsUrl;
+  //     }
 
-      return $.getJSON( permissionsUrl )
-      .done(function afterLoadData(data) {
-        if (data.permission) {
-          // register all permissions
-          Permissions.registerAll(data.permission);
-        }
+  //     return $.getJSON( permissionsUrl )
+  //     .done(function afterLoadData(data) {
+  //       if (data.permission) {
+  //         // register all permissions
+  //         Permissions.registerAll(data.permission);
+  //       }
 
-        // on success
-        resolve(Permissions._perms);
-      })
+  //       // on success
+  //       resolve(Permissions._perms);
+  //     })
 
-      .fail(function (result) {
-        if (result.status == '403') return resolve(Permissions._perms);
+  //     .fail(function (result) {
+  //       if (result.status == '403') return resolve(Permissions._perms);
 
-        Ember.Logger.error('Error on load permissions' , result);
-        // on failure
-        return reject(result);
-      })
-    });
-  },
+  //       Ember.Logger.error('Error on load permissions' , result);
+  //       // on failure
+  //       return reject(result);
+  //     })
+  //   });
+  // },
 
   loadAndRegisterAllRolesAndPermissions: function(store) {
     return new Ember.RSVP.hash({
       roles: Permissions.loadAndRegisterAllRoles(store),
-      permissions: Permissions.loadAndRegisterAllPermissions(store),
+      // permissions: Permissions.loadAndRegisterAllPermissions(store),
     });
   }
 };
@@ -79173,271 +79169,6 @@ if (typeof jQuery === "undefined") { throw new Error("Bootstrap requires jQuery"
   });
 
 }).call(this);
-
-(function() {
-/*global Ember*/
-/*global DS*/
-/*global socket*/
-'use strict';
-
-var RSVP = Ember.RSVP;
-var get = Ember.get;
-
-var useOldDefaultSerializer = DS.VERSION.match(/beta/) && parseInt(DS.VERSION.match(/1.0.0-beta.(\d)/)[1]) < 6;
-
-var SailsAdapterMixin = Ember.Mixin.create({
-  defaultSerializer: useOldDefaultSerializer? '_default': '-default',
-  /*
-   Sails error objects look something like this:
-
-   {"status":500,
-    "errors":[{"ValidationError":{"endDate":[{"data":"Mon, 02 Jan 2012 02:00:00 GMT",
-                                           "message":"Validation error: \"Mon, 02 Jan 2012 02:00:00 GMT\" Rule \"after(Wed, 01 Jan 2014 01:00:00 GMT)\" failed.",
-                                           "rule":"after",
-                                           "args":["Wed, 01 Jan 2014 01:00:00 GMT"]}]}}]}
-
-   Ember wants the error object to look like this:
-
-   {endDate: "Validation error: ..."}
-   */
-  formatError: function(error) {
-    var memo = {};
-    error.errors.forEach(function(errorGroup) {
-      Object.keys(errorGroup).forEach(function(errorName) {
-        // {'ValidationError': {}}
-        var errorType = errorGroup[errorName];
-        Object.keys(errorType).forEach(function(propName) {
-          var newMessages = errorType[propName].map(function(error) {
-            return error.message;
-          });
-          var messages = memo[propName] || [];
-          memo[propName] = [].concat(messages, newMessages);
-        });
-      });
-    });
-    return Ember.Object.create(memo);
-  }
-});
-
-DS.SailsRESTAdapter = DS.RESTAdapter.extend(SailsAdapterMixin, {
-  ajaxError: function(jqXHR) {
-    var error = this._super(jqXHR);
-    var data = Ember.$.parseJSON(jqXHR.responseText);
-
-    if (data.errors) {
-      return new DS.InvalidError(this.formatError(data));
-    } else {
-      return error;
-    }
-  }
-});
-
-DS.SailsSocketAdapter = DS.SailsAdapter = DS.Adapter.extend(SailsAdapterMixin, {
-  defaultSerializer: '-rest',
-  prefix: '',
-  camelize: true,
-  log: false,
-  useCSRF: false,
-  CSRFToken: "",
-  listeningModels: {},
-  init: function () {
-    this._super();
-    if(this.useCSRF) {
-      socket.get('/csrfToken', function response(tokenObject) {
-        this.CSRFToken = tokenObject._csrf;
-      }.bind(this));
-    }
-  },
-
-  // TODO find a better way to handle this
-
-  // Reason: In a Sails Model updated, created, or destoryed message
-  // the model name is always lowercase. This makes it difficult to
-  // lookup models with multipart names on the ember container.
-
-  // One solution could be to implement a custom resolveModel method
-  // on the resolver to work with lowercase names. But in some cases
-  // we don't want to impose a custom resolver requirement on users of
-  // the sails_adapter.
-
-  // This modelName hash is an ugly escape has that allows a user to
-  // define a mapping between the sails lowercase model name and a
-  // string that ember can use to recognize a model with multiple
-  // parts.
-
-  // For Example A `User` model would not need to be registered with
-  // this map because ember can use the string 'user' to look up the
-  // model just fine. However a `ContentType` model will need to be
-  // registered with this map because attempting to lookup a model
-  // named 'contenttype' will not return the `ContentType` model.
-
-  // modelNameMap: {'contenttype': 'ContentType'}
-  modelNameMap: {},
-
-  find: function(store, type, id) {
-    this._listenToSocket(type.typeKey);
-    return this.socket(this.buildURL(type.typeKey, id), 'get');
-  },
-
-  createRecord: function(store, type, record) {
-    this._listenToSocket(type.typeKey);
-    var serializer = store.serializerFor(type.typeKey);
-    var data = serializer.serialize(record, { includeId: true });
-
-    return this.socket(this.buildURL(type.typeKey), 'post', data);
-  },
-
-  updateRecord: function(store, type, record) {
-    this._listenToSocket(type.typeKey);
-    var serializer = store.serializerFor(type.typeKey);
-    var data = serializer.serialize(record);
-
-    var id = get(record, 'id');
-
-    return this.socket(this.buildURL(type.typeKey, id), 'put', data);
-  },
-
-  deleteRecord: function(store, type, record) {
-    this._listenToSocket(type.typeKey);
-    var serializer = store.serializerFor(type.typeKey);
-    var id = get(record, 'id');
-
-    var data = serializer.serialize(record);
-
-    return this.socket(this.buildURL(type.typeKey, id), 'delete', data);
-  },
-
-  findAll: function(store, type, sinceToken) {
-    this._listenToSocket(type.typeKey);
-    return this.socket(this.buildURL(type.typeKey), 'get');
-  },
-
-  findQuery: function(store, type, query) {
-    this._listenToSocket(type.typeKey);
-    return this.socket(this.buildURL(type.typeKey), 'get', query);
-  },
-
-  isErrorObject: function(data) {
-    return !!data.status;
-  },
-
-  socket: function(url, method, data ) {
-    var isErrorObject = this.isErrorObject.bind(this);
-    method = method.toLowerCase();
-    var adapter = this;
-    adapter._log(method, url, data);
-    if(method !== 'get')
-      this.checkCSRF(data);
-    return new RSVP.Promise(function(resolve, reject) {
-      socket[method](url, data, function (data) {
-        if (isErrorObject(data)) {
-          adapter._log('error:', data);
-          if (data.errors) {
-            reject(new DS.InvalidError(adapter.formatError(data)));
-          } else {
-            reject(data);
-          }
-        } else {
-          resolve(data);
-        }
-      });
-    });
-  },
-
-  buildURL: function(type, id) {
-    var url = [];
-
-    type = type || '';
-    if (this.camelize) {
-      type = Ember.String.camelize(type);
-    }
-
-    if (type) {
-      url.push(type);
-    }
-    if (id) { url.push(id); }
-
-    url = url.join('/');
-    var namespace = this.namespace || this.prefix;
-    url = namespace + '/' + url;
-
-    return url;
-  },
-
-  _listenToSocket: function(model) {
-    if(model in this.listeningModels) {
-      return;
-    }
-    var self = this;
-    var store = this.container.lookup('store:main');
-    var socketModel = model;
-
-    function findModelName(model) {
-      var mappedName = self.modelNameMap[model];
-      return mappedName || model;
-    }
-
-    function pushMessage(message) {
-      var type = store.modelFor(socketModel);
-      var serializer = store.serializerFor(type.typeKey);
-      // Messages from 'created' don't seem to be wrapped correctly,
-      // however messages from 'updated' are, so need to double check here.
-      if(!(model in message.data)) {
-        var obj = {};
-        obj[model] = message.data;
-        message.data = obj;
-      }
-      var record = serializer.extractSingle(store, type, message.data);
-      store.push(socketModel, record);
-    }
-
-    function destroy(message) {
-      var type = store.modelFor(socketModel);
-      var record = store.getById(type, message.id);
-
-      if ( record && typeof record.get('dirtyType') === 'undefined' ) {
-        record.unloadRecord();
-      }
-    }
-
-    var eventName = Ember.String.camelize(model).toLowerCase();
-    socket.on(eventName, function (message) {
-      // Left here to help further debugging.
-      //console.log("Got message on Socket : " + JSON.stringify(message));
-      if (message.verb === 'created') {
-        // Run later to prevent creating duplicate records when calling store.createRecord
-        Ember.run.later(null, pushMessage, message, 50);
-      }
-      if (message.verb === 'updated') {
-        pushMessage(message);
-      }
-      if (message.verb === 'destroyed') {
-        destroy(message);
-      }
-    });
-
-    // We add an emtpy property instead of using an array
-    // ao we can utilize the 'in' keyword in first test in this function.
-    this.listeningModels[model] = 0;
-  },
-
-  _log: function() {
-    if (this.log) {
-      console.log.apply(console, arguments);
-    }
-  },
-
-  checkCSRF: function(data) {
-    if(!this.useCSRF) return data;
-    if(this.CSRFToken.length === 0) {
-      throw new Error("CSRF Token not fetched yet.");
-    }
-    data['_csrf'] = this.CSRFToken;
-    return data;
-  }
-});
-
-})();
 
 (function() {
 
@@ -101573,6 +101304,42 @@ we.utils.ember.arrayRemoveById = function(items, idValue) {
 window.we = we;
 
 
+var WeMessenger = function() {
+  this.connect();
+}
+
+WeMessenger.prototype.messages = {};
+WeMessenger.prototype.contacts = {};
+
+WeMessenger.prototype.connect = function () {
+  window.socket = window.io({
+    query: {
+      authToken: this.getAuthToken()
+    }
+  });
+}
+
+WeMessenger.prototype.getContacts = function() {
+  window.socket.emit('we:router', {
+    method: 'get',
+    controller: 'messenger',
+    action: 'getContacts',
+    token: this.getAuthToken()
+  }, function (data) {
+    console.log('data returned:',data); // data will be 'woot'
+  });
+}
+
+WeMessenger.prototype.getAuthToken = function() {
+  return App.auth.token;
+}
+
+WeMessenger.prototype.sendMessage = function(room, message) {
+
+}
+
+window.WeMessenger = WeMessenger;
+
 /**
 * your ember.js app
 * This file runs after load ember.js features like components
@@ -101621,6 +101388,146 @@ App.LoggedInMixin = Ember.Mixin.create({
   }.property('App.auth.isAuthenticated')
 });
 
+// TODO move this mixin to one mixins file
+App.PostMecanismMixin = Ember.Mixin.create({
+  checkLinkKeys: [32, 13],
+  actions: {
+    onChangeText: function(editor, event) {
+      var self = this;
+      // only start attach url with enter or space
+      if(self.get('checkLinkKeys').indexOf(event.keyCode) > -1 ) {
+        self.checkLinks(editor.code());
+      }
+    },
+    onPasteText: function(editor) {
+      var self = this;
+      console.warn('on paste body');
+     // wait editor set pasted values
+      Ember.run.later(self, function() {
+        self.checkLinks(editor.code());
+        self.set('value',editor.code());
+      }, 150);
+    },
+
+    openShareImage: function openShareImage() {
+      this.setProperties({
+        'shareImages': true
+      });
+    },
+    onDeleteWembed: function () {
+      if(this.get('post.wembed')) {
+        this.set('post.wembed', null);
+      } else {
+        this.set('wembed', null);
+      }
+
+      this.set('newWembed', null);
+    },
+
+    /**
+     * Remove one image from imagesToSave array
+     * @param  {[type]} imageObj upload image object
+     */
+    onRemoveImage: function onRemoveImage(imageObj){
+      this.get('files').removeObject(imageObj);
+      // if removed last image from selected images hide the image selector
+      if(!this.get('files.length')){
+        this.set('shareImages', false);
+      }
+    },
+    /**
+     * Upload images to server
+     * @param  {array}   files     Array with files to upload
+     * @param  {string}   uploadUrl url to upload the files
+     * @param  {Function} callback  function to callback with callback(error)
+     */
+    uploadImages: function uploadImages(files, uploadUrl, callback){
+      var self = this;
+
+      // callback is optional
+      if(!callback) callback = function fakeCallback(){};
+
+      var uploader = Ember.Uploader.create({
+        url: uploadUrl,
+        type: 'POST',
+        paramName: 'images'
+      });
+      if (!Ember.isEmpty(files)) {
+        var promisseUpload = uploader.upload(files);
+        promisseUpload.then(function uploadFilesSuccess(data) {
+          // Handle success
+          if(data.images){
+            // store new images on ember data
+            var salvedImages = self.get('store').pushMany('image',data.images);
+            callback(null, salvedImages);
+          }else{
+            callback(null, []);
+          }
+        }, function uploadFilesError(error) {
+          // Handle failure
+          callback(error);
+        });
+      }else{
+        // no files to send
+        callback(null);
+      }
+    }
+  }
+});
+
+App.WembedLinkerMixin = Ember.Mixin.create({
+  oldLinks: [],
+  currentLinkIndex: 0,
+  links: [],
+  wembedVariable: 'newWembed',
+  isLoading: false,
+  getLinkDataInWembed: function getLinkDataInWembed(link){
+    return Ember.$.getJSON(App.get('wembedApiUrl') + link);
+  },
+
+  /**
+   * check if the text has links
+   */
+  getLinks: function getLinks(text){
+    // remove &nbsp;
+    // TODO move the replace to regex epression bellow
+    text = text.replace('&nbsp;',' ');
+    var expression =  /(https?:\/\/[^\s|<]+)/gi;
+    return (text.match(expression));
+  },
+
+  checkLinks: function checkLinks(code){
+    var self = this;
+    var wembedVariableName = self.get('wembedVariable');
+    // if has one link selected skyp
+    if (self.get(wembedVariableName) || self.get('isLoading') ) return;
+    // store links list
+    self.set('links', self.getLinks(code));
+
+    var links = self.get('links');
+
+    if (!links) return;
+
+    self.set('isLoading', true);
+
+    var currentLink = links[self.currentLinkIndex];
+    var result = self.getLinkDataInWembed(currentLink);
+    result.done(function onSuccess(data) {
+      if (data.page) {
+        data.page.wembedId = data.page.id;
+        delete data.page.id;
+        self.set(wembedVariableName, data.page);
+      }
+    })
+    .fail(function onFail() {
+      console.error('Error on get Wembed JSON! for link', currentLink);
+    })
+    .always(function onEnd() {
+      self.set('isLoading', false);
+    });
+  }
+});
+
 App.AuthenticatedRouteMixin = Ember.Mixin.create({
   beforeModel: function(transition, queryParams) {
     this._super();
@@ -101633,9 +101540,53 @@ App.AuthenticatedRouteMixin = Ember.Mixin.create({
   unauthenticatedRedirect: 'home'
 });
 
+App.GroupSaveAttributeMixin = Ember.Mixin.create({
+  isLoading: false,
+  actions: {
+    saveAttribute: function saveAttribute(atributo) {
+      var self = this;
+      var group = self.get('group');
+
+      self.set('isLoading', true);
+
+      var value;
+
+      var type = this.get('store').modelFor('group');
+      var fieldConfig = type.metaForProperty(atributo);
+
+      if (fieldConfig.kind === 'belongsTo' ) {
+        value = group.get(atributo + '.id');
+      } else if(fieldConfig.kind === 'hasMany') {
+        return Ember.Logger.error('Save attribute dont has suport to save hasMany fields');
+      } else {
+        value = group.get(atributo);
+      }
+
+      var url = '/api/v1/group/' + group.id;
+      url += '/' + atributo;
+
+      $.ajax({
+        type: 'POST',
+        url: url,
+        cache: false,
+        data: JSON.stringify({
+          value: value
+        }),
+        dataType: 'json', //Expected data format from server
+        contentType: 'application/json'
+      })
+      .fail(function( jqXHR, textStatus, errorThrown){
+        Ember.Logger.error('Error on update group atribute',atributo,errorThrown);
+      })
+      .always(function() {
+        self.set('isLoading', false);
+      });
+    }
+  }
+});
 App.ImageSelectorMixin = Ember.Mixin.create({
 
-  imageUploadUrl: '/api/v1/images',
+  imageUploadUrl: '/api/v1/image',
 
   selectedImage: null,
   imageToSave: null,
@@ -101687,15 +101638,15 @@ App.ImageSelectorMixin = Ember.Mixin.create({
         var uploader = Ember.Uploader.create({
           url: this.get('imageUploadUrl'),
           type: 'POST',
-          paramName: 'images'
+          paramName: 'image'
         });
 
         var promisseUpload = uploader.upload(file);
         promisseUpload.then(function uploadFilesSuccess(data) {
           // Handle success
-          if (data.images && data.images[0]) {
+          if (data.image && data.image[0]) {
             // sabe image in store
-            var image = self.get('store').push('images', data.images[0]);
+            var image = self.get('store').push('image', data.image[0]);
             if (callback) return callback(null, image);
           } else {
             if (callback) return callback(null, null);
@@ -101728,9 +101679,11 @@ App.LoggedInMixin = Ember.Mixin.create({
  * Add this on one route to scroll to top every time enter in the route
  */
 App.ResetScrollMixin = Ember.Mixin.create({
-  activate: function() {
-    this._super();
-    window.scrollTo(0,0);
+  actions: {
+    didTransition: function() {
+      window.scrollTo(0,0);
+      NProgress.done(true);
+    }
   }
 });
 App.UnAuthenticatedRouteMixin = Ember.Mixin.create({
@@ -101803,6 +101756,7 @@ WeApplicationRoutesMixin = Ember.Mixin.create({
     },
     // after change route
     didTransition: function() {
+      this._super();
       NProgress.done(true);
     },
 
@@ -101844,6 +101798,166 @@ WeApplicationRoutesMixin = Ember.Mixin.create({
         Ember.Logger.error('Unhandled error on route', error.stack, error);
       }
     }
+  }
+});
+
+App.WeLoadMoreMixin = Ember.Mixin.create({
+  length: Ember.computed.oneWay('records.length'),
+
+  modelType: 'activity',
+
+  // delay to start in ms
+  delayToStart: 500,
+
+  page: 1,
+  loadingMore: false,
+  haveMore: true,
+
+  limit: 7,
+  count: null,
+
+  didInsertElement: function didInsertElement() {
+    this._super();
+    // wait some time to load activity from server
+    Ember.run.later(null, this.start.bind(this), null, this.get('delayToStart'));
+
+    $(window).on('scroll', $.proxy(this.didScroll, this) );
+  },
+
+  willDestroyElement: function(){
+    // have to use the same argument to `off` that we did to `on`
+    $(window).off('scroll', $.proxy(this.didScroll,this) );
+  },
+
+  actions: {
+    // -- LOAD MORE FEATURE
+    getMore: function() {
+      var self = this;
+      // if dont have more offset this feature
+      // in one timeline new contents go to timeline start and are added with push
+      if (!this.get('haveMore')) return ;
+      // don't load new data if we already are
+      if (this.get('loadingMore')) return ;
+      this.set('loadingMore', true);
+
+      this.incrementProperty('page');
+
+      // add some delay after get more content from server
+      Ember.run.later(function() {
+        var query = self.getCurrentQuery();
+
+        self.store.find( self.get('modelType'), query).then(function() {
+          // check if have more records
+          if ((self.get('length') ) < self.get('count') ) {
+            self.send('gotMore');
+          } else {
+            self.send('dontHaveMore');
+          }
+        });
+      }, 500);
+    },
+    // Also add a method `gotMore` that the route can call back to
+    // notify the controller that the new data is in and it can stop
+    // showing its loading indicator
+    gotMore: function() {
+      this.setProperties({
+        loadingMore: false
+      });
+    },
+    dontHaveMore: function() {
+      this.setProperties({
+        loadingMore: false,
+        haveMore: false
+      });
+    }
+  },
+
+
+  // this is called every time we scroll
+  didScroll: function() {
+    if (this.isScrolledToBottom()) {
+      this.send('getMore');
+    }
+  },
+
+  // we check if we are at the bottom of the page
+  isScrolledToBottom: function(){
+    var distanceToViewportTop = (
+      $(document).height() - $(window).height());
+    var viewPortTop = $(document).scrollTop();
+
+    if (viewPortTop === 0) {
+      // if we are at the top of the page, don't do
+      // the infinite scroll thing
+      return false;
+    }
+
+    return (viewPortTop - distanceToViewportTop === 0);
+  },
+
+  onClickGetMore: function() {
+    this.send('getMore');
+  }
+});
+
+App.WeTermFieldMixin = Ember.Mixin.create({
+  tagName: 'input',
+  type: 'text',
+  classNames: ['select2-element','form-control','input-md','tm-input','tm-input-success'],
+
+  multiple: true,
+  vocabulary: null,
+  maximumInputLength: 100,
+
+
+  // value array
+  value: null,
+
+
+  formatSearching: function() { return 'Buscando ...'; },
+
+  formatInputTooLong: function(term, maxLength){
+    return 'O termo '+term+ ' é muito grande, o máximo de palavras é: ' + maxLength;
+  },
+  formatSelectionTooBig: function(maxSize){
+    return 'Você só pode selecionar ' + maxSize + ' termos';
+  },
+  formatLoadMore: function() {
+    return 'Carregando mais resultados ...' ;
+  },
+  formatInputTooShort: function (input, min) {
+    var n = min - input.length;
+    return "Por favor digite " + n + " ou mais letras";
+  },
+
+  formatSelection: function(item) {
+    if (typeof item === 'string') {
+      return item;
+    } else if( item.text ) {
+      return item.text;
+    } else {
+      return item.get('text');
+    }
+  },
+
+  formatNoMatches: function () { return "Nenhum termo encontrado"; },
+
+  ajaxResults: function (data) {
+    return {
+      results: data.term
+    };
+  },
+
+  willDestroyElement: function(){
+    this.$().select2('destroy');
+  },
+
+  // TODO how to call this functions from outside?
+  getSelectedItems: function(){
+    return this.$().select2('data');
+  },
+  empty: function(){
+    this.$().select2('val', '');
   }
 });
 
@@ -101914,6 +102028,7 @@ window.Handlebars.registerHelper('can', function(permissionName, modelName, mode
 
 
  Ember.Handlebars.helper('marked-text', function(value, options) {
+  if (!value) return '';
   var newText = value.replace(markedTextReged, '<mention data-username="$1" class="user-mention">$1</mention>');
   return new Ember.Handlebars.SafeString(newText);
 });
@@ -101929,6 +102044,20 @@ Ember.Handlebars.helper('html', function(value) {
   return new Handlebars.SafeString(value);
 });
 
+Ember.Handlebars.registerHelper('renderActivity', function(activityActionName, activityName, options) {
+  var component1 = Ember.Handlebars.get(this, activityActionName, options);
+  var helper = Ember.Handlebars.resolveHelper(options.data.view.container, component1);
+
+  if (!helper) {
+    var component2 = Ember.Handlebars.get(this, activityName, options);
+    helper = Ember.Handlebars.resolveHelper(options.data.view.container, component2);
+    if (!helper) {
+      console.warn('Activity component not found', component1, component2);
+      return '';
+    }
+  }
+  helper.call(this, options);
+});
 /**
  * Register 'array' ember.js data type
  */
@@ -101952,6 +102081,30 @@ DS.ArrayTransform = DS.Transform.extend({
 });
 
 App.register('transform:array', DS.ArrayTransform);
+
+/**
+ * Register 'term' ember.js data type
+ */
+
+DS.TermTransform = DS.Transform.extend({
+  deserialize: function(serialized) {
+    return (Ember.typeOf(serialized) === 'array') ? serialized : [];
+  },
+  serialize: function(deserialized) {
+    var type = Ember.typeOf(deserialized);
+    if (type === 'array') {
+      return deserialized;
+    } else if (type === 'string') {
+      return deserialized.split(',').map(function(item) {
+        return jQuery.trim(item);
+      });
+    } else {
+      return [];
+    }
+  }
+});
+
+App.register('transform:term', DS.TermTransform);
 
 /**
  *  Load wejs adapter and custom JSONSerializer
@@ -101980,7 +102133,20 @@ $.ajaxPrefilter(function( options ) {
     }
   }
 });
-App.ApplicationRESTAdapter = DS.SailsRESTAdapter.extend({
+
+
+
+Ember.$(document).ajaxSuccess(function(event, jqXHR) {
+  if(!jqXHR.responseJSON || !jqXHR.responseJSON.meta) return;
+
+  if (!Ember.isEmpty(jqXHR.responseJSON.meta.activity) )  {
+     Ember.get(App.Activity, 'store')
+    .pushPayload('activity', {activity: jqXHR.responseJSON.meta.activity} );
+    delete jqXHR.responseJSON.meta.activity;
+  }
+});
+
+App.ApplicationRESTAdapter = DS.RESTAdapter.extend({
   defaultSerializer: '-default',
   pathForType: function(type) {
     var camelized = Ember.String.camelize(type);
@@ -102174,6 +102340,173 @@ App.CommentItemRoute = Ember.Route.extend({
 	}
 });
 
+App.Router.map(function() {
+  // groups route map
+  this.resource('groups',{path: '/group'}, function(){
+    this.route('create',{path: '/create'});
+    // item route
+    this.resource('group',{ path: '/:id' }, function(){
+      this.route('addMember', {path: '/invites'});
+      this.route('members', {path: '/member'});
+      this.route('content', {path: '/content'});
+      this.route('about', {path: '/about'});
+      this.route('edit', {path: '/edit'});
+      this.route('requests', {path: '/requests'});
+    });
+  });
+});
+
+// route list
+App.GroupsIndexRoute = Ember.Route.extend(App.ResetScrollMixin,{
+  model: function() {
+    // then return the list
+    return this.store.find('group');
+  }
+});
+
+App.GroupAddMemberRoute = Ember.Route.extend(App.ResetScrollMixin,{
+  model: function() {
+    return {
+      group: this.modelFor('group').group,
+      newInvite: {},
+      showInviteForm: false
+    }
+  }
+});
+
+// route create
+App.GroupsCreateRoute = Ember.Route.extend(App.ResetScrollMixin,{
+  model: function() {
+    return {
+      image: {},
+      record: {},
+    };
+  }
+});
+
+App.GroupRoute = Ember.Route.extend({
+  model: function(params) {
+    return Ember.RSVP.hash({
+      group: this.store.find('group', params.id),
+      roles: App.configs.groupRoles,
+      membership: null
+    });
+  },
+  afterModel: function(model) {
+    var membership = Ember.get(model.group, '_data.meta.membership');
+    if (membership) {
+      model.membership = this.store.push('membership', membership);
+    }
+  }
+});
+
+// route /user/:uid/index
+App.GroupIndexRoute = Ember.Route.extend(App.ResetScrollMixin, {
+  model: function() {
+    var group = this.modelFor('group').group;
+    return Ember.RSVP.hash({
+      // set current group
+      group: group
+    });
+  }
+});
+
+App.GroupAboutRoute = Ember.Route.extend(App.ResetScrollMixin, {
+  model: function() {
+    return Ember.RSVP.hash({
+      group: this.modelFor('group').group
+    });
+  }
+});
+
+App.GroupEditRoute = Ember.Route.extend(App.ResetScrollMixin, {
+  model: function() {
+    return Ember.RSVP.hash({
+      record: this.modelFor('group').group
+    });
+  }
+});
+
+// members list
+App.GroupMembersRoute = Ember.Route.extend(App.ResetScrollMixin, {
+  model: function() {
+    var group = Ember.get(this.modelFor('group'), 'group' );
+    // then return the list
+    return Ember.RSVP.hash({
+      group: group,
+      members: this.loadMembers(group.id, 20)
+    })
+  },
+
+  loadMembers: function(groupId, limit, role) {
+    var self = this;
+    if (!groupId) groupId = this.get('group.id');
+    if (!groupId) return;
+
+    var query = {};
+    // Só quem tem o status de ativo. Se for convite, o usuário ainda tem que aceitar...
+    query.status = 'active';
+    if (role) query.role = role;
+    if (role) query.limit = limit;
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      return $.ajax({
+        type: 'GET',
+        url: '/group/' + groupId + '/member',
+        data:  query
+      })
+      .done(function success(data) {
+        return resolve(self.get('store').pushPayload(data));
+      })
+      .fail(reject)
+    });
+  }
+});
+
+// members list
+App.GroupRequestsRoute = Ember.Route.extend(App.ResetScrollMixin, {
+  model: function() {
+    var group = Ember.get(this.modelFor('group'), 'group' );
+    // then return the list
+    return Ember.RSVP.hash({
+      group: group,
+      memberships: this.loadRequests(group.id)
+    })
+  },
+
+  loadRequests: function(groupId) {
+    var self = this;
+    if (!groupId) groupId = this.get('group.id');
+
+    if (!groupId) return;
+
+
+    var query = {};
+    // Só quem tem o status de requested
+    query.status = 'requested';
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      return $.ajax({
+        type: 'GET',
+        url: '/api/v1/group/' + groupId + '/member',
+        data:  query
+      })
+      .done(function success(data) {
+        return resolve(data.membership);
+      })
+      .fail(reject)
+    });
+  }
+});
+
+App.GroupContentRoute = Ember.Route.extend(App.ResetScrollMixin, {
+  model: function() {
+    return Ember.RSVP.hash({
+      group: this.modelFor('group').group
+    });
+  }
+});
+
 
 App.HomeRoute = Ember.Route.extend({
   renderTemplate: function() {
@@ -102262,17 +102595,17 @@ App.PagesIndexRoute = Ember.Route.extend(App.ResetScrollMixin, {
     q: { refreshModel: true },
     category: { refreshModel: true },
     sort: { refreshModel: true },
-    skip: { refreshModel: true },
+    offset: { refreshModel: true },
     limit: { refreshModel: true }
   },
 
   model: function (params) {
     var query = this.buildQuery(params);
 
-    return {
+    return Ember.RSVP.hash({
       attributes: Ember.get('App.Page.attributes').keys.list,
       records: this.store.find('page', query)
-    };
+    });
   },
 
   buildQuery: function(params) {
@@ -102282,8 +102615,8 @@ App.PagesIndexRoute = Ember.Route.extend(App.ResetScrollMixin, {
     if (params.category && params.category != 'undefined') {
       query.category = params.category;
     }
-    //query.skip = (Number(params.currentPage) -1 )* Number(params.limit) ;
-    query.skip = params.skip;
+    //query.offset = (Number(params.currentPage) -1 )* Number(params.limit) ;
+    query.offset = params.offset;
     query.limit = params.limit;
     query.sort = params.sort;
 
@@ -102318,7 +102651,7 @@ App.PageRoute = Ember.Route.extend(App.ResetScrollMixin, {
   }
 });
 
-App.PageEditRoute = Ember.Route.extend(App.ResetScrollMixin, App.AuthenticatedRouteMixin, {
+App.PageEditRoute = Ember.Route.extend(App.ResetScrollMixin,{
   model: function (params) {
     return Ember.RSVP.hash({
       record: this.modelFor('page').record
@@ -102326,10 +102659,136 @@ App.PageEditRoute = Ember.Route.extend(App.ResetScrollMixin, App.AuthenticatedRo
   }
 });
 
+
+App.Router.map(function(match) {
+  // post route map
+  this.resource('posts',{path: '/post'}, function(){
+    // item route
+    this.resource('post',{
+      path: '/:post_id',
+      //queryParams: ['anchor']
+    }, function(){
+
+    });
+  });
+
+});
+
+App.PostsIndexRoute = Ember.Route.extend(App.ResetScrollMixin,{
+  model: function() {
+    return Ember.RSVP.hash({
+      posts: this.store.find('post'),
+      postNew: App.postClean(),
+      isSearching: '',
+      postIsLoading: false
+    });
+  },
+  actions: {
+    // action before post delete
+    postDeleted: function(){},
+
+    //action after post creation
+    newPost: function(){},
+
+    // -- SEARCH
+    searchRecords: function(query){
+
+      var self  = this;
+      var store = this.get('store');
+
+      App.set('postIsLoading', true);
+
+      // reset posts and comments in store
+      this.store.unloadAll('post');
+      this.store.unloadAll('comment');
+
+      self.set('page', 1);
+
+      if(!query){
+        return store.find('post').then(function(){
+          self.set('currentModel.postIsLoading', false);
+        });
+      }
+
+      store.find('post', query).then(function(){
+        self.set('currentModel.postIsLoading', false);
+      });
+    }
+  }
+});
+
+// route item
+App.PostRoute = Ember.Route.extend(App.ResetScrollMixin,{
+  model: function (params) {
+    var self = this;
+    // preload all comments
+    this.store.find('comment',{
+      post: params.post_id,
+      limit: 1000
+    });
+
+    return Ember.RSVP.hash({
+      // get current comment
+      post: this.store.find('post', params.post_id).then(function(post) {
+        self.subscribe('post', post.id);
+        return post;
+      }),
+      // user filter to live update on new comments
+      commentsList: this.store.filter('comment', function(resource) {
+        if (resource.get('postId') == params.post_id) {
+          return true;
+        }
+        return false;
+      })
+    })
+  },
+  afterModel: function(model) {
+    App.WeNotification.markModelNotificationAsRead(
+      this.get('store'), 'post', model.post.id
+    )
+  },
+
+  subscribe: function(modelName, id) {
+    window.io.socket.post('/api/v1/subscribe',{
+      modelName: modelName,
+      ids: [
+        id
+      ]
+    });
+  }
+});
+
+App.PostsRoute = Ember.Route.extend({
+  model: function() {
+    return []
+  }
+});
 App.UnknownRoute = Ember.Route.extend({
 	renderTemplate: function() {
 	  this.render('404');
-	}
+	},
+
+  model: function() {
+    var self = this;
+    $.ajax({
+      url: location.pathname
+    }).done(function (data) {
+      var keys = Object.keys(data);
+      var modelName;
+
+      for (var i = keys.length - 1; i >= 0; i--) {
+        if (keys[i] != 'meta') {
+          modelName = keys[i];
+          break;
+        }
+      }
+
+      if (!modelName) return;
+
+      self.transitionTo(modelName, data[modelName].id);
+
+    });
+  }
 });
 
 
@@ -102514,11 +102973,19 @@ App.UnknownRoute = Ember.Route.extend({
     }
   });
 
+App.ActivityListController = Ember.ArrayController.extend({
+  sortProperties: Ember.computed.oneWay('parentController.sortProperties'),
+  sortAscending: Ember.computed.oneWay('parentController.sortAscending'),
+  count: Ember.computed.oneWay('parentController.count'),
+  activityIsLoading: Ember.computed.oneWay('parentController.isSearching')
+});
+
 
 App.ApplicationController = Ember.Controller.extend({
   title: function() {
     return App.get('configs.client.publicVars.appName');
   }.property('App.configs.client.publicVars.appName'),
+
   subTitle: function() {
     return App.get('configs.client.publicVars.appAbout');
   }.property('App.configs.client.publicVars.appAbout'),
@@ -102987,11 +103454,348 @@ App.CommentsListController = Ember.ArrayController.extend({
     return App.auth;
   }.property('App.auth')
 });
+App.GroupAboutController = Ember.ObjectController.extend(App.GroupSaveAttributeMixin, {
+  breadCrumb: 'Sobre',
+  vocabularyId: function() {
+    return App.get('vocabularyId');
+  }.property('App.vocabularyId')
+});
+
+
+/**
+ *
+ */
+App.GroupAddMemberController = Ember.ObjectController.extend({
+  breadCrumb: function(){
+    return this.get('name');
+  }.property('name'),
+
+  user: null,
+  success: false,
+  notFound: false,
+
+  isLoading: false,
+
+  actions: {
+    /**
+     * Invitar user para o grupo
+     */
+    invite: function() {
+      var self = this;
+      this.set('isLoading', true);
+
+      return Ember.$.ajax({
+        url: '/group/' + this.get('group.id') + '/member',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+         name: self.get('newInvite.name'),
+         text: self.get('newInvite.text'),
+         email: self.get('newInvite.email')
+        }
+      }).then(function(data) {
+        alert(Ember.I18n.t('group.invite.form.success'));
+      }).fail(function( jqXHR, textStatus, errorThrown) {
+        return Ember.Logger.error('Error on inviteUser',textStatus, errorThrown);
+      }).always(function(){
+        self.set('isLoading', false);
+      });
+    },
+    showInvite: function() {
+      this.set('showInviteForm', true);
+    },
+    cancelInvite: function() {
+      this.set('showInviteForm', false);
+      this.set('newInvite', {});
+    }
+  }
+});
+
+/**
+ * Group item controller /group/:id
+ * @author Alberto Souza
+ * @author Thalles
+ */
+App.GroupController = Ember.ObjectController.extend(App.GroupSaveAttributeMixin, {
+  breadCrumb: function(){
+    return this.get('name');
+  }.property('name'),
+
+  isLoading: false,
+
+  imageUploadUrl: '/api/v1/images',
+  changeAvatar: false,
+
+  /**
+   * Roda se um usuário selecionar uma nova imagem para logo
+   *
+   */
+  onNewAvatarSelected: function() {
+    var files = this.get('group.avatarSelected');
+    if (files && files[0]) {
+      this.set('group.newAvatar', files[0]);
+
+      var self = this;
+      var reader = new FileReader();
+
+      reader.onload = function (e) {
+        // get local file src
+        self.set('group.newAvatarSRC', e.target.result);
+      };
+      reader.readAsDataURL(files[0]);
+    }
+  }.observes('group.avatarSelected'),
+
+  // onChangeDisableRelatoFeature: function() {
+  //   this.send('saveAttribute', 'disableRelatoFeature');
+  // }.observes('group.disableRelatoFeature'),
+
+  actions: {
+    /**
+     * Delete the current grupo
+     */
+    deleteItem: function deleteItem(){
+      var self = this;
+      // get user confirmation
+      var userConfirmation = confirm( we.i18n('Are you sure you want to delete the group?') );
+      // if user confirm this action
+      if (userConfirmation === true) {
+        // delete and remove from store
+        this.get('model').destroyRecord().then(function() {
+          // and after destroy redirect to groups
+          self.transitionToRoute('groups');
+        });
+      }
+    },
+
+    showChangeAvatar: function () {
+      this.set('changeAvatar', true);
+      Ember.run.later(function(){
+       $('input[name="chaneGroupAvatar"]').trigger('click');
+      }, 200);
+
+    },
+
+    cancelChangeAvatar: function () {
+      this.setProperties({
+        'changeAvatar': false,
+        'group.avatarSelected': null,
+        'group.newAvatar': null,
+        'group.newAvatarSRC': null
+      });
+    },
+    saveAvatar: function() {
+      var self = this;
+      var file = self.get('group.newAvatar');
+
+      if (Ember.isEmpty(file)) {
+        return this.send('cancelChangeAvatar');
+      }
+
+      self.set('isLoading', true);
+
+      var uploader = Ember.Uploader.create({
+        url: this.get('imageUploadUrl'),
+        type: 'POST',
+        paramName: 'images'
+      });
+
+      var promisseUpload = uploader.upload(file);
+      promisseUpload.then(function uploadFilesSuccess(data) {
+        // Handle success
+        if (data.images && data.images[0]) {
+          // sabe image in store
+          var image = self.get('store').push('image', data.images[0]);
+          self.get('group').set('logo', image);
+
+          var logo = self.get('group.logo');
+
+          logo.then(function(){
+            self.send('cancelChangeAvatar');
+            self.send('saveAttribute', 'logo');
+          })
+        } else {
+          self.send('cancelChangeAvatar');
+        }
+        self.set('isLoading', false);
+      }, function uploadFilesError (error) {
+        Ember.Logger.error('Erro ao salvar a imagem de destaque do relato', error);
+        self.set('isLoading', false);
+      });
+
+    }
+  }
+});
+
+App.GroupFormController = Ember.ObjectController.extend( App.ImageSelectorMixin, {
+  vocabularyId: function() {
+    return App.get('vocabularyId');
+  }.property('App.vocabularyId'),
+
+  categories: null,
+  tags: null,
+
+  isSaving: false,
+
+  url: '/api/v1/images/',
+  file: null,
+  files: {},
+
+  privacityList: [],
+
+  init: function() {
+    this._super();
+    this.set('privacityList',[
+      {
+        label: Ember.I18n.t('Public'),
+        value:'public'
+      },
+      {
+        label: Ember.I18n.t('Restrict'),
+        value:'restrict'
+      },
+      {
+        label: Ember.I18n.t('Hidden'),
+        value:'hidden'
+      }
+    ]);
+  },
+  filesDidChange: function() {
+    this.set('file',this.get('files')[0]);
+  }.observes('files'),
+  actions:{
+    saveRecord: function() {
+      var self = this;
+      var data = this.get('record');
+      var record;
+
+      if (!data.id) {
+        record = this.get('store').createRecord('group', data);
+      } else {
+        record = data;
+      }
+
+      var featuredImage = this.get('imageToSave');
+
+      this.set('isSaving', true);
+
+      this.send('saveImage', featuredImage, function(err, salvedImage) {
+        if (featuredImage && salvedImage) {
+          record.set('logo', salvedImage);
+        }
+
+        record.save().then(function(r) {
+          self.set('isSaving', false);
+          self.transitionToRoute('group', r.id);
+        })
+      });
+    },
+
+    cancel: function() {
+      var record = this.get('record');
+
+      if (record.id) {
+        record.rollback();
+        this.transitionToRoute('group', record.id);
+      } else {
+        this.transitionToRoute('groups');
+      }
+    }
+  }
+});
+
+
+App.GroupIndexController = Ember.ObjectController.extend(App.GroupSaveAttributeMixin, {
+  isLoading: false,
+
+  vocabularyId: function() {
+    return App.get('vocabularyId');
+  }.property('App.vocabularyId'),
+
+  currentUser: function () {
+    return App.get('currentUser');
+  }.property('App.currentUser'),
+
+  actions:{
+    newPost: function newPost () {},
+
+    saveCategories: function() {
+      var self = this;
+      var group = self.get('group');
+
+      self.set('isLoading', true);
+
+      group.save().then(function() {
+        self.set('isLoading', false);
+      }).catch(function(err){
+        Ember.Logger.error('Error on save group saveCategories', err);
+        self.set('isLoading', false);
+      });
+    },
+    saveTags: function() {
+      this.send('saveCategories');
+    }
+  }
+});
+App.GroupRequestsController = Ember.ObjectController.extend(App.GroupSaveAttributeMixin, {
+  actions:{
+    acceptRequest: function(member) {
+      var self = this;      
+      var group = self.get('group');
+      var members = self.get('members');
+      var member = member;
+      return Ember.$.ajax({
+        url: '/api/v1/group/' + group.id + '/member/' + member.id,
+        method: 'PUT',
+        dataType: 'json',
+        data: {
+          status: 'active'
+        }
+      }).then(function(data) {        
+        self.set('memberships', self.get('memberships').filter(function (member){
+          if (member.user === data.membership.user) return false;
+          return true;
+        }));
+      }).fail(function( jqXHR, textStatus, errorThrown) {
+        Ember.Logger.error('Error on acceptRequest',textStatus, errorThrown);
+      });
+    },
+    denyRequest: function(member) {
+      var self = this;      
+      var group = self.get('group');
+      var members = self.get('members');
+      var member = member;      
+      return Ember.$.ajax({
+        url: '/api/v1/group/' + group.id + '/member/' + member.id,
+        method: 'DELETE'
+      }).then(function(response) {
+        self.set('memberships', self.get('memberships').filter(function (member){
+          if (member.user === response.members[0].user) return false;
+          return true;
+        }));
+        self.groupController.pendingRequests--;
+      }).fail(function( jqXHR, textStatus, errorThrown) {
+        Ember.Logger.error('Error on denyRequest',textStatus, errorThrown);
+      });
+    }
+  }
+});
+
+App.GroupsController = Ember.ObjectController.extend({
+  breadCrumb: 'Comunidades',
+});
+App.GroupsCreateController = Ember.ObjectController.extend();
+App.GroupsIndexController = Ember.ArrayController.extend({
+  currentUser: function () {
+    return App.get('currentUser');
+  }.property('App.currentUser')
+});
 
 App.HomeController = Ember.ObjectController.extend({
   title: function() {
-    return App.get('configs.client.publicVars.appName');
-  }.property('App.configs.client.publicVars.appName'),
+    document.title = App.get('configs.appName');
+    return App.get('configs.appName');
+  }.property('App.configs.appName'),
   subTitle: function() {
     return App.get('configs.client.publicVars.appAbout');
   }.property('App.configs.client.publicVars.appAbout'),
@@ -102999,6 +103803,524 @@ App.HomeController = Ember.ObjectController.extend({
   currentUser: function () {
     return App.get('currentUser');
   }.property('App.currentUser')
+});
+
+
+App.PageController = Ember.ObjectController.extend({
+  headerImage: function() {
+    if (this.get('selectedPreviewImage')) {
+      return this.bgStyle(this.get('selectedPreviewImage'));
+    }
+    var image = this.get('record.featuredImage');
+    if(image && image.get('urls')) {
+      return this.bgStyle( image.get('urls').original )
+    }
+    return this.bgStyle();
+  }.property('record.featuredImage.urls', 'selectedPreviewImage'),
+
+  bgStyle: function(url) {
+    if(!url) url = this.get('defaultHeaderImage');
+    return 'background-image: url("'+ url +'");';
+  },
+
+  defaultHeaderImage: function() {
+    if (App.get('configs.client.publicVars.showDefaultArticleImage')) {
+      return App.get('configs.client.publicVars.blogArticlesBg');
+    } else {
+      return '';
+    }
+  }.property('App.configs.client.publicVars.blogArticlesBg'),
+
+});
+
+App.PageFormController = Ember.ObjectController.extend( App.ImageSelectorMixin, {
+  isSaving: false,
+
+  breadCrumb: 'create',
+
+  actions: {
+    saveRecord: function() {
+      var self = this;
+      var data = this.get('record');
+      var record;
+
+      if (!data.id) {
+        record = this.get('store').createRecord('page', data);
+      } else {
+        record = data;
+      }
+
+      var featuredImage = this.get('imageToSave');
+
+      this.set('isSaving', true);
+
+      this.send('saveImage', featuredImage, function(err, salvedImage) {
+        if (featuredImage && salvedImage) {
+          record.set('featuredImage', salvedImage);
+        }
+
+        record.save().then(function(r) {
+          self.set('isSaving', false);
+          self.transitionToRoute('page', r.id);
+        })
+      });
+    },
+    saveAndPublishRecord: function() {},
+    cancel: function() {
+      var record = this.get('record');
+
+      if (record.id) {
+        record.rollback();
+        this.transitionToRoute('page', record.id);
+      } else {
+        this.transitionToRoute('pages');
+      }
+    }
+  }
+});
+
+
+
+App.PostController = Ember.ObjectController.extend(
+App.WembedLinkerMixin,
+App.PostMecanismMixin,
+{
+  queryParams: ['anchor'],
+  anchor: null,
+
+  breadCrumb: function(){
+    return this.get('post.id');
+  }.property('post.id'),
+
+  isEditing: false,
+  loadedComments: 4,
+
+  shareWithUsers: null,
+
+  newWembed: null,
+
+  files: [],
+
+  /**
+   * Image upload
+   * @todo rename vars to image
+   */
+  filesDidChange: function() {
+    var files = this.get('filesNew');
+    if (files && files[0]) {
+      this.get('files').pushObject(files[0]);
+    }
+  }.observes('filesNew'),
+
+  onNewWembed: function () {
+    var store = this.get('store');
+    this.set('wembed', store.createRecord('wembed', this.get('newWembed')))
+  }.observes('newWembed'),
+
+  currentUser: function () {
+    return App.get('currentUser');
+  }.property('App.currentUser'),
+
+  actions: {
+    deleteComment: function(comment){
+      // confirm delete action
+      var userConfirmation = confirm( window.i18n('comment.delete.confirm') );
+      if (userConfirmation === true) {
+        // delete comment from database
+        comment.destroyRecord()
+        .catch(function onError(result){
+          Ember.Logger.error('Error on delete comment', result);
+        });
+      }
+    },
+    edit: function() {
+      this.set('post.isEditing', true);
+    },
+    cancel: function() {
+      this.set('post.isEditing', false);
+      // rollback changes
+      this.get('post').rollback();
+    },
+    submit: function(){
+      var self = this;
+      if(self.get('wembed.wembedId')){
+        self.send('saveWembed', function(){
+          self.send('savePost');
+        });
+      } else {
+        self.send('savePost');
+      }
+    },
+    saveWembed: function saveWembed(callback){
+      var store = this.get('store');
+      var self = this;
+
+      store.find('user', App.currentUser.id)
+      .then(function(user){
+
+        var wembed = self.get('wembed');
+        wembed.setProperties({
+          'creator': user
+        });
+
+        wembed.save().then(function(){
+          self.set('post.wembed', wembed);
+          callback();
+        });
+
+      });
+    },
+    savePost: function savePost(){
+      var self = this;
+      // // save the model edit
+      this.get('post').save().then(function(){
+        // updated!
+        if(!self.isDestroyed){
+          self.set('post.isEditing', false);
+        }
+      });
+    },
+    deleteItem: function(){
+      var userConfirmation = confirm(window.i18n('comment.delete.confirm'));
+      if (userConfirmation === true) {
+        var model = this.get('post');
+        // send delete post event
+        this.send('postDeleted', model);
+
+        model.deleteRecord();
+        model.save()
+        .catch(function onError(result){
+          Ember.Logger.error('Error on create comment', result);
+        });
+      }
+    },
+
+    newComment: function newComment(commentNew){
+      var store = this.get('store');
+      var self = this;
+
+      store.find('user', we.authenticatedUser.id)
+      .then(function(user) {
+        // create new comment on store
+        var comment = store.createRecord('comment', commentNew);
+        comment.setProperties({
+          'creator': user,
+          'post': self.get('post'),
+          'postId': self.get('post.id')
+        });
+        // save it
+        comment.save().then(function () {
+          // reset post Id for filters
+          comment.set('postId', self.get('post.id'));
+        });
+      });
+    },
+
+    onRemoveSalvedImage: function onRemoveSalvedImage(image) {
+      if (image) {
+        this.get('images').removeObject(image);
+      }
+    }
+  }
+});
+
+App.PostIndexController = Ember.ObjectController.extend();
+(function($, Ember, App){
+
+  // a clean post object for help reset post in sharebox
+  App.postClean = function(){
+    return  {
+      body: '',
+      'isOpen': false,
+      'shareboxClass': 'small',
+      'shareImages': false,
+      'files': [],
+      'sharedIn': [],
+      'sharedWith': [],
+      'images': [],
+      'videos': [],
+      'links':[],
+      'wembed': null,
+      'newWembed': null
+    };
+  };
+
+  App.PostShareboxController = Ember.ObjectController.extend(
+    App.LoggedInMixin,
+    App.WembedLinkerMixin,
+    App.PostMecanismMixin,
+  {
+    // the post to save
+    post: null,
+
+    canCreatePost: function() {
+      return App.get('currentUser.id');
+    }.property('App.currentUser.id'),
+
+    onNewWembed: function () {
+      this.set('wembed', this.get('newWembed'))
+    }.observes('newWembed'),
+
+    imageUploadUrl: '/api/v1/images',
+    // if are selection attach options
+    // used to show or hide attach options buttons selector
+    selectingAttachOption: function(){
+      if(this.get('files.length') || this.get('videos.length') ) return false;
+      return true;
+    }.property('files.length','videos.length'),
+
+    images: [],
+    // new files object watcher
+    filesNew: {},
+    isSending: true,
+
+    filesDidChange: function() {
+      var files = this.get('filesNew');
+      this.get('files').pushObject(files[0]);
+    }.observes('filesNew'),
+
+    emptyData: function() {
+      this.set('post', this.store.createRecord('post'));
+      this.setProperties(App.postClean());
+    },
+
+    actions: {
+      openBox: function openBox(){
+        this.setProperties({
+          'isOpen': true,
+          'shareboxClass': 'normal'
+        });
+      },
+      cancel: function closeBox(){
+        this.emptyData();
+      },
+      submit: function submit(){
+        var self = this;
+        this.set('isSending',true);
+
+        if( self.get('wembed.wembedId') ) {
+          self.send('saveWembed');
+        } else {
+          var files = self.get('files');
+          var uploadUrl = self.get('imageUploadUrl');
+          // first start image upload
+          this.send('uploadImages',files, uploadUrl, function(err, images) {
+            if (err) {
+              Ember.Logger.error('Error on upload post image', err);
+            }
+            if(images){
+              // set image ids to save in model
+              self.set('model.imagesToSave', images);
+            }
+
+            self.send('savePost');
+            self.set('isSending',false);
+          });
+
+        }
+      },
+
+      saveWembed: function saveWembed(){
+        var store = this.get('store');
+        var self = this;
+
+        store.find('user', App.currentUser.id)
+        .then(function(user){
+
+          var wembed = store.createRecord('wembed', self.get('wembed'));
+          wembed.setProperties({
+            'creator': user
+          });
+
+          wembed.save().then(function(){
+            self.set('wembed', wembed);
+            self.send('savePost');
+          });
+
+        });
+      },
+      /**
+       * Save the post on server
+       */
+      savePost: function savePost(){
+        var self = this;
+        var postNew = this.get('model');
+        var sharedWith = postNew.sharedWith;
+        var images = Ember.get(postNew, 'imagesToSave');
+
+        delete postNew.imagesToSave;
+        delete postNew.images;
+        delete postNew.sharedWith;
+        delete postNew.sharedIn;
+
+        var store = this.get('store');
+        var group = this.parentController.get('group');
+
+        store.find('user', App.get('currentUser.id') )
+        .then(function(user){
+
+          // create new post on store
+          var post = store.createRecord('post', postNew);
+          post.setProperties({
+            'creator': user
+          });
+
+          if (group) post.set('sharedIn', group);
+          if (images) post.get('images').pushObjects(images);
+          if (sharedWith) post.get('sharedWith').pushObjects(sharedWith);
+
+          // delete unneed files variable
+          delete post.files;
+          delete post.filesNew;
+
+          post.save().then(function(){
+            // close and clear sharebox form inputs
+            self.send('newPost', post);
+            self.emptyData();
+          });
+        });
+      }
+    }
+  });
+
+})(jQuery, Ember, App);
+(function($, Ember, App){
+
+ App.PostTeaserController = Ember.ObjectController.extend(
+  App.WembedLinkerMixin,
+  App.PostMecanismMixin,
+  {
+    isEditing: false,
+
+    shareInGroups: null,
+    shareWithUsers: null,
+
+    newWembed: null,
+
+    files: [],
+
+    /**
+     * Image upload
+     * @todo rename vars to image
+     */
+    filesDidChange: function() {
+      var files = this.get('filesNew');
+      if (files && files[0]) {
+        this.get('files').pushObject(files[0]);
+      }
+    }.observes('filesNew'),
+
+    onNewWembed: function () {
+      this.set('wembed', this.get('newWembed'))
+    }.observes('newWembed'),
+
+    actions: {
+      edit: function() {
+        this.set('isEditing', true);
+      },
+      cancel: function() {
+        this.set('isEditing', false);
+        // rollback changes
+        this.get('model').rollback();
+      },
+      submit: function(){
+        var self = this;
+        if(self.get('newWembed')){
+          self.send('saveWembed', function(){
+            self.send('savePost');
+          });
+        } else {
+          self.send('savePost');
+        }
+      },
+      saveWembed: function saveWembed(callback){
+        var store = this.get('store');
+        var self = this;
+
+        store.find('user', App.currentUser.id)
+        .then(function(user){
+
+          var wembed = store.createRecord('wembed', self.get('newWembed'));
+          wembed.setProperties({
+            'creator': user
+          });
+
+          wembed.save().then(function(){
+            self.set('model.wembed', wembed);
+            callback();
+          });
+
+        });
+      },
+      savePost: function savePost(){
+        var self = this;
+        // // save the model edit
+        this.get('model').save().then(function(){
+          // updated!
+          if(!self.isDestroyed){
+            self.set('isEditing', false);
+          }
+        });
+      },
+      deleteItem: function(){
+        var userConfirmation = confirm(Ember.I18n.t('post.delete.confirm'));
+        if (userConfirmation === true) {
+          var model = this.get('model');
+          model.destroyRecord();
+        }
+      },
+      loadAllComments: function(){
+        var self = this;
+        this.store.find('comment',{
+          post: this.get('id'),
+          limit: 1000
+        }).then(function(comments){
+          if(comments){
+            self.setProperties({
+              'comments': comments,
+              'loadedComments': comments.get('length'),
+              'metadata.commentCount': comments.get('length')
+            });
+          }
+        });
+      },
+
+      newComment: function newComment(commentNew){
+        var store = this.get('store');
+        var self = this;
+
+        store.find('user', we.authenticatedUser.id)
+        .then(function(user){
+            console.warn(commentNew,self.get('model') )
+          // create new comment on store
+          var comment = store.createRecord('comment', commentNew);
+          comment.setProperties({
+            'creator': user,
+            'post': self.get('model')
+          });
+          // save it
+          comment.save();
+
+          self.get('comments').pushObject(comment);
+        });
+      },
+
+      showSharedWith: function showSharedWith() {
+        console.warn('TODO! show shared with ...', this.get('shareWithUsers'), this.get('shareInGroups'));
+      },
+      onRemoveSalvedImage: function onRemoveSalvedImage(image) {
+        if (image) {
+          this.get('images').removeObject(image);
+        }
+      }
+    }
+  });
+})(jQuery, Ember, App);
+
+App.PostsController = Ember.ArrayController.extend({
+  breadCrumb: function(){
+    return 'Buscar conteúdos';
+  }.property()
 });
 
   App.UserController = Ember.ObjectController.extend(App.UserSaveAttributeMixin, {
@@ -103274,33 +104596,238 @@ App.UsersController = Ember.Controller.extend({
     }
   });
 })(jQuery, Ember, App);
+$(function() {
+  App.Activity.reopen({
+    activityActionName: function() {
+      return 'we-activity-' + this.get('modelName') + '-' + this.get('action');
+    }.property('modelName', 'modelId'),
 
-App.Comment = DS.Model.extend({
-  body: DS.attr('string'),
+    activityName: function() {
+      return 'we-activity-' + this.get('modelName');
+    }.property('modelName'),
 
-  createdAt: DS.attr('date'),
-  updatedAt: DS.attr('date'),
+    // related record loader
+    relatedRecordLoader: function() {
+      if (this.get('relatedRecord')) return;
+      if (!this.get('modelName') || !this.get('modelId')) return;
+      var self = this;
+      this.get('store').find(this.get('modelName'), this.get('modelId'))
+      .then(function (r) {
+        self.set('relatedRecord', r);
+      });
+    }.observes('modelName', 'modelId').on('init'),
+    relatedRecord: null,
+    // self remove it if related record is deleted
+    onDeleteRelatedRecord: function() {
+      if (this.get('relatedRecord.isDeleted') )
+        this.deleteRecord();
+    }.observes('relatedRecord.isDeleted'),
 
-  // flags
-  active: DS.attr('boolean', {
-    defaultValue: true
-  }),
 
-  modelName: DS.attr('string'),
-  modelId: DS.attr('string'),
-
-  // relationship s
-  creator:  DS.belongsTo('user', {async: true}),
-
-  activities: DS.hasMany('activity', {async: true}),
-
-  // creatorId: function() {
-  //   return this.get('creator.id');
-  // }.property('creator')
+    relatedActorLoader: function() {
+      if (this.get('relatedActor')) return;
+      if (!this.get('actor')) return;
+      var self = this;
+      this.get('store').find('user', this.get('actor'))
+      .then(function (r) {
+        self.set('relatedActor', r);
+      });
+    }.observes('actor').on('init'),
+    relatedActor: null
+  });
 });
+// TODO move this object to other file
+window.FlagObject = Ember.Object.create({
+  // a index to store flags in model:modelId format
+  flagIndex: {},
+  saveInCache: function(flagType, model, modelId, value, count) {
+    if( !this.flagIndex[flagType] ) {
+      this.flagIndex[flagType] = {};
+    }
 
-App.CommentAdapter = App.ApplicationRESTAdapter.extend();
+    if (count) {
+      this.flagIndex[flagType][model+'/'+modelId+'-count'] = count;
+    }
 
+    return this.flagIndex[flagType][model+'/'+modelId] = value;
+  },
+  getFromCache: function(flagType, model, modelId) {
+    if( !this.flagIndex[flagType] ) {
+      return false;
+    }
+    return {
+      flag: this.flagIndex[flagType][model+'/'+modelId],
+      count: this.flagIndex[flagType][model+'/'+modelId+'-count']
+    };
+  },
+  upCount: function(flagType, model, modelId) {
+    if( !this.flagIndex[flagType] ) {
+      this.flagIndex[flagType] = {};
+    }
+
+    return this.flagIndex[flagType][model+'/'+modelId+'-count']++;
+  },
+  downCount: function(flagType, model, modelId) {
+    if( !this.flagIndex[flagType] ) {
+      this.flagIndex[flagType] = {};
+    }
+    return this.flagIndex[flagType][model+'/'+modelId+'-count']--;
+  },
+
+  isFlagged: function(flagType, model, modelId, userId, store) {
+    var self = this;
+    // check if are on flag cache index to dont make other request on server for this data
+    var flagIndex = self.getFromCache(flagType, model, modelId);
+    if ( flagIndex && flagIndex.flag === 'notFlagged') {
+      // this flag result is cached and user dont are flagged
+      return new Ember.RSVP.Promise(function(resolve) {
+        resolve({
+          flag: {},
+          count: flagIndex.count
+        });
+      });
+    }
+
+    var flagOnCache = self.checkInCache(flagType, model, modelId, store);
+
+    if( flagOnCache && flagIndex ){
+      return new Ember.RSVP.Promise(function(resolve) {
+        resolve({
+          flag: flagOnCache,
+          count: flagIndex.count
+        })
+      });
+    }
+
+    return new Ember.RSVP.Promise(function isFollowingPromisse(resolve) {
+      Ember.$.ajax({
+        type: 'GET',
+        url: '/api/v1/flag/'+model+'/'+modelId+'/'+userId+ '?flagType=' + flagType,
+        dataType: 'json',
+        contentType: 'application/json'
+      }).done(function onSuccess(data) {
+
+        if(!data.meta && data.meta) {
+          data.meta = { count: 0 } ;
+        }
+
+        if (data.flag && data.flag[0]) {
+          // save in index cache
+          self.saveInCache(flagType, model, modelId, 'flagged', data.meta.count);
+
+          resolve ({
+            flag: store.push('flag', data.flag[0]),
+            count: data.meta.count
+          });
+
+        } else {
+          // save in index cache
+          self.saveInCache(flagType, model, modelId, 'notFlagged', data.meta.count);
+          // resolve it
+          resolve({
+            flag: {},
+            count: data.meta.count
+          });
+        }
+      }).fail(function onFail(){
+        resolve({});
+      });
+    });
+  },
+
+  flag: function (flagType, model, modelId, store) {
+    var self = this;
+
+    return new Ember.RSVP.Promise(function (resolve, reject) {
+      Ember.$.ajax({
+        type: 'POST',
+        url: '/api/v1/flag/' + model + '/' + modelId + '?flagType=' + flagType,
+        dataType: 'json',
+        contentType: 'application/json'
+      }).done(function(data){
+        if (data.flag && data.flag) {
+          // save in index cache
+          self.saveInCache(flagType, model, modelId, 'flagged');
+          self.upCount(flagType, model, modelId);
+          resolve( store.push('flag',data.flag) );
+        } else {
+          resolve({});
+        }
+      }).fail(reject);
+    });
+  },
+
+  unFlag: function(flagType ,model, modelId, flagId, store) {
+    var self = this;
+
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      Ember.$.ajax({
+        type: 'DELETE',
+        url: '/api/v1/flag/' + model + '/' + modelId + '?flagType=' + flagType
+      }).done(function(){
+        // save in index cache
+        self.saveInCache(flagType, model, modelId, 'notFlagged');
+        self.downCount(flagType, model, modelId);
+        if ( store.hasRecordForId ('flag', flagId) ) {
+          store.find('flag', flagId).then(function(record){
+            record.deleteRecord();
+          });
+        }
+
+        resolve({});
+      }).fail(reject);
+    });
+  },
+
+  /**
+   * Check if a flag is on ember data memory cache
+
+   * @return {boolean}         return true or false
+   */
+  checkInCache: function(flagType, model, modelId, store) {
+    var localFlags = store.all('flag').content;
+    for (var i = localFlags.length - 1; i >= 0; i--) {
+      if (
+        model == localFlags[i].get('model') &&
+        modelId == localFlags[i].get('modelId') &&
+        flagType == localFlags[i].get('flagType')
+      ) {
+      return localFlags[i];
+      }
+    }
+    return false;
+  }
+})
+
+
+$(function() {
+  App.Flag.reopen({
+    count: DS.attr('number')
+  })
+})
+
+$(function() {
+  App.Group.reopen({
+    membership: function() {
+      return this.get('data.meta.membership');
+    }.property('data.meta.membership.id'),
+
+    isCreator: function() {
+      var id;
+      if (typeof this.get('creator') == 'object') {
+        id = this.get('creator.id');
+      } else {
+        id = this.get('creator');
+      }
+
+      if (App.get('currentUser.id') == id) {
+        return true;
+      } else {
+        return false;
+      }
+    }.property('creator')
+  });
+});
 $(function() {
 
   App.Image.reopen({
@@ -103352,6 +104879,46 @@ $(function() {
 
 Ember.Inflector.inflector.irregular('images', 'images');
 Ember.Inflector.inflector.singular(/images/, 'images');
+$(function() {
+  App.Membership.reopen({
+    // // related record loader
+    // relatedUserLoader: function() {
+    //   if (this.get('relatedRecord')) return;
+    //   if (!this.get('memberId')) return;
+    //   var self = this;
+    //   this.get('store').find('user', this.get('memberId'))
+    //   .then(function (r) {
+    //     self.set('relatedRecord', r);
+    //   });
+    // }.observes('memberId').on('init'),
+
+    // relatedRecord: null,
+
+    // self remove it if related record is deleted
+    onDeleteRelatedRecord: function() {
+      if (this.get('member.isDeleted') )
+        this.deleteRecord();
+    }.observes('member.isDeleted'),
+
+
+    // relatedGroupLoader: function() {
+    //   if (this.get('group')) return;
+    //   if (!this.get('modelId')) return;
+    //   var self = this;
+    //   this.get('store').find('group', this.get('modelId'))
+    //   .then(function (r) {
+    //     self.set('group', r);
+    //   });
+    // }.observes('modelId').on('init'),
+
+    // group: null,
+
+    onDeleteGroup: function() {
+      if (this.get('model.isDeleted') )
+        this.deleteRecord();
+    }.observes('model.isDeleted')
+  });
+});
 
 App.Messages = DS.Model.extend({
   message: DS.attr('string'),
@@ -103495,6 +105062,19 @@ $(function() {
     attributeBindings: ['data-user-id'],
     layout:  Ember.Handlebars.compile('{{#link-to "user" view.user.id}}{{view.user.displayName}}{{/link-to}}')
   });
+
+/**
+ * postEditForm to render view form in sharebox and edit form
+ */
+App.postEditFormView = Ember.View.extend({
+  tagName: 'form',
+  templateName: 'post/edit-form-content-view',
+  submit: function(){
+    this.get('controller').send('submit');
+    // stop event propagation
+    return false;
+  }
+});
 
 App.ActiveLiComponent = Ember.Component.extend({
   tagName: 'li',
@@ -103698,13 +105278,10 @@ App.FocusInputComponent = Ember.TextField.extend({
 
 });
 
-(function($, Ember, App){
-  App.ImageUploadComponent = Ember.FileField.extend({
-    accept: 'image/x-png, image/gif, image/jpeg',
-    files: []
-  });
-
-})(jQuery, Ember, App);
+App.ImageUploadComponent = Ember.FileField.extend({
+  accept: 'image/x-png, image/gif, image/jpeg',
+  files: []
+});
 /**
  * Ember.js user avatar image component visualizer
  *
@@ -103726,7 +105303,7 @@ App.UserAvatarComponent = Ember.Component.extend({
   // medium | thumbnail | original | large
   size: 'medium',
   classNames: ['thumbnail'],
-  defaultSrc: '/core/images/avatars/user-avatar.png',
+  defaultSrc: '/public/plugin/we-core/files/images/avatars/user-avatar.png',
   src: null,
   url: null,
 
@@ -103751,6 +105328,261 @@ App.UserAvatarComponent = Ember.Component.extend({
   }
 });
 
+/**
+ *  we-activities component
+ *
+ * Timeline
+ * {{we-activities userId=userId}}
+ *
+ * Group activity:
+ * {{we-activities group=group}}
+ *
+ * User Activity:
+ * {{we-activities userId=userId}}
+ */
+
+App.inject( 'component:we-activities', 'store', 'store:main' );
+
+App.WeActivitiesComponent = Ember.Component.extend(App.WeLoadMoreMixin, {
+  showSharebox: true,
+  activity: null,
+  // filter by user acttivities
+  userId: null,
+  // filter by group acttivities
+  groupId: null,
+
+  isLoading: true,
+
+  isSearching: false,
+
+  searchString: '',
+
+  where: {},
+
+  length: Ember.computed.oneWay('activity.length'),
+
+  // search
+  contextualFilter: null,
+  currentQuery: null,
+
+  selectedSort: 'createdAt',
+  sortProperties: ['createdAt'],
+  sortAscending: false,
+
+  defaultSort: 'createdAt DESC',
+  sort: 'createdAt DESC',
+  sortOptions: [
+    {
+      value: 'createdAt DESC',
+      label: 'sort.label.new'
+    },
+    {
+      value: 'createdAt ASC',
+      label: 'sort.label.old'
+    },
+    {
+      value: 'updatedAt DESC',
+      label: 'sort.label.updated'
+    }
+  ],
+
+  postIsLoading: Ember.computed.alias('parentController.isSearching'),
+
+  // static object used to track translated structures
+  translatedsObjects: {},
+
+  init: function() {
+    this._super();
+
+    // localizate sortOptions
+    if(!this.translatedsObjects.sortOptions){
+      this.get('sortOptions').forEach(function(option){
+        option.label = Ember.I18n.t(option.label);
+      })
+      this.translatedsObjects.sortOptions = true;
+    }
+  },
+
+  validRecordStatus:function(record) {
+    if(Ember.get(record, 'currentState.stateName') == 'root.loaded.created.uncommitted') {
+      return false;
+    }
+    return true;
+  },
+  filterQuery:function(record) {
+    var body = Ember.get(record, 'body');
+    var searchString = this.get('searchString');
+    if(Ember.isEmpty(searchString)) return true;
+    if(searchString && Ember.isEmpty(body)) return false;
+    if(body.indexOf(searchString) > -1 ) return true;
+    return false;
+  },
+
+  start: function() {
+    this.send('searchRecords');
+  },
+
+  getNewFilterFunction: function(){
+    var self = this;
+    var userId;
+    var groupId;
+
+    // set the filter
+    if(this.get('groupId') && this.get('user')) {
+      // activity created by user in group
+      userId = this.get('user.id');
+      groupId = this.get('groupId');
+      return this.store.filter('activity', function (record) {
+        if(!self.validRecordStatus(record)) return false;
+        if(!self.filterQuery(record)) return false;
+        if( record.get('actor') == userId ) {
+          var sharedInId = Ember.get(record, 'groupId');
+          if ( sharedInId == groupId) {
+            return true;
+          }
+        }
+        return false;
+      });
+    } else if(this.get('groupId')) {
+      // activity created in group
+      groupId = this.get('groupId');
+      return this.store.filter('activity', function (record) {
+        if(!self.validRecordStatus(record)) return false;
+        if(!self.filterQuery(record)) return false;
+        var sharedInId = Ember.get(record, 'groupId');
+        if ( sharedInId == groupId) {
+          return true;
+        }
+        return false;
+      });
+    } else if(this.get('user')) {
+      // activity created by user
+      userId = this.get('user.id');
+      return this.store.filter('activity', function (record) {
+        if(!self.validRecordStatus(record)) return false;
+        if(!self.filterQuery(record)) return false;
+        if(record.get('actor') == userId) {
+          return true;
+        }
+        return false;
+      });
+    } else {
+      return this.store.filter('activity', function (record) {
+        if(!self.validRecordStatus(record)) return false;
+        if(!self.filterQuery(record)) return false;
+        return true;
+      });
+    }
+  },
+
+  loadRecords: function() {
+    if(this.isDestroyed) return;
+    return this.send('searchRecords');
+  },
+
+  actions: {
+    // -- SEARCH
+    searchRecords: function() {
+      var self  = this;
+      var store = this.get('store');
+
+      this.set('isSearching', true);
+      self.set('activity', []);
+
+      self.set('page', 1);
+
+      var query = this.getCurrentQuery();
+
+      store.find('activity', query).then(function (res) {
+        self.set('count', res.meta.count);
+        if(this.isDestroyed) return;
+        // reset posts filter
+        self.set('activity', self.getNewFilterFunction());
+        self.set('isLoading', false);
+        self.set('isSearching', false);
+      });
+    },
+    // -- SEARCH FEATURE
+    filter: function() {
+      var sort = this.get('sort');
+
+      if (sort) {
+        if(sort.indexOf('createdAt') > -1) {
+          this.set('sortProperties', ['createdAt']);
+        } else {
+          this.set('sortProperties', ['updatedAt']);
+        }
+
+        if (sort.indexOf('ASC') > -1) {
+          this.set('sortAscending', true);
+        } else {
+          this.set('sortAscending', false);
+        }
+      } else {
+        this.set('sortProperties', ['createdAt']);
+        this.set('sortAscending', false);
+      }
+
+      this.send('searchRecords');
+    },
+
+    resetSearch: function(){
+      this.setProperties({
+        page: 1,
+        searchString: null,
+        currentQuery: null,
+        haveMore: true,
+        sortProperties: ['createdAt'],
+        sortAscending: false,
+        sort: this.get('defaultSort')
+      });
+
+      this.send('searchRecords');
+    }
+  },
+
+  /**
+   * Build url query object
+   *
+   * @return {object} object with current query for user with $.ajax
+   */
+  getCurrentQuery: function(where) {
+    var query = {
+      where: {}
+    };
+
+    if (where) query.where = where;
+    if (this.get('groupId')) query.where.groupId = this.get('groupId');
+    if (this.get('userId')) query.where.actor = this.get('userId');
+    query.limit = this.get('limit');
+    if (this.get('page')) query.offset = query.limit * (this.get('page') -1);
+    // TODO add suport to search in we.js 0.3.x
+    if (this.get('searchString')) {
+      query.body = { contains: this.get('searchString') };
+    }
+    if(this.get('perPage')) query.limit = this.get('perPage');
+    if(!query.sort) query.sort = this.get('sort');
+
+    query.where = JSON.stringify(query.where);
+    return query;
+  }
+});
+
+App.inject( 'component:we-activity-item', 'store', 'store:main' );
+
+App.WeActivityItemComponent = Ember.Component.extend({
+  isLoading: true,
+  activity: null,
+  record: null,
+
+  classNames: [ 'activity-item' ],
+  classNameBindings: ['isRecordLoaded:loaded:loading'],
+
+  isRecordLoaded: function() {
+    if (this.get('activity.relatedRecord')) return true;
+    return false;
+  }.property('activity.relatedRecord')
+});
 App.WeAnchorFocusComponent = Ember.Component.extend({
   tagName: 'a',
   didInsertElement: function() {
@@ -104086,68 +105918,70 @@ App.WeAvatarModalComponent = Ember.Component.extend({
   }
 });
 
+App.WeBtnRecordDeleteComponent = Ember.Component.extend({
+  tag: 'button',
+
+  record: null,
+  confirmText: 'Are you sure?',
+
+  click: function() {
+    this.send('deleteRecord');
+  },
+
+  actions: {
+    deleteRecord: function() {
+      if (confirm(this.get('confirmText'))) {
+        this.get('record').destroyRecord();
+      }
+    }
+  }
+});
 App.WeCarouselComponent = Ember.Component.extend({
   didInsertElement: function() {
     this.$('#home-carousel').carousel();
   }
 });
+/**
+ * we-category-field
+ *
+ * {{we-category-field required="true" value=record.categories modelName="Group" field="categories"}}
+ */
+
 App.inject( 'component:we-category-field', 'store', 'store:main' );
 
-App.WeCategoryFieldComponent = Ember.Component.extend({
-  tagName: 'input',
-  type: 'text',
-  classNames: ['select2-element','form-control','input-md','tm-input','tm-input-success'],
+App.WeCategoryFieldComponent = Ember.Component.extend(App.WeTermFieldMixin, {
 
   // select 2 configs
   minimumInputLength: 0,
-  maximumInputLength: 100,
   maximumSelectionSize: 7,
-  multiple: true,
 
   placeholder: 'Selecione uma ou mais categorias ...',
 
-  formatSearching: function() { return 'Buscando ...'; },
-
-  formatInputTooLong: function(term, maxLength){
-    return 'O termo '+term+ ' é muito grande, o máximo de palavras é: ' + maxLength;
-  },
-  formatSelectionTooBig: function(maxSize){
-    return 'Você só pode selecionar ' + maxSize + ' termos';
-  },
-  formatLoadMore: function() {
-    return 'Carregando mais resultados ...' ;
-  },
-  formatInputTooShort: function (input, min) {
-    var n = min - input.length;
-    return "Por favor digite " + n + " ou mais letras";
-  },
-
-  formatNoMatches: function () { return "Nenhum termo encontrado"; },
-
   // Expose component to delegate's controller
   init: function() {
-    this._super.apply(this, arguments);
-
-    if (this.get('delegate')) {
-      this.get('delegate').set(this.get('property') || 'WeCategoryField', this);
-    }
+    this._super();
 
     if ( !this.get('vocabulary') ) {
-      if ( App.get('configs.vocabularyId') ) {
+      if (this.get('modelName') && this.get('field')) {
+        var attr = Ember.get('App.'+ this.get('modelName') + '.attributes');
+        if (attr) {
+          this.set('vocabulary', attr.get(this.get('field')).options.vocabularyId);
+        } else {
+          Ember.Logger.warn('we-category-field:Category field not found:', this.get('modelName'),  this.get('field'));
+        }
+
+      } else if ( App.get('configs.vocabularyId') ) {
         this.set('vocabulary', App.get('config.vocabularyId'));
       } else {
         return console.error('vocabulary is required for category term');
       }
     }
-
   },
 
   // component events
   didInsertElement: function () {
     var element = this.$();
     var self = this;
-    var store = self.get('store');
-    var vocabulary = this.get('vocabulary');
 
     if ( !element.select2 ) {
       return console.error('jquery.select2 Not found on element', element);
@@ -104169,15 +106003,9 @@ App.WeCategoryFieldComponent = Ember.Component.extend({
       formatLoadMore: this.get('formatLoadMore'),
 
       formatResult: function(item) {
-        return item.text;
+        return item;
       },
-      formatSelection: function(item) {
-        if ( item.text ) {
-          return item.text;
-        } else {
-          return item.get('text');
-        }
-      },
+      formatSelection: this.get('formatSelection'),
       formatSelectionCssClass: function (item) {
         switch ( item.model ) {
           case 'user':
@@ -104188,41 +106016,45 @@ App.WeCategoryFieldComponent = Ember.Component.extend({
         return '';
       },
       dropdownCssClass: 'sharebox-dropdown',
+      id: function(item) {
+        return item;
+      }
       //escapeMarkup: function (m) { return m; }
     };
 
-    configs.ajax = { // instead of writing the function to execute the request we use Select2's convenient helper
-      url: '/term',
+    configs.ajax = {
+      url: '/api/v1/term-texts',
       dataType: 'json',
-      data: function (term, page) {
+      data: function (term) {
+        var where = {};
+
+        if (term) {
+          where.text = { like: '%'+term+'%' };
+        }
+
+        if (self.get('vocabulary')) {
+          where.vocabularyId = self.get('vocabulary');
+        } else {
+          where.vocabularyId = null;
+        }
+
         var query = {
-          where: JSON.stringify({
-            text: {
-              contains: term
-            },
-            vocabulary: vocabulary
-          }),
+          where: JSON.stringify(where),
           limit: 50
         };
         return query;
       },
-      results: function (data, page) { // parse the results into the format expected by Select2.
-        // since we are using custom formatting functions we do not need to alter remote JSON data
-        return {
-          results: data.term
-        };
-      }
-    },
+      results: self.get('ajaxResults')
+    };
 
     element.select2(configs);
-
     element.on('change', function(e) {
       if(!self.get('value')) self.set('value', []);
       var value = self.get('value');
       if (e.added) {
-        value.pushObject( store.push('term', e.added) );
+        value.pushObject( e.added );
       } else if(e.removed) {
-        value.removeObject( store.getById('term', e.removed.id));
+        value.removeObject( e.removed );
       }
     });
 
@@ -104239,17 +106071,6 @@ App.WeCategoryFieldComponent = Ember.Component.extend({
     } else {
       this.set('value', []);
     }
-  },
-  willDestroyElement: function(){
-    this.$().select2('destroy');
-  },
-
-  // TODO how to call this functions from outside?
-  getSelectedItems: function(){
-    return this.$().select2('data');
-  },
-  empty: function(){
-    this.$().select2('val', '');
   }
 });
 
@@ -104520,12 +106341,14 @@ App.WeContentEditableComponent = Ember.Component.extend({
 
   editButtonClass: 'btn btn-xs btn-primary',
 
+  formClassNames: null,
+
   // value to show
   value: '',
   // backup value to alow a cancel mecanism
   backupValue: null,
 
-  onSave: 'save',
+  onSave: null,
 
   didInsertElement: function() {
     this._super();
@@ -104538,7 +106361,13 @@ App.WeContentEditableComponent = Ember.Component.extend({
     },
     saveEditing: function () {
       this.set('isEditing', false);
-      this.sendAction('onSave', this.get('attribute'), this.get('value'));
+      if (this.get('onSave')){
+        this.sendAction('onSave', this.get('attribute'), this.get('value'));
+      } else {
+        this.get('record').set(this.get('attribute'), this.get('value'))
+        .save();
+      }
+
     },
 
     cancelEditing: function () {
@@ -104548,6 +106377,220 @@ App.WeContentEditableComponent = Ember.Component.extend({
     }
   }
 });
+App.inject( 'component:we-field-url-alias', 'store', 'store:main' );
+
+App.WeFieldUrlAliasComponent = Ember.Component.extend({
+  baseUrl: location.protocol + '//' + location.host,
+  modelName: null,
+  modelId: null,
+
+  isEditing: false,
+
+  isStarting: true,
+
+  url: {},
+
+  didInsertElement: function() {
+    this._super();
+
+    var self = this;
+
+    this.set('url', {})
+
+    this.get('store').find('url', {
+      where: JSON.stringify({
+        modelName: this.get('modelName'),
+        modelId: this.get('modelId')
+      })
+    }).then(function(r) {
+      self.set('isStarting', false);
+      self.set('url', r.content[0]);
+    });
+  },
+
+  actions: {
+    edit: function() {
+      this.set('isEditing', true);
+    },
+    cancel: function() {
+
+    },
+
+    save: function() {
+      var self = this;
+      var data = this.get('url');
+      var record;
+
+      if (!data || !data.id) {
+        record = this.get('store').createRecord('url');
+      } else {
+        record = data;
+      }
+
+      record.setProperties({
+        modelName: this.get('modelName'),
+        modelId: this.get('modelId'),
+        url: this.get('url.url')
+      });
+
+      record.save().then(function(r) {
+        self.setProperties({
+          'isSaving': false,
+          'isEditing': false,
+          'url': record
+        });
+      });
+    },
+
+    remove: function() {
+
+    }
+  }
+});
+
+App.inject( 'component:we-flag', 'store', 'store:main' );
+
+App.WeFlagComponent = Ember.Component.extend({
+
+  tagName: 'button',
+  classNameBindings: ['btnClass'],
+  attributeBindings: ['disabled'],
+  flagClass: 'btn btn-xs btn-default',
+  unFlagClass: 'btn btn-xs btn-default active',
+
+  flag: null,
+  count: 0,
+
+  timeToLoad: 3000,
+
+  flagType: 'like',
+  flagText: 'Like',
+  unFlagText: null,
+  isLoading: true,
+
+  layout: Ember.Handlebars.compile('{{{showText}}} {{count}}'),
+
+  disabled: function() {
+    if( !App.get('auth.isAuthenticated') ) {
+      return true;
+    }
+    return this.get('isLoading');
+  }.property('isLoading', 'App.auth.isAuthenticated'),
+
+  btnClass: function(){
+    if(this.get('flag.id')){
+      return this.get('unFlagClass');
+    } else {
+      return this.get('flagClass');
+    }
+  }.property('flag.id','flagClass', 'unFlagClass'),
+
+  showText: function() {
+    if(this.get('flag.id')) {
+      return this.get('unFlagText');
+    } else {
+      return this.get('flagText');
+    }
+  }.property('flag.id'),
+
+  init: function(){
+    this._super();
+    var self = this;
+
+    if (this.get('flagText') && Ember.isEmpty(this.get('unFlagText')) ) {
+      this.set('unFlagText', this.get('flagText') )
+    }
+
+    if (!this.get('flag')) {
+
+
+      var userId = App.currentUser.id;
+
+      Ember.run.later(function(){
+        if( self.isDestroyed ) {
+          return;
+        }
+
+        FlagObject.isFlagged(
+          self.get('flagType'),
+          self.get('model'),
+          self.get('modelId'),
+          userId,
+          self.get('store')
+        ).then(function(record){
+
+          if( self.isDestroyed ) {
+            return;
+          }
+
+          self.set('isLoading', false);
+
+          if( record.flag ) {
+            self.set('flag',record.flag);
+          }
+
+          if( record.count ) {
+            self.set('count', record.count);
+          }
+
+        });
+      }, self.get('timeToLoad'));
+
+    } else {
+      self.set('isLoading', false);
+    }
+  },
+
+  click: function() {
+    if( !App.get('auth.isAuthenticated') ) return;
+
+    if(this.get('flag.id')) {
+      this.send('unFlag');
+    } else {
+      this.send('flag');
+    }
+  },
+
+  actions: {
+    flag: function() {
+      var self = this;
+
+      self.set('isLoading', true);
+
+      FlagObject.flag(
+        this.get('flagType'),
+        this.get('model'),
+        this.get('modelId'),
+        this.get('store')
+      ).then(function(result){
+        self.set('flag',result);
+        self.set('count', self.get('count') + 1 );
+        self.set('isLoading', false);
+      });
+    },
+
+    unFlag: function() {
+      var self = this;
+
+      var flagId = this.get('flag.id');
+      self.set('isLoading', true);
+
+      FlagObject.unFlag(
+        this.get('flagType'),
+        this.get('model'),
+        this.get('modelId'),
+        flagId,
+        this.get('store')
+      ).then(function(){
+        self.set('flag',{});
+        self.set('count', self.get('count') -1 );
+        self.set('isLoading', false);
+      });
+    }
+  }
+
+});
+
 
 // inject store on WeFollowComponent
 App.inject( 'component:we-follow', 'store', 'store:main' );
@@ -104663,6 +106706,384 @@ App.WeFollowComponent = Ember.Component.extend(App.LoggedInMixin,{
 
 });
 
+App.inject( 'component:we-group-invite-list', 'store', 'store:main' );
+
+App.WeGroupInviteListComponent = Ember.Component.extend({
+  records: null,
+
+  isLoading: true,
+  // delay to start in ms
+  delayToStart: 500,
+
+  limit: 9,
+  page: 0,
+  count: 0,
+
+  groupId: null,
+
+
+  didInsertElement: function didInsertElement() {
+    this._super();
+    Ember.run.later(null, this.start.bind(this), null, this.get('delayToStart'));
+  },
+
+  start: function() {
+    this.send('searchRecords');
+  },
+
+  actions: {
+    searchRecords: function() {
+      var self  = this;
+
+      this.set('isSearching', true);
+      self.set('records', []);
+
+      var query = this.get('query');
+      if (!query) query = {
+        where: {}
+      };
+
+      if(!query.limit) query.limit = this.get('limit');
+
+      self.set('page', 1);
+
+      if(!query.sort) query.sort = 'createdAt DESC';
+
+      if (
+        !Ember.isEmpty(query.where) &&
+        ( typeof query.where == 'object' )
+      ) {
+        query.where = JSON.stringify(query.where);
+      }
+
+      Ember.$.ajax({
+        url: '/group/'+ this.get('groupId') +'/members/invites',
+        type: 'GET',
+        dataType: 'json',
+        data: query
+      }).then(function(res) {
+        self.set('count', res.meta.count);
+        // reset posts filter
+        self.set('records', res.membershipinvite);
+      }).fail(function( jqXHR, textStatus, errorThrown) {
+        return Ember.Logger.error('Error on inviteUser',textStatus, errorThrown);
+      }).always(function(){
+        self.set('isLoading', false);
+        self.set('isSearching', false);
+      });
+    },
+  }
+
+});
+
+
+
+
+App.inject( 'component:we-group-join-button', 'store', 'store:main' );
+
+App.WeGroupJoinButtonComponent = Ember.Component.extend({
+  layout: Ember.Handlebars.compile('{{icon}}{{{view.label}}}'),
+
+  tagName: 'button',
+
+  icon: '',
+
+  group: null,
+  isLoading: true,
+
+  attributeBindings: ['disabled'],
+
+  disabled: function() {
+    if (this.get('group.isCreator')) return true;
+    return null;
+  }.property('group.isCreator'),
+
+  classNameBindings: ['status','disabled:disabled' ],
+
+  status: function() {
+    if (!this.get('group.id')) return;
+    if(this.get('isLoading')) this.set('isLoading', false);
+    return this.get('group.membership.status');
+  }.property('group.membership.status'),
+
+  label: function() {
+    if (this.get('isLoading')) return Ember.I18n.t('membership.button.loading');
+
+    switch(this.get('status')) {
+      case 'invited':
+        return Ember.I18n.t('membership.button.invited');
+      case 'active':
+        return Ember.I18n.t('membership.button.active');
+      case 'requested':
+        this.set('disabled', true);
+        return Ember.I18n.t('membership.button.requested');
+      // case 'blocked':
+      default:
+        return Ember.I18n.t('membership.button.request');
+    }
+  }.property('status', 'isLoading'),
+
+  click: function(){
+    this.send('changeMembership');
+  },
+
+
+  actions: {
+    changeMembership: function changeMembership() {
+      if (this.get('group.isCreator')) {
+        // TODO group creator cant leave the group
+        return;
+      }
+      var membership = this.get('status');
+      switch(membership){
+        case 'invited':
+          return this.send('acceptGroup');
+        case 'active':
+          return this.send('leaveGroup');
+        case 'blocked':
+            break;
+        // case 'requested':
+        //     break;
+        default:
+          return this.send('joinGroup');
+      }
+    },
+    joinGroup: function joinGroup() {
+      var self = this;
+      var group = this.get('group');
+      var userId = App.get('currentUser.id');
+      if(!userId) return Ember.Logger.error('App.currentUser.id not found in joinGroup');
+
+      $.post('/api/v1/group/' + group.id + '/join')
+      .done(function (response) {
+        self.set('group.data.meta.membership', response.membership);
+        // Manha para setar atualização no status de membro
+        // TODO - Relacionar com o Ember.model 'Membership'
+        group.set('updatedAt', new Date());
+      }).fail(function (e) {
+        console.error('Error on join group' , e);
+      });
+    },
+
+    leaveGroup: function leaveGroup() {
+      if (!confirm(Ember.I18n.t('membership.leaveGroup.confirm') )) return;
+
+      var self = this;
+      var group = this.get('group');
+      var userId = App.get('currentUser.id');
+
+      if(!userId) return Ember.Logger.error('App.currentUser.id not found in leaveGroup');
+
+      return $.post('/api/v1/group/' + group.id + '/leave')
+      .done(function () {
+        // remove membership status from group and model
+        self.set('group.data.meta.membership', null);
+        // Manha para setar atualização no status de membro
+        // TODO - Relacionar com o Ember.model 'Membership'
+        group.set('updatedAt', new Date());
+      }).fail(function(e){
+        Ember.Logger.error('Error on leave group' , e);
+      });
+    },
+
+    acceptGroup: function acceptGroup() {
+      var self = this;
+      var store = this.get('store');
+      var group = this.get('group');
+      var userId = App.get('currentUser.id');
+      var membership = this.get('membership');
+
+      if(!userId) return Ember.Logger.error('App.currentUser.id not found in leaveGroup');
+
+      $.get('/comunidade/' + group.id + '/invite/' + membership.id)
+      .done(function (membership) {
+        self.set('membership', store.push('membership', membership));
+        group.set('_data.meta.membership', membership);
+        // Manha para setar atualização no status de membro
+        // TODO - Relacionar com o Ember.model 'Membership'
+        group.set('updatedAt', new Date());
+      }).fail(function(e){
+        console.error('Error on join group' , e);
+      });
+
+    }
+  }
+});
+App.inject( 'component:we-group-list', 'store', 'store:main' );
+
+App.WeGroupListComponent = Ember.Component.extend({
+  records: null,
+
+  memberId: null,
+
+  limit: 9,
+  page: 0,
+  count: 0,
+
+  isLoading: true,
+
+  // delay to start in ms
+  delayToStart: 500,
+
+  didInsertElement: function didInsertElement() {
+    this._super();
+    Ember.run.later(null, this.start.bind(this), null, this.get('delayToStart'));
+  },
+
+  start: function() {
+    this.send('searchRecords');
+  },
+
+  actions: {
+    searchRecords: function() {
+      if (this.get('memberId')) return this.send('searchUserRecords');
+
+      var self  = this;
+      var store = this.get('store');
+      var memberId =  this.get('memberId');
+
+      this.set('isSearching', true);
+      self.set('records', []);
+
+      var query = this.get('query');
+      if (!query) query = {
+        where: {}
+      };
+
+      if (memberId) query.memberId = memberId;
+      if(!query.limit) query.limit = this.get('limit');
+
+      self.set('page', 1);
+
+      if(!query.sort) query.sort = 'createdAt DESC';
+
+      if (
+        !Ember.isEmpty(query.where) &&
+        ( typeof query.where == 'object' )
+      ) {
+        query.where = JSON.stringify(query.where);
+      }
+
+      store.find('group', query)
+      .then(function (res) {
+        if(self.isDestroyed) return;
+
+        self.set('count', res.meta.count);
+        // reset posts filter
+        self.set('records', res);
+        self.set('isLoading', false);
+        self.set('isSearching', false);
+      });
+    },
+
+    searchUserRecords: function() {
+      var self  = this;
+      var store = this.get('store');
+      var memberId =  this.get('memberId');
+
+      this.set('isSearching', true);
+      self.set('records', []);
+
+      var query = this.get('query');
+      if (!query) query = {
+        where: {}
+      };
+
+      if(!query.limit) query.limit = this.get('limit');
+
+      self.set('page', 1);
+
+      if(!query.sort) query.sort = 'createdAt DESC';
+
+      if (
+        !Ember.isEmpty(query.where) &&
+        ( typeof query.where == 'object' )
+      ) {
+        query.where = JSON.stringify(query.where);
+      }
+
+      $.ajax({
+        url: '/user/' + memberId +'/find-new-groups',
+        data: query,
+      }).done(function(res) {
+        if(self.isDestroyed) return;
+
+        self.set('count', res.meta.count);
+
+        if (!Ember.isEmpty(res.group)) {
+          // reset posts filter
+          self.set('records', res.group.map(function(record){
+            return store.push('group', record);
+          }));
+        }
+
+        self.set('isLoading', false);
+        self.set('isSearching', false);
+      })
+      .fail(function(xhr) {
+        Ember.Logger.error('Erro on load user membership', xhr);
+      })
+      .always(function() {
+        self.set('isSearching', true);
+      });
+    }
+  }
+});
+App.inject( 'component:we-group-members', 'store', 'store:main' );
+
+App.WeGroupMembersComponent = Ember.Component.extend({
+  classNames: ['group-members-list', 'widget'],
+
+  isLoading: true,
+
+  widgetTitle: 'group.members.widget.title',
+  title: null,
+
+  widgetSubtitle: 'group.members.widget.subtitle',
+  subtitle: null,
+
+  limit: 9,
+
+  groupId: null,
+
+  members: [],
+
+  roleNames: null,
+  roles: function() {
+    if (!this.get('roleNames')) return null;
+    return this.get('roleNames').split(';');
+  }.property('roleNames'),
+
+  willInsertElement: function() {
+    if (this.get('widgetTitle')) this.set('title', Ember.I18n.t( this.get('widgetTitle') ));
+    if (this.get('widgetSubtitle')) this.set('subtitle', Ember.I18n.t( this.get('widgetSubtitle') ));
+  },
+
+  loadMembers: function() {
+    if (!this.get('groupId')) return;
+
+    var self = this;
+    var where = null;
+
+    Ember.$.ajax({
+      url: '/group/'+ this.get('groupId') +'/member',
+      data: {
+        where: where,
+        limit: this.get('limit'),
+        roleNames: this.get('roles')
+      }
+    }).done(function(data) {
+      self.set('members', self.get('store').pushMany('membership', data.membership) );
+    })
+    .fail(function(xhr) {
+      Ember.Logger.error(xhr);
+    })
+    .always(function() {
+      self.set('isLoading', false);
+    });
+  }.observes('groupId').on('init')
+
+});
 /**
  * Ember.js image component visualizer
  *
@@ -104852,11 +107273,18 @@ App.WeLoadingComponent = Ember.Component.extend({
     }
   }.property('isLoading'),
 
-  srcDone: '/public/plugin/we-core/images/done.png',
-  srcLoading: '/public/plugin/we-core/images/loading.gif',
+  init: function() {
+    this._super();
+    if (!this.get('textDone') || this.get('textLoading'));
 
-  textDone: 'Salved',
-  textLoading: 'loading ...'
+    this.setProperties({
+      textDone: Ember.I18n.t('loaded'),
+      textLoading: Ember.I18n.t('loading')
+    })
+  },
+
+  srcDone: '/public/plugin/we-core/files/images/done.png',
+  srcLoading: '/public/plugin/we-core/files/images/loading.gif'
 });
 
 App.WeMenuComponent = Ember.Component.extend({
@@ -104870,7 +107298,6 @@ App.WeMenuComponent = Ember.Component.extend({
 
   didInsertElement: function () {
     this._super();
-    teste = this;
     if(this.get('enableMetisMenu'))
     	this.$().metisMenu();
   },
@@ -105086,6 +107513,191 @@ App.WePaginationComponent = Ember.Component.extend({
 
 })(jQuery, we, Ember, App, async);
 
+App.inject( 'component:we-sharebox', 'store', 'store:main' );
+
+App.WeShareboxComponent = Ember.Component.extend(
+  App.WembedLinkerMixin,
+  App.PostMecanismMixin, {
+
+  post: {},
+
+  groupId: null,
+
+  // posts sending list
+  postsSending: [],
+
+  resetImageSelector: false,
+
+  //newPost: 'onNewPost',
+  shareboxClass: function(){
+    if(this.get('post.isOpen')) return 'small';
+    return 'small';
+  }.property('post.isOpen'),
+
+  canCreatePost: function() {
+    return App.get('currentUser.id');
+  }.property('App.currentUser.id'),
+
+  init: function() {
+    this._super();
+    this.set('postsSending', this.store.filter('post', function (record) {
+      if(Ember.get(record, 'isSending')) {
+        return true;
+      }
+      return false;
+    }));
+  },
+
+  didInsertElement: function() {
+    this._super();
+    this.set('post', null);
+    this.set('newWembed', null);
+  },
+
+  actions: {
+    openBox: function openBox() {
+      this.resetRecord();
+      this.set('post.isOpen', true);
+      this.set('post.shareboxClass', 'normal');
+      this.set('post.newWembed', null);
+
+    },
+    cancel: function closeBox(){
+      this.set('post', null);
+    },
+
+    setContentType: function setContentType(contentTypeName) {
+      this.set('post.contentType', contentTypeName);
+    },
+
+    /**
+     * Remove one image from imagesToSave array
+     * @param  {[type]} imageObj upload image object
+     */
+    onRemoveImage: function onRemoveImage(imageObj){
+      this.get('post.imagesToSave').removeObject(imageObj);
+      // if removed last image from selected images hide the image selector
+      if(!this.get('post.imagesToSave.length')){
+        this.set('post.contentType', null);
+      }
+    },
+
+    submit: function submit() {
+      var self = this;
+      var post = this.get('store').createRecord('post', this.get('post'));
+      // set the post saver flag
+      post.set('isSending', true);
+      // reset sharebos post to clean
+      this.set('post', null);
+      this.set('newWembed', null);
+
+      var user = App.get('currentUser');
+      var newWembed = post.get('newWembed');
+
+      if( newWembed ) {
+        var wembed = this.store.createRecord('wembed', newWembed);
+        wembed.setProperties({
+          'creator': user
+        });
+
+        wembed.save().then(function() {
+          post.set('wembed', wembed);
+          self.send('save', post);
+        });
+      } else {
+        var images = self.get('imagesToSave');
+        var uploadUrl = App.get('imageUploadUrl');
+        if(Ember.isEmpty(images) || !uploadUrl) return self.send('save', post);
+
+        var uploader = Ember.Uploader.create({
+          url: uploadUrl,
+          type: 'POST',
+          paramName: 'images'
+        });
+        var promisseUpload = uploader.upload(images);
+        promisseUpload.then(function uploadFilesSuccess(data) {
+          // Handle success
+          if (data.images) {
+            // set salved images in post
+            self.get('images').pushObjects(self.get('store').pushMany('image',data.images));
+          }
+          self.send('save', post);
+        }, function uploadFilesError(error) {
+          // Handle failure
+          Ember.Logger.error('Error on upload post image', error);
+          // but continue and save the post
+          self.send('save', post);
+        });
+      }
+    },
+    save: function(post) {
+      var self = this;
+      post.save().then(function(){
+        // clear cache browser images
+        post.set('imagesToSave', null);
+        post.set('isSending', false);
+        post.set('inSendingProcess', false);
+        self.set('post', null);
+
+        if (self.get('groupId')) self.send('addPostInGroup', post);
+      });
+    },
+
+    addPostInGroup: function(post) {
+      var groupId = this.get('groupId');
+      Ember.$.ajax({
+        type: 'POST',
+        url: '/api/v1/group/'+ groupId +'/addContent/post/' + post.id
+      })
+      .fail(function(xhr) {
+        Ember.Logger.error('error on save post:', xhr)
+      });
+    }
+  },
+
+  resetRecord: function() {
+    var post = {
+      'createdAt': new Date(),
+      'creator': App.get('currentUser'),
+      // temp vars
+      'imagesToSave': []
+    };
+    this.set('post', post);
+  },
+
+  // types selectors
+  isImageType: function() {
+    return (this.get('post.contentType') == 'image');
+  }.property('post.contentType'),
+
+  isLinkType: function() {
+    return (this.get('post.contentType') == 'link');
+  }.property('post.contentType'),
+
+  // // WEMBED!
+  onNewWembed: function () {
+    if(!this.get('newWembed')) return;
+    if(!this.get('post.contentType')) {
+      this.set('post.contentType', 'link');
+    }
+    this.set('post.newWembed', this.get('newWembed'));
+  }.observes('newWembed'),
+
+  // FILES
+  selectedImageDidChange: function() {
+    var self = this;
+    var files = this.get('post.selectedImage');
+    if(!files || !files[0]) return;
+    this.get('post.imagesToSave').pushObject(files[0]);
+    // reset input
+    self.set('resetImageSelector', true);
+    Ember.run.later(null, function(){
+      self.set('resetImageSelector', false);
+    }, null, 10);
+
+  }.observes('post.selectedImage'),
+
+});
 
 App.WeSocketIoComponent = Ember.Component.extend({
   tagName: 'div',
@@ -105234,53 +107846,30 @@ App.WeSubmenuComponent = Ember.Component.extend({
 
 App.inject( 'component:we-tag-field', 'store', 'store:main' );
 
-App.WeTagFieldComponent = Ember.Component.extend({
-  tagName: 'input',
-  type: 'text',
-  classNames: ['select2-element','form-control','input-md','tm-input','tm-input-success'],
-
-  // value array
-  value: null,
+App.WeTagFieldComponent = Ember.Component.extend(App.WeTermFieldMixin, {
 
   // select 2 configs
   minimumInputLength: 3,
-  maximumInputLength: 100,
   maximumSelectionSize: 15,
-  multiple: true,
-  
+
   placeholder: 'Selecione um ou mais termos ...',
-  formatSearching: function() {
-    return 'Buscando ...';
-  },
-  formatInputTooLong: function(term, maxLength){
-    return 'O termo '+term+ ' é muito grande, o máximo de palavras é: ' + maxLength;
-  },
-  formatSelectionTooBig: function(maxSize){
-    return 'Você só pode selecionar ' + maxSize + ' termos';
-  },
-  formatLoadMore: function() {
-    return 'Carregando mais resultados ...' ;
-  },
-  formatInputTooShort: function (input, min) { 
-    var n = min - input.length; 
-    return "Por favor digite " + n + " ou mais letras"; 
-  },
-  formatNoMatches: function () { return "Nenhum termo encontrado"; },
 
-  // Expose component to delegate's controller
   init: function() {
-     this._super.apply(this, arguments);
+    this._super();
 
-     if (this.get('delegate')) {
-        this.get('delegate').set(this.get('property') || 'WeTagField', this);
-     }
+    if (this.get('modelName') && this.get('field')) {
+      this.set('vocabulary',
+        Ember.get('App.'+ this.get('modelName') + '.attributes')
+        .get(this.get('field')).options.vocabularyId
+      );
+    }
   },
 
   // component events
   didInsertElement:function(){
     var element = this.$();
     var self = this;
-    var store = self.get('store');
+
     if(!element.select2){
       return console.error('jquery.select2 Not found on element', element);
     }
@@ -105289,7 +107878,7 @@ App.WeTagFieldComponent = Ember.Component.extend({
       tags: true,
       tokenSeparators: [',', ';'],
       placeholder: this.get('placeholder'),
-      
+
       formatSearching: this.get('formatSearching'),
       formatInputTooShort: this.get('formatInputTooShort'),
       formatInputTooLong: this.get('formatInputTooLong'),
@@ -105303,23 +107892,13 @@ App.WeTagFieldComponent = Ember.Component.extend({
       maximumSelectionSize: this.get('maximumSelectionSize'),
 
       createSearchChoice: function (term) {
-        return {
-          id: $.trim(term).toLowerCase(),
-          text: $.trim(term).toLowerCase(),
-          isNew: true
-        };
+        return term;
       },
       //data: this.get('shareWithOptions'),
-      formatResult: function(item){
-        return item.text;
+      formatResult: function(item) {
+        return item;
       },
-      formatSelection: function(item) {
-        if (item.text) {
-          return item.text;
-        } else {
-          return item.get('text');
-        }
-      },
+      formatSelection: this.get('formatSelection'),
       formatSelectionCssClass: function (item) {
         switch(item.model) {
           case 'user':
@@ -105330,45 +107909,38 @@ App.WeTagFieldComponent = Ember.Component.extend({
         return '';
       },
       dropdownCssClass: 'sharebox-dropdown',
+      id: function(item) {
+        return item;
+      }
       //escapeMarkup: function (m) { return m; }
     };
 
-    configs.ajax = { // instead of writing the function to execute the request we use Select2's convenient helper
-      url: '/tag',
+    configs.ajax = {
+      url: '/api/v1/term-texts',
       dataType: 'json',
-      data: function (tag, page) {
+      data: function (term) {
+        var where = {};
+
+        if (term) {
+          where.text = { like: '%'+term+'%' };
+        }
+
+        if (self.get('vocabulary')) {
+          where.vocabularyId = self.get('vocabulary');
+        } else {
+          where.vocabularyId = null;
+        }
+
         var query = {
-          where: JSON.stringify({
-            text: {
-              contains: tag
-            }
-          }),
+          where: JSON.stringify(where),
           limit: 50
         };
-
         return query;
       },
-      results: function (data, page) { // parse the results into the format expected by Select2.
-        // since we are using custom formatting functions we do not need to alter remote JSON data
-        return {
-          results: data.tag
-        };
-      }
+      results: self.get('ajaxResults')
+    };
 
-    },
-    configs.initSelection = function(element, callback) {
-      // the input tag has a value attribute preloaded that points to a preselected movie's id
-      // this function resolves that id attribute to an object that select2 can render
-      // using its formatResult renderer - that way the movie name is shown preselected
-      var id= $(element).val();
-      // if (id!=='') {
-      //   $.ajax('http://api.rottentomatoes.com/api/public/v1.0/movies/'+id+'.json', {
-      //       data: {
-      //           apikey: 'ju6z9mjyajq2djue3gbvv26t'
-      //       },
-      //       dataType: 'jsonp'
-      //   }).done(function(data) { callback(data); });
-      // }
+    configs.initSelection = function initSelection(element, callback) {
       callback();
     };
 
@@ -105378,9 +107950,9 @@ App.WeTagFieldComponent = Ember.Component.extend({
       if(!self.get('value')) self.set('value', []);
       var value = self.get('value');
       if (e.added) {
-        value.pushObject( store.push('tag', e.added) );
+        value.pushObject( e.added );
       } else if(e.removed) {
-        value.removeObject( store.getById('tag', e.removed.id));
+        value.removeObject( e.removed );
       }
     });
 
@@ -105397,17 +107969,6 @@ App.WeTagFieldComponent = Ember.Component.extend({
     } else {
       this.set('value', []);
     }
-  },
-  willDestroyElement: function(){
-    this.$().select2('destroy');
-  },
-
-  // TODO how to call this functions from outside?
-  getSelectedItems: function(){
-    return this.$().select2('data');
-  },
-  empty: function(){
-    this.$().select2('val', '');
   }
 });
 
@@ -105453,10 +108014,26 @@ App.WeTermEditableComponent = Ember.Component.extend({
     }
   }
 });
-
+/**
+ * {{we-terms term=[]}}
+ */
 App.WeTermsComponent = Ember.Component.extend({
   tagName: 'span'
+});
+/**
+ * we-timeline-loading
+ *
+ * {{we-timeline-loading loadingMore=loadingMore haveMore=haveMore}}
+ */
 
+App.WeTimelineLoadingComponent = Ember.Component.extend({
+  onGetMore: 'getMore',
+
+  actions: {
+    getMore: function() {
+      this.sendAction('onGetMore');
+    }
+  }
 });
 App.inject( 'component:we-user-contacts-block', 'store', 'store:main' );
 
@@ -105488,6 +108065,86 @@ App.WeUserContactsBlockComponent = Ember.Component.extend({
       self.set('isLoading', false);
     });
   }.observes('userId').on('init')
+});
+App.inject( 'component:we-user-membership-list', 'store', 'store:main' );
+
+App.WeUserMembershipListComponent = Ember.Component.extend({
+  records: null,
+
+
+  widgetTitle: 'Groups',
+  title: null,
+
+  memberId: null,
+
+  limit: 9,
+  page: 0,
+  count: 0,
+
+  isLoading: true,
+
+  // delay to start in ms
+  delayToStart: 500,
+
+  didInsertElement: function didInsertElement() {
+    this._super();
+    Ember.run.later(null, this.start.bind(this), null, this.get('delayToStart'));
+  },
+
+  willInsertElement: function() {
+    if (this.get('widgetTitle')) this.set('title', Ember.I18n.t( this.get('widgetTitle') ));
+  },
+
+  start: function() {
+    this.send('searchRecords');
+  },
+
+  actions: {
+    searchRecords: function() {
+      var self  = this;
+      var store = this.get('store');
+      var memberId =  this.get('memberId');
+      if (!memberId) return Ember.Logger.warn('we-membership-list:memberId is required');
+
+      this.set('isSearching', true);
+      self.set('records', []);
+
+      var query = this.get('query');
+      if (!query) query = {
+        where: {}
+      };
+
+      if(!query.limit) query.limit = this.get('limit');
+
+      self.set('page', 1);
+
+      if(!query.sort) query.sort = 'createdAt DESC';
+
+      if (
+        !Ember.isEmpty(query.where) &&
+        ( typeof query.where == 'object' )
+      ) {
+        query.where = JSON.stringify(query.where);
+      }
+
+      $.ajax({
+        url: '/user/' + memberId + '/membership',
+        data: query,
+      }).done(function(res) {
+        if(self.isDestroyed) return;
+        self.set('count', res.meta.count);
+        // reset posts filter
+        self.set('records', store.pushMany('membership', res.membership) );
+      })
+      .fail(function(xhr) {
+        Ember.Logger.error('Erro on load user membership', xhr);
+      })
+      .always(function() {
+        self.set('isLoading', false);
+        self.set('isSearching', false);
+      });
+    }
+  }
 });
 App.WeUserSearchComponent = Ember.Component.extend({
     tagName: 'input',
@@ -105688,8 +108345,138 @@ App.WeUserSearchComponent = Ember.Component.extend({
 })(jQuery, Ember, App);
 
 //http://img.youtube.com/vi/<insert-youtube-video-id-here>/0.jpg
+
+App.WeWembedComponent = Ember.Component.extend({
+  isLoading: false,
+  isVideo: false,
+  isPage: false,
+
+  // if is editing show delete button
+  // and disable links
+  isEditing: false,
+
+  // video flags
+  isPlaying: false,
+  videoEmbedSrc: null,
+
+  imageIndex: 0,
+
+  wembedApiUrl: function(){
+    return App.get('wembedApiUrl');
+  }.property('App.wembedApiUrl'),
+
+  // events
+  deleteWembedEvent: 'onDeleteWembed',
+
+  init: function(){
+    this._super();
+    if (!this.get('url')) {
+      console.error('Wembed url not found');
+      return;
+    } else {
+      this.send('getWembedData');
+    }
+  },
+  onChangeUrl: function onChangeUrl() {
+    this.send('getWembedData');
+  }.observes('url'),
+
+  image: function imageComputedProperty(){
+    var images = this.get('wembed.images');
+    if (!images) {
+      return null;
+    }
+
+    if (images[this.get('imageIndex')]) {
+      return images[this.get('imageIndex')];
+    }
+
+    return images[0];
+  }.property('imageIndex', 'wembed.images'),
+
+  wembedImageActionClass: function () {
+    return 'wembed-images-action total-'+this.get('wembed.images.length');
+  }.property('wembed.images.length'),
+
+  showImageSelector: function(){
+    if(
+      this.get('wembed.images.length') &&
+      this.get('wembed.images.length') -1
+    ) {
+      return this.get('wembed.images.length');
+    }
+
+    return false;
+  }.property('wembed.images.length'),
+
+  actions: {
+    changeWembedImage: function(index){
+      this.set('imageIndex',index);
+    },
+
+    getWembedData: function() {
+      var self = this;
+
+      if (!this.get('url')) return;
+
+      this.set('isLoading', true);
+
+      var wembedUrl = this.get('wembedApiUrl') + this.get('url');
+      Ember.$.getJSON(wembedUrl)
+      .done(function (data) {
+        if(self.isDestroyed) return;
+        if(data.page){
+          self.set('wembed', data.page);
+          // set page type
+          self.send('setType');
+        }
+      })
+      .fail(function() {
+        console.error('Error on get Wembed JSON! for link', wembedUrl);
+      }).always(function() {
+        if(self.isDestroyed) return;
+        self.set('isLoading', false);
+      });
+    },
+    setType: function(){
+      this.send('resetType');
+      if(this.get('isEditing')){
+        return;
+      }
+
+      switch( this.get('wembed.pageType') ){
+        case 'video':
+          this.set('isVideo',true);
+          break;
+        default:
+          this.set('isPage',true);
+      }
+    },
+
+    resetType: function(){
+      this.set('isVideo',false);
+      this.set('isVideo',false);
+    },
+
+    playVideo: function(){
+      var videoId = this.get('wembed.pageId');
+
+      this.set('videoEmbedSrc', '//www.youtube.com/embed/' + videoId + '?autoplay=1');
+      this.set('isPlaying', true);
+
+    },
+
+    deleteWembed: function(){
+      console.warn('delete wembed');
+      this.sendAction('deleteWembedEvent');
+    }
+  }
+});
+
 /**
  * WeWysiwygEditorComponent editor html for we.js
+ *
+ * {{we-editor style="small" value=variable}}
  */
 
 App.WeWysiwygEditorComponent = Ember.Component.extend({
@@ -105721,14 +108508,14 @@ App.WeWysiwygEditorComponent = Ember.Component.extend({
 
     if (this.get('limit')) {
       this.addObserver('value', this, this.countCharacters);
-    }     
+    }
   },
 
   didInsertElement: function () {
     this._super();
-    
+
     this.countCharacters();
-    
+
     var self = this;
     var value = self.get('value');
     if (!value) value = '';
@@ -105751,7 +108538,7 @@ App.WeWysiwygEditorComponent = Ember.Component.extend({
       focus: this.get('focus'),
       styleWithSpan: false,
 
-      toolbar: toobar,     
+      toolbar: toobar,
 
       onblur: function() {
         self.set('value',editor.code());
@@ -105774,8 +108561,8 @@ App.WeWysiwygEditorComponent = Ember.Component.extend({
             e.preventDefault();
             e.stopPropagation()
         }
-      } 
-    }    
+      }
+    }
 
     // make on change event optional
     if (this.get('onChangeText')) {
@@ -105849,7 +108636,7 @@ App.WeWysiwygEditorComponent = Ember.Component.extend({
       return this.set('trackCount', 0);
     }
     return this.set('trackCount', diff);
-  }    
+  }
 
 });
 
@@ -105917,6 +108704,43 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
 
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "500.message", options) : helperMissing.call(depth0, "t", "500.message", options))));
   data.buffer.push("\n");
+  return buffer;
+  
+});Ember.TEMPLATES['activity/list'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n    ");
+  data.buffer.push(escapeExpression((helper = helpers['we-activity-item'] || (depth0 && depth0['we-activity-item']),options={hash:{
+    'activity': ("")
+  },hashTypes:{'activity': "ID"},hashContexts:{'activity': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-activity-item", options))));
+  data.buffer.push("\n  ");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n    ");
+  stack1 = helpers.unless.call(depth0, "activityIsLoading", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  ");
+  return buffer;
+  }
+function program4(depth0,data) {
+  
+  
+  data.buffer.push("\n      <br>\n      <div class=\"alert alert-warning text-center\" role=\"alert\">\n        Nenhum conteúdo encontrado\n      </div>\n    ");
+  }
+
+  data.buffer.push("<div id=\"activities\" class=\"activities\">\n  ");
+  stack1 = helpers.each.call(depth0, "controller", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n</div>");
   return buffer;
   
 });Ember.TEMPLATES['application'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
@@ -106360,10 +109184,10 @@ function program7(depth0,data) {
   
   var buffer = '', stack1, helper, options;
   data.buffer.push("\n      <div class=\"actions\">\n        ");
-  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(8, program8, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "comment_update", "comment", "model", options) : helperMissing.call(depth0, "can", "comment_update", "comment", "model", options));
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(8, program8, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "update_comment", "comment", "model", options) : helperMissing.call(depth0, "can", "update_comment", "comment", "model", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n\n        ");
-  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(10, program10, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "comment_destroy", "comment", "model", options) : helperMissing.call(depth0, "can", "comment_destroy", "comment", "model", options));
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(10, program10, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "delete_comment", "comment", "model", options) : helperMissing.call(depth0, "can", "delete_comment", "comment", "model", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n      </div>\n    ");
   return buffer;
@@ -106442,7 +109266,143 @@ function program3(depth0,data) {
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   else { data.buffer.push(''); }
   
-});Ember.TEMPLATES['components/list'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+});Ember.TEMPLATES['components/we-activities'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n  ");
+  data.buffer.push(escapeExpression((helper = helpers['we-sharebox'] || (depth0 && depth0['we-sharebox']),options={hash:{
+    'groupId': ("groupId")
+  },hashTypes:{'groupId': "ID"},hashContexts:{'groupId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-sharebox", options))));
+  data.buffer.push("\n");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n  <div class=\"text-center\">\n    ");
+  stack1 = helpers._triageMustache.call(depth0, "loading-image", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  </div>\n");
+  return buffer;
+  }
+
+function program5(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n<div class=\"context-search\">\n  <form  ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "filter", {hash:{
+    'on': ("submit")
+  },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"form-inline\" role=\"form\">\n  \n\n    <div class=\"form-group\">\n      ");
+  data.buffer.push(escapeExpression(helpers.view.call(depth0, "select", {hash:{
+    'name': ("searchSort"),
+    'classNames': ("form-control input-sm"),
+    'content': ("sortOptions"),
+    'optionValuePath': ("content.value"),
+    'optionLabelPath': ("content.label"),
+    'value': ("sort")
+  },hashTypes:{'name': "STRING",'classNames': "STRING",'content': "ID",'optionValuePath': "STRING",'optionLabelPath': "STRING",'value': "ID"},hashContexts:{'name': depth0,'classNames': depth0,'content': depth0,'optionValuePath': depth0,'optionLabelPath': depth0,'value': depth0},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push("\n    </div>\n\n    <div class=\"form-group\">\n      <button class=\"form-control input-sm btn-info\" type=\"submit\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "activities.search.submit", options) : helperMissing.call(depth0, "t", "activities.search.submit", options))));
+  data.buffer.push("</button>\n    </div>\n    <div class=\"form-group\">\n      <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "resetSearch", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"form-control input-sm\" type=\"button\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "activities.search.reset", options) : helperMissing.call(depth0, "t", "activities.search.reset", options))));
+  data.buffer.push("</button>\n    </div>\n  </form>\n</div>\n  ");
+  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{
+    'activityIsLoading': ("isSearching")
+  },hashTypes:{'activityIsLoading': "ID"},hashContexts:{'activityIsLoading': depth0},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "activity/list", "activity", options) : helperMissing.call(depth0, "render", "activity/list", "activity", options))));
+  data.buffer.push("\n\n  ");
+  data.buffer.push(escapeExpression((helper = helpers['we-timeline-loading'] || (depth0 && depth0['we-timeline-loading']),options={hash:{
+    'loadingMore': ("loadingMore"),
+    'haveMore': ("haveMore")
+  },hashTypes:{'loadingMore': "ID",'haveMore': "ID"},hashContexts:{'loadingMore': depth0,'haveMore': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-timeline-loading", options))));
+  data.buffer.push("\n");
+  return buffer;
+  }
+
+  stack1 = helpers['if'].call(depth0, "showSharebox", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n");
+  stack1 = helpers['if'].call(depth0, "isLoading", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(5, program5, data),fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  return buffer;
+  
+});Ember.TEMPLATES['components/we-activity-group-create'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, self=this, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push(" ");
+  stack1 = helpers._triageMustache.call(depth0, "activity.relatedRecord.name", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push(" ");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var stack1;
+  stack1 = helpers._triageMustache.call(depth0, "activity.relatedActor.displayName", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
+  }
+
+  data.buffer.push("<div class=\"activity-text\">\n");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group", "activity.relatedRecord.id", options) : helperMissing.call(depth0, "link-to", "group", "activity.relatedRecord.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "created.by", options) : helperMissing.call(depth0, "t", "created.by", options))));
+  data.buffer.push("\n");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "user", "activity.relatedActor.id", options) : helperMissing.call(depth0, "link-to", "user", "activity.relatedActor.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n</div>");
+  return buffer;
+  
+});Ember.TEMPLATES['components/we-activity-group-update'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, self=this, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push(" ");
+  stack1 = helpers._triageMustache.call(depth0, "activity.relatedRecord.name", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push(" ");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var stack1;
+  stack1 = helpers._triageMustache.call(depth0, "activity.relatedActor.displayName", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
+  }
+
+  data.buffer.push("<div class=\"activity-text\">\n");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group", "activity.relatedRecord.id", options) : helperMissing.call(depth0, "link-to", "group", "activity.relatedRecord.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "updated.by", options) : helperMissing.call(depth0, "t", "updated.by", options))));
+  data.buffer.push("\n");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "user", "activity.relatedActor.id", options) : helperMissing.call(depth0, "link-to", "user", "activity.relatedActor.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n</div>");
+  return buffer;
+  
+});Ember.TEMPLATES['components/we-activity-item'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
   var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
@@ -106451,14 +109411,35 @@ function program1(depth0,data) {
   
   var buffer = '', helper, options;
   data.buffer.push("\n  ");
-  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "comment/item", "", options) : helperMissing.call(depth0, "render", "comment/item", "", options))));
+  data.buffer.push(escapeExpression((helper = helpers.renderActivity || (depth0 && depth0.renderActivity),options={hash:{
+    'activity': ("activity")
+  },hashTypes:{'activity': "ID"},hashContexts:{'activity': depth0},contexts:[depth0,depth0],types:["ID","ID"],data:data},helper ? helper.call(depth0, "activity.activityActionName", "activity.activityName", options) : helperMissing.call(depth0, "renderActivity", "activity.activityActionName", "activity.activityName", options))));
   data.buffer.push("\n");
   return buffer;
   }
 
-  stack1 = helpers.each.call(depth0, {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[],types:[],data:data});
+function program3(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n  ");
+  data.buffer.push(escapeExpression((helper = helpers['we-loading'] || (depth0 && depth0['we-loading']),options={hash:{
+    'isLoading': (true)
+  },hashTypes:{'isLoading': "BOOLEAN"},hashContexts:{'isLoading': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-loading", options))));
+  data.buffer.push("\n");
+  return buffer;
+  }
+
+  stack1 = helpers['if'].call(depth0, "isRecordLoaded", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   else { data.buffer.push(''); }
+  
+});Ember.TEMPLATES['components/we-activity-post'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
+
+
+  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "post.teaser", "activity.relatedRecord", options) : helperMissing.call(depth0, "render", "post.teaser", "activity.relatedRecord", options))));
   
 });Ember.TEMPLATES['components/we-auth-modal-login'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
@@ -106654,7 +109635,7 @@ function program6(depth0,data) {
   return buffer;
   }
 
-  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "comment_create", options) : helperMissing.call(depth0, "can", "comment_create", options));
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "create_comment", options) : helperMissing.call(depth0, "can", "create_comment", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   else { data.buffer.push(''); }
   
@@ -106736,6 +109717,10 @@ function program1(depth0,data) {
   data.buffer.push(escapeExpression(helpers.action.call(depth0, "cancelEditing", {hash:{
     'on': ("reset")
   },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'class': ("formClassNames")
+  },hashTypes:{'class': "ID"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
   data.buffer.push(">\n    ");
   stack1 = helpers._triageMustache.call(depth0, "yield", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
@@ -106835,6 +109820,256 @@ function program3(depth0,data) {
   }
 
   stack1 = helpers['if'].call(depth0, "isEditing", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
+  
+});Ember.TEMPLATES['components/we-field-url-alias'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n  ");
+  data.buffer.push(escapeExpression((helper = helpers['we-loading'] || (depth0 && depth0['we-loading']),options={hash:{
+    'isLoading': ("isStarting")
+  },hashTypes:{'isLoading': "ID"},hashContexts:{'isLoading': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-loading", options))));
+  data.buffer.push("\n");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n  ");
+  stack1 = helpers['if'].call(depth0, "isEditing", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n");
+  return buffer;
+  }
+function program4(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n    <form>\n      ");
+  stack1 = helpers._triageMustache.call(depth0, "baseUrl", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{
+    'value': ("url.url"),
+    'type': ("text"),
+    'required': ("true")
+  },hashTypes:{'value': "ID",'type': "STRING",'required': "STRING"},hashContexts:{'value': depth0,'type': depth0,'required': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "input", options))));
+  data.buffer.push("\n      <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "save", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-success btn-sm\">Save</button>\n      <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "cancel", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-default btn-sm\">Cancel</button>\n    </form>\n  ");
+  return buffer;
+  }
+
+function program6(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n    ");
+  stack1 = helpers['if'].call(depth0, "url.url", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(9, program9, data),fn:self.program(7, program7, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "edit", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-default btn-sm\">Edit</button>\n  ");
+  return buffer;
+  }
+function program7(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n      url: ");
+  stack1 = helpers._triageMustache.call(depth0, "baseUrl", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  stack1 = helpers._triageMustache.call(depth0, "url.url", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    ");
+  return buffer;
+  }
+
+function program9(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n      url: ");
+  stack1 = helpers._triageMustache.call(depth0, "baseUrl", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  stack1 = helpers._triageMustache.call(depth0, "modelName", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("/");
+  stack1 = helpers._triageMustache.call(depth0, "modelId", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    ");
+  return buffer;
+  }
+
+  stack1 = helpers['if'].call(depth0, "isStarting", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
+  
+});Ember.TEMPLATES['components/we-group-invite-list'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n  <p>");
+  data.buffer.push(escapeExpression((helper = helpers['we-loading'] || (depth0 && depth0['we-loading']),options={hash:{
+    'isLoading': ("isLoading")
+  },hashTypes:{'isLoading': "ID"},hashContexts:{'isLoading': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-loading", options))));
+  data.buffer.push("</p>\n");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n  <table class=\"table\">\n    <thead>\n      <tr>\n        <th>ID</th>\n        <th>Name</th>\n        <th>Email</th>\n      </tr>\n    </thead>\n    <tbody>\n      ");
+  stack1 = helpers.each.call(depth0, "record", "in", "records", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[depth0,depth0,depth0],types:["ID","ID","ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    </tbody>\n  </table>\n");
+  return buffer;
+  }
+function program4(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n        <tr>\n          <td>");
+  stack1 = helpers._triageMustache.call(depth0, "record.id", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</td>\n          <td>");
+  stack1 = helpers._triageMustache.call(depth0, "record.name", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</td>\n          <td>");
+  stack1 = helpers._triageMustache.call(depth0, "record.email", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</td>\n        </tr>\n      ");
+  return buffer;
+  }
+
+function program6(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n        <tr>\n          <p>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.list.empty", options) : helperMissing.call(depth0, "t", "group.invite.list.empty", options))));
+  data.buffer.push("</p>\n        </td>\n      ");
+  return buffer;
+  }
+
+  stack1 = helpers['if'].call(depth0, "isLoading", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n");
+  return buffer;
+  
+});Ember.TEMPLATES['components/we-group-list'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n    <div class=\"col-md-12\">");
+  data.buffer.push(escapeExpression((helper = helpers['we-loading'] || (depth0 && depth0['we-loading']),options={hash:{
+    'isLoading': ("isLoading")
+  },hashTypes:{'isLoading': "ID"},hashContexts:{'isLoading': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-loading", options))));
+  data.buffer.push("</div>\n  ");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n    <div class=\"col-md-12\">\n      <h3>Encontrar Grupos</h3>\n    </div>\n    ");
+  stack1 = helpers.each.call(depth0, "record", "in", "records", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[depth0,depth0,depth0],types:["ID","ID","ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  ");
+  return buffer;
+  }
+function program4(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n      <div class=\"col-md-3\">\n        ");
+  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group/teaser", "record", options) : helperMissing.call(depth0, "render", "group/teaser", "record", options))));
+  data.buffer.push("\n      </div>\n    ");
+  return buffer;
+  }
+
+function program6(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n      <div class=\"col-md-12\">\n        <p>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "groups.empty", options) : helperMissing.call(depth0, "t", "groups.empty", options))));
+  data.buffer.push("</p>\n      </div>\n    ");
+  return buffer;
+  }
+
+  data.buffer.push("<div class=\"groups row\">\n  ");
+  stack1 = helpers['if'].call(depth0, "isLoading", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n</div>");
+  return buffer;
+  
+});Ember.TEMPLATES['components/we-group-members'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n  <div class=\"widget-header\">\n    <h4>");
+  stack1 = helpers._triageMustache.call(depth0, "title", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</h4>\n    <p>");
+  stack1 = helpers._triageMustache.call(depth0, "subtitle", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</p>\n  </div>\n  <div class=\"widget-content\">\n    ");
+  stack1 = helpers.each.call(depth0, "members", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(2, program2, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  </div>\n  <div class=\"widget-footer clearfix\">\n    ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("btn")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.members", "groupId", options) : helperMissing.call(depth0, "link-to", "group.members", "groupId", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  </div>\n");
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n      ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("member-link")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "user", "memberId", options) : helperMissing.call(depth0, "link-to", "user", "memberId", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    ");
+  return buffer;
+  }
+function program3(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n        ");
+  data.buffer.push(escapeExpression((helper = helpers['user-avatar'] || (depth0 && depth0['user-avatar']),options={hash:{
+    'user': ("relatedRecord"),
+    'size': ("thumbnail"),
+    'classNames': ("img-circle"),
+    'width': ("null")
+  },hashTypes:{'user': "ID",'size': "STRING",'classNames': "STRING",'width': "ID"},hashContexts:{'user': depth0,'size': depth0,'classNames': depth0,'width': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "user-avatar", options))));
+  data.buffer.push("\n      ");
+  return buffer;
+  }
+
+function program5(depth0,data) {
+  
+  
+  data.buffer.push("\n      Ver Todos\n    ");
+  }
+
+  stack1 = helpers['if'].call(depth0, "members", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   else { data.buffer.push(''); }
   
@@ -107067,6 +110302,133 @@ function program15(depth0,data) {
   data.buffer.push("\n  </ul>\n</div>\n");
   return buffer;
   
+});Ember.TEMPLATES['components/we-sharebox'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var stack1, helper, options, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n  <div ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'class': ("shareboxClass")
+  },hashTypes:{'class': "STRING"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(">\n  <form role=\"form\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "submit", {hash:{
+    'on': ("submit")
+  },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">\n    <div class=\"panel panel-default\">\n      <div class=\"panel-body\">\n        ");
+  stack1 = helpers['if'].call(depth0, "post.isOpen", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(13, program13, data),fn:self.program(2, program2, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n      </div>\n    </div>\n  </form>\n  </div>\n");
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n          <div class=\"form-group\">\n            ");
+  data.buffer.push(escapeExpression((helper = helpers['we-wysiwyg-editor'] || (depth0 && depth0['we-wysiwyg-editor']),options={hash:{
+    'name': ("body"),
+    'linkedPage': ("newWembed"),
+    'value': ("post.body"),
+    'focus': (true),
+    'style': ("small"),
+    'onChangeText': ("onChangeBodyText"),
+    'onPasteText': ("onPasteBodyText")
+  },hashTypes:{'name': "STRING",'linkedPage': "ID",'value': "ID",'focus': "BOOLEAN",'style': "STRING",'onChangeText': "STRING",'onPasteText': "STRING"},hashContexts:{'name': depth0,'linkedPage': depth0,'value': depth0,'focus': depth0,'style': depth0,'onChangeText': depth0,'onPasteText': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-wysiwyg-editor", options))));
+  data.buffer.push("\n          </div>\n\n          ");
+  stack1 = helpers['if'].call(depth0, "selectingAttachOption", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n          <div class=\"form-group\">\n            ");
+  stack1 = helpers['if'].call(depth0, "post.newWembed.url", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n          </div>\n\n          ");
+  stack1 = helpers['if'].call(depth0, "shareImages", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(7, program7, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n          <div class=\"form-group images-preview\">\n            <div class=\"row\">\n              ");
+  stack1 = helpers.each.call(depth0, "files", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(9, program9, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n              ");
+  stack1 = helpers.each.call(depth0, "images", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(11, program11, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n            </div>\n          </div>\n\n          <div class=\"footer\">\n            <div class=\"actions\">\n              <button type=\"submit\" class=\"btn btn-info\">\n                Salvar\n              </button>\n              <button type=\"button\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "cancel", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-default\">\n                <i class=\"fa fa-close\"></i>\n                Cancelar\n              </button>\n            </div>\n          </div>\n        ");
+  return buffer;
+  }
+function program3(depth0,data) {
+  
+  var buffer = '';
+  data.buffer.push("\n          <div class=\"form-group attach-options\">\n            <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "openShareImage", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" type=\"button\" class=\"btn btn-info\" title=\"Imagem\">\n              <i class=\"fa fa-image\"></i>\n            </button>\n          </div>\n          ");
+  return buffer;
+  }
+
+function program5(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n              ");
+  data.buffer.push(escapeExpression((helper = helpers['we-wembed'] || (depth0 && depth0['we-wembed']),options={hash:{
+    'url': ("post.newWembed.url"),
+    'imageIndex': ("post.newWembed.imageIndex"),
+    'isEditing': ("true")
+  },hashTypes:{'url': "ID",'imageIndex': "ID",'isEditing': "STRING"},hashContexts:{'url': depth0,'imageIndex': depth0,'isEditing': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-wembed", options))));
+  data.buffer.push("\n            ");
+  return buffer;
+  }
+
+function program7(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n            <div class=\"form-group\">\n              <div class=\"form-group row add-images\">\n                <label for=\"addImages\" class=\"col-sm-2 control-label\">Imagens:</label>\n                <div class=\"col-sm-10\">\n                  ");
+  data.buffer.push(escapeExpression((helper = helpers['image-upload'] || (depth0 && depth0['image-upload']),options={hash:{
+    'files': ("filesNew")
+  },hashTypes:{'files': "ID"},hashContexts:{'files': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "image-upload", options))));
+  data.buffer.push("\n                </div>\n              </div>\n            </div>\n          ");
+  return buffer;
+  }
+
+function program9(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n                <div class=\"col-xs-6 col-md-3\">\n                  ");
+  data.buffer.push(escapeExpression((helper = helpers['we-image-preview'] || (depth0 && depth0['we-image-preview']),options={hash:{
+    'file': (""),
+    'onRemove': ("onRemoveImage")
+  },hashTypes:{'file': "ID",'onRemove': "STRING"},hashContexts:{'file': depth0,'onRemove': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-image-preview", options))));
+  data.buffer.push("\n                </div>\n              ");
+  return buffer;
+  }
+
+function program11(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n                <div class=\"col-xs-6 col-md-3\">\n                  ");
+  data.buffer.push(escapeExpression((helper = helpers['we-image'] || (depth0 && depth0['we-image']),options={hash:{
+    'file': (""),
+    'click': ("onRemoveSalvedImage")
+  },hashTypes:{'file': "ID",'click': "STRING"},hashContexts:{'file': depth0,'click': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-image", options))));
+  data.buffer.push("\n                </div>\n              ");
+  return buffer;
+  }
+
+function program13(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n          <div ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "openBox", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"post-placeholder form-control post-content\"> ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "What is happening?", options) : helperMissing.call(depth0, "t", "What is happening?", options))));
+  data.buffer.push("</div>\n        ");
+  return buffer;
+  }
+
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "create_post", options) : helperMissing.call(depth0, "can", "create_post", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
+  
 });Ember.TEMPLATES['components/we-socket-io'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
@@ -107291,16 +110653,17 @@ function program3(depth0,data) {
 });Ember.TEMPLATES['components/we-terms'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
-  var stack1, self=this, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
+  var stack1, self=this;
 
 function program1(depth0,data) {
   
-  var buffer = '', stack1, helper, options;
+  var buffer = '', stack1;
   data.buffer.push("\n  ");
   stack1 = helpers['if'].call(depth0, "_view.contentIndex", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(2, program2, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n  <a>");
-  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "term/item", "", options) : helperMissing.call(depth0, "render", "term/item", "", options))));
+  stack1 = helpers._triageMustache.call(depth0, "term", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("</a>\n");
   return buffer;
   }
@@ -107310,7 +110673,7 @@ function program2(depth0,data) {
   data.buffer.push(" , ");
   }
 
-  stack1 = helpers.each.call(depth0, "terms", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  stack1 = helpers.each.call(depth0, "term", "in", "terms", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0,depth0],types:["ID","ID","ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   else { data.buffer.push(''); }
   
@@ -107323,8 +110686,8 @@ function program1(depth0,data) {
   
   var buffer = '', helper, options;
   data.buffer.push("\n    ");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Loading more", options) : helperMissing.call(depth0, "t", "Loading more", options))));
-  data.buffer.push("... <img src=\"/core/images/loading.gif\">\n  ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "loading.more", options) : helperMissing.call(depth0, "t", "loading.more", options))));
+  data.buffer.push("... <img src=\"/public/plugin/we-core/files/images/loading.gif\">\n  ");
   return buffer;
   }
 
@@ -107340,10 +110703,10 @@ function program3(depth0,data) {
 function program4(depth0,data) {
   
   var buffer = '', helper, options;
-  data.buffer.push("\n      <a href='#' ");
+  data.buffer.push("\n      <a href='javascript:;' ");
   data.buffer.push(escapeExpression(helpers.action.call(depth0, "getMore", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
   data.buffer.push(">");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Get More", options) : helperMissing.call(depth0, "t", "Get More", options))));
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "get.more", options) : helperMissing.call(depth0, "t", "get.more", options))));
   data.buffer.push("</a>\n    ");
   return buffer;
   }
@@ -107352,7 +110715,7 @@ function program6(depth0,data) {
   
   var buffer = '', helper, options;
   data.buffer.push("\n      ");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "No more content", options) : helperMissing.call(depth0, "t", "No more content", options))));
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "no.more.content", options) : helperMissing.call(depth0, "t", "no.more.content", options))));
   data.buffer.push("\n    ");
   return buffer;
   }
@@ -107360,7 +110723,7 @@ function program6(depth0,data) {
   data.buffer.push("<div class=\"loading-more-content text-center\">\n  ");
   stack1 = helpers['if'].call(depth0, "loadingMore", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n</div>\n");
+  data.buffer.push("\n</div>");
   return buffer;
   
 });Ember.TEMPLATES['components/we-user-contacts-block'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
@@ -107408,6 +110771,301 @@ function program3(depth0,data) {
   data.buffer.push("\n");
   return buffer;
   
+});Ember.TEMPLATES['components/we-user-membership-list'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n    <div class=\"col-md-12\">\n      <h3>");
+  stack1 = helpers._triageMustache.call(depth0, "title", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</h3>\n    </div>\n    ");
+  stack1 = helpers['if'].call(depth0, "isLoading", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(4, program4, data),fn:self.program(2, program2, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  ");
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n      <div class=\"col-md-12\">");
+  data.buffer.push(escapeExpression((helper = helpers['we-loading'] || (depth0 && depth0['we-loading']),options={hash:{
+    'isLoading': ("isLoading")
+  },hashTypes:{'isLoading': "ID"},hashContexts:{'isLoading': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-loading", options))));
+  data.buffer.push("</div>\n    ");
+  return buffer;
+  }
+
+function program4(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n      ");
+  stack1 = helpers.each.call(depth0, "records", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(14, program14, data),fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    ");
+  return buffer;
+  }
+function program5(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n\n        ");
+  stack1 = helpers['if'].call(depth0, "model.name", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(12, program12, data),fn:self.program(6, program6, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n      ");
+  return buffer;
+  }
+function program6(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n          <div class=\"col-md-3\">\n            <div class=\"group group-teaser teaser panel panel-default text-center\">\n              <div class=\"panel-content\">\n                ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'title': ("model.name")
+  },hashTypes:{'title': "ID"},hashContexts:{'title': depth0},inverse:self.noop,fn:self.program(7, program7, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group", "model.id", options) : helperMissing.call(depth0, "link-to", "group", "model.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n              </div>\n              <div class=\"panel-footer\">\n                <span><i class=\"glyphicon glyphicon-user\"></i>");
+  stack1 = helpers._triageMustache.call(depth0, "model.data.meta.membersCount", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push(" ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.members", options) : helperMissing.call(depth0, "t", "group.members", options))));
+  data.buffer.push("</span> -\n                <span><i class=\"glyphicon glyphicon-file\"></i>");
+  stack1 = helpers._triageMustache.call(depth0, "model.data.meta.contentsCount", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push(" ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.contents", options) : helperMissing.call(depth0, "t", "group.contents", options))));
+  data.buffer.push("</span>\n              </div>\n            </div>\n          </div>\n        ");
+  return buffer;
+  }
+function program7(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n                  ");
+  stack1 = helpers['if'].call(depth0, "model.logo", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(10, program10, data),fn:self.program(8, program8, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n                  ");
+  data.buffer.push(escapeExpression((helper = helpers.substr || (depth0 && depth0.substr),options={hash:{
+    'max': (25)
+  },hashTypes:{'max': "INTEGER"},hashContexts:{'max': depth0},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "model.name", options) : helperMissing.call(depth0, "substr", "model.name", options))));
+  data.buffer.push("\n                ");
+  return buffer;
+  }
+function program8(depth0,data) {
+  
+  var buffer = '';
+  data.buffer.push("\n                    <img width=\"40px\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'src': ("model.logo.urls.thumbnail")
+  },hashTypes:{'src': "STRING"},hashContexts:{'src': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(" />\n                  ");
+  return buffer;
+  }
+
+function program10(depth0,data) {
+  
+  
+  data.buffer.push("\n                    <img width=\"40px\" src=\"/public/plugin/we-core/files/images/logos/group.jpg\">\n                  ");
+  }
+
+function program12(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n          <div class=\"col-md-3\">\n            <div class=\"group group-teaser teaser panel panel-default text-center\">\n              <div class=\"panel-content\">\n                ");
+  data.buffer.push(escapeExpression((helper = helpers['we-loading'] || (depth0 && depth0['we-loading']),options={hash:{
+    'isLoading': (true)
+  },hashTypes:{'isLoading': "BOOLEAN"},hashContexts:{'isLoading': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-loading", options))));
+  data.buffer.push("\n              </div>\n            </div>\n          </div>\n        ");
+  return buffer;
+  }
+
+function program14(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n        <div class=\"col-md-12\">\n          <p>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "groups.empty", options) : helperMissing.call(depth0, "t", "groups.empty", options))));
+  data.buffer.push("</p>\n        </div>\n      ");
+  return buffer;
+  }
+
+  data.buffer.push("<div class=\"groups row\">\n  ");
+  stack1 = helpers['if'].call(depth0, "memberId", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n</div>");
+  return buffer;
+  
+});Ember.TEMPLATES['components/we-wembed'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n  <div class=\"site-embed-editing\">\n    <div class=\"wembed-actions clearfix\">\n      <a class=\"btn btn-danger wembed-delete-link pull-right\" href=\"#\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "deleteWembed", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">\n        <span class=\"glyphicon glyphicon-remove\"> </span>\n        ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "wembed.remove", options) : helperMissing.call(depth0, "t", "wembed.remove", options))));
+  data.buffer.push("\n      </a>\n    </div>\n\n    <div class=\"site-embed\">\n\n      ");
+  stack1 = helpers['if'].call(depth0, "image", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(2, program2, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n      <h5 class=\"site-embed-title\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.title", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</h5>\n      <p class=\"site-embed-description\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.description", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</p>\n      <div class=\"site-embed-domain\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.domain", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</div>\n    </div>\n  </div>\n");
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n        <div class=\"site-embed-image\">\n          ");
+  stack1 = helpers['if'].call(depth0, "showImageSelector", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n          ");
+  stack1 = helpers['with'].call(depth0, "image", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(6, program6, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n        </div>\n      ");
+  return buffer;
+  }
+function program3(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n            <div ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'class': ("wembedImageActionClass")
+  },hashTypes:{'class': "ID"},hashContexts:{'class': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(">\n              ");
+  stack1 = helpers.each.call(depth0, "wembed.images", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n            </div>\n          ");
+  return buffer;
+  }
+function program4(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n              <span class=\"text-center\">\n                <a href=\"#\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "changeWembedImage", "_view.contentIndex", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data})));
+  data.buffer.push(">");
+  stack1 = helpers._triageMustache.call(depth0, "_view.contentIndex", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</a>\n              </span>\n              ");
+  return buffer;
+  }
+
+function program6(depth0,data) {
+  
+  var buffer = '';
+  data.buffer.push("\n            <img ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'src': ("url")
+  },hashTypes:{'src': "ID"},hashContexts:{'src': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(">\n          ");
+  return buffer;
+  }
+
+function program8(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n  <div class=\"site-embed\">\n  ");
+  stack1 = helpers['if'].call(depth0, "isPlaying", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(11, program11, data),fn:self.program(9, program9, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  </div>\n");
+  return buffer;
+  }
+function program9(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n    <div class='site-embed-video-area'>\n      <iframe width=\"560\" height=\"315\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'src': ("videoEmbedSrc")
+  },hashTypes:{'src': "ID"},hashContexts:{'src': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push("   frameborder=\"0\" autoplay=\"1\" allowfullscreen></iframe>\n    </div>\n    <h4 class=\"site-embed-title\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.title", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</h4>\n    <p class=\"site-embed-description\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.description", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</p>\n    <div class=\"site-embed-domain\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.domain", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</div>\n  ");
+  return buffer;
+  }
+
+function program11(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n    <a class=\"embed-link\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "playVideo", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'href': ("wembed.url")
+  },hashTypes:{'href': "ID"},hashContexts:{'href': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(">\n      ");
+  stack1 = helpers['with'].call(depth0, "image", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(12, program12, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n      <h4 class=\"site-embed-title\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.title", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</h4>\n      <p class=\"site-embed-description\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.description", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</p>\n      <div class=\"site-embed-domain\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.domain", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</div>\n    </a>\n  ");
+  return buffer;
+  }
+function program12(depth0,data) {
+  
+  var buffer = '';
+  data.buffer.push("\n        <div class=\"site-embed-image\">\n          <img ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'src': ("url")
+  },hashTypes:{'src': "ID"},hashContexts:{'src': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(">\n        </div>\n      ");
+  return buffer;
+  }
+
+function program14(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n  <div class=\"site-embed\">\n    <a class=\"embed-link\" target=\"_blank\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'href': ("wembed.url")
+  },hashTypes:{'href': "ID"},hashContexts:{'href': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(">\n      ");
+  stack1 = helpers['with'].call(depth0, "image", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(12, program12, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n      <h4 class=\"site-embed-title\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.title", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</h4>\n      <p class=\"site-embed-description\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.description", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</p>\n      <div class=\"site-embed-domain\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.domain", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</div>\n    </a>\n  </div>\n");
+  return buffer;
+  }
+
+  stack1 = helpers['if'].call(depth0, "isEditing", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n");
+  stack1 = helpers['if'].call(depth0, "isVideo", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(8, program8, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n");
+  stack1 = helpers['if'].call(depth0, "isPage", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(14, program14, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  return buffer;
+  
 });Ember.TEMPLATES['components/widget-actions'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
@@ -107415,6 +111073,703 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
 
 
   data.buffer.push("widget-actions.hbs\neditar | deletar");
+  
+});Ember.TEMPLATES['group'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n          <h4>");
+  stack1 = helpers._triageMustache.call(depth0, "group.name", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</h4>\n        ");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n          ");
+  stack1 = helpers['if'].call(depth0, "group.logo", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n        ");
+  return buffer;
+  }
+function program4(depth0,data) {
+  
+  var buffer = '';
+  data.buffer.push("\n            <img width=\"100%\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'src': ("group.logo.urls.large")
+  },hashTypes:{'src': "STRING"},hashContexts:{'src': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(" />\n          ");
+  return buffer;
+  }
+
+function program6(depth0,data) {
+  
+  
+  data.buffer.push("\n            <img width=\"100%\" src=\"/public/plugin/we-core/files/images/logos/group.jpg\">\n          ");
+  }
+
+function program8(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n            ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.about", options) : helperMissing.call(depth0, "t", "group.about", options))));
+  data.buffer.push("\n          ");
+  return buffer;
+  }
+
+function program10(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n            ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Activity", options) : helperMissing.call(depth0, "t", "Activity", options))));
+  data.buffer.push("\n          ");
+  return buffer;
+  }
+
+function program12(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n            ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("list-group-item")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(13, program13, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.addMember", "group.id", options) : helperMissing.call(depth0, "link-to", "group.addMember", "group.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n          ");
+  return buffer;
+  }
+function program13(depth0,data) {
+  
+  
+  data.buffer.push("\n              Convidar Pessoa\n            ");
+  }
+
+function program15(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n            ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.contents", options) : helperMissing.call(depth0, "t", "group.contents", options))));
+  data.buffer.push("\n          ");
+  return buffer;
+  }
+
+function program17(depth0,data) {
+  
+  
+  data.buffer.push("\n            Members\n          ");
+  }
+
+function program19(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n            ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Edit", options) : helperMissing.call(depth0, "t", "Edit", options))));
+  data.buffer.push("\n          ");
+  return buffer;
+  }
+
+function program21(depth0,data) {
+  
+  
+  data.buffer.push("\n            Convites\n          ");
+  }
+
+  data.buffer.push("<div class=\"container bs-docs-container\">\n  <div class=\"row\">\n    <div class=\"col-md-3\">\n      <div class=\"group-name\">\n        ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group", "group.id", options) : helperMissing.call(depth0, "link-to", "group", "group.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n      </div>\n\n      <div class=\"group-logo\">\n        ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group", "group.id", options) : helperMissing.call(depth0, "link-to", "group", "group.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n      </div>\n\n      <div id=\"group-icons\">\n        <ul class=\"nav nav-pills nav-justified\">\n          <li>\n            ");
+  data.buffer.push(escapeExpression((helper = helpers['we-flag'] || (depth0 && depth0['we-flag']),options={hash:{
+    'flagType': ("like"),
+    'model': ("group"),
+    'modelId': ("group.id")
+  },hashTypes:{'flagType': "STRING",'model': "STRING",'modelId': "ID"},hashContexts:{'flagType': depth0,'model': depth0,'modelId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-flag", options))));
+  data.buffer.push("\n          </li>\n          <li><i class=\"glyphicon glyphicon-lock\"></i></li>\n          <li>\n            ");
+  data.buffer.push(escapeExpression((helper = helpers['we-follow'] || (depth0 && depth0['we-follow']),options={hash:{
+    'model': ("group"),
+    'modelId': ("group.id")
+  },hashTypes:{'model': "STRING",'modelId': "ID"},hashContexts:{'model': depth0,'modelId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-follow", options))));
+  data.buffer.push("\n          </li>\n        </ul>\n      </div>\n\n      <div class=\"widget widget-type-menu\">\n        <div class=\"widget-content\">\n          ");
+  data.buffer.push(escapeExpression((helper = helpers['we-group-join-button'] || (depth0 && depth0['we-group-join-button']),options={hash:{
+    'tagName': ("a"),
+    'group': ("group"),
+    'classNames': ("btn btn-primary btn-block")
+  },hashTypes:{'tagName': "STRING",'group': "ID",'classNames': "STRING"},hashContexts:{'tagName': depth0,'group': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-group-join-button", options))));
+  data.buffer.push("\n        </div>\n      </div>\n\n      <div class=\"administer-widget widget widget-type-menu\">\n        <div class=\"widget-header\">\n          <h4>\n            <span class=\"glyphicon glyphicon glyphicon-list\"></span>\n            <span class=\"icon-title\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.menu", options) : helperMissing.call(depth0, "t", "group.menu", options))));
+  data.buffer.push("</span>\n          </h4>\n        </div>\n        <div class=\"widget-content\">\n          ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("list-group-item")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(8, program8, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.about", "group.id", options) : helperMissing.call(depth0, "link-to", "group.about", "group.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n          ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("list-group-item")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(10, program10, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.index", "group.id", options) : helperMissing.call(depth0, "link-to", "group.index", "group.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n          ");
+  stack1 = helpers['if'].call(depth0, "group.canInvite", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(12, program12, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n          ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("list-group-item")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(15, program15, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.content", options) : helperMissing.call(depth0, "link-to", "group.content", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n          ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("list-group-item")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(17, program17, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.members", "group.id", options) : helperMissing.call(depth0, "link-to", "group.members", "group.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n        </div>\n      </div>\n\n      <div class=\"administer-widget widget widget-type-menu\">\n        <div class=\"widget-header\">\n          <h4>\n            <span class=\"glyphicon glyphicon-cog\"></span>\n            <span class=\"icon-title\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "manage", options) : helperMissing.call(depth0, "t", "manage", options))));
+  data.buffer.push("</span>\n          </h4>\n        </div>\n        <div class=\"widget-content\">\n          ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("list-group-item")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(19, program19, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.edit", "group.id", options) : helperMissing.call(depth0, "link-to", "group.edit", "group.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n          ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("list-group-item")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(21, program21, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.addMember", "group.id", options) : helperMissing.call(depth0, "link-to", "group.addMember", "group.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n        </div>\n      </div>\n\n      ");
+  data.buffer.push(escapeExpression((helper = helpers['we-group-members'] || (depth0 && depth0['we-group-members']),options={hash:{
+    'roleNames': ("member"),
+    'groupId': ("group.id")
+  },hashTypes:{'roleNames': "STRING",'groupId': "ID"},hashContexts:{'roleNames': depth0,'groupId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-group-members", options))));
+  data.buffer.push("\n      ");
+  data.buffer.push(escapeExpression((helper = helpers['we-group-members'] || (depth0 && depth0['we-group-members']),options={hash:{
+    'roleNames': ("administrator;moderator"),
+    'widgetTitle': ("group.moderators.widget.title"),
+    'groupId': ("group.id")
+  },hashTypes:{'roleNames': "STRING",'widgetTitle': "STRING",'groupId': "ID"},hashContexts:{'roleNames': depth0,'widgetTitle': depth0,'groupId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-group-members", options))));
+  data.buffer.push("\n\n    </div>\n    <div class=\"col-md-9\">\n      ");
+  stack1 = helpers._triageMustache.call(depth0, "outlet", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    </div>\n\n  </div>\n</div>");
+  return buffer;
+  
+});Ember.TEMPLATES['group/about'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
+
+
+  data.buffer.push("<h1>");
+  stack1 = helpers._triageMustache.call(depth0, "group.name", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</h1>\n\n<p class=\"group-categories\">");
+  data.buffer.push(escapeExpression((helper = helpers['we-terms'] || (depth0 && depth0['we-terms']),options={hash:{
+    'terms': ("group.categories")
+  },hashTypes:{'terms': "ID"},hashContexts:{'terms': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-terms", options))));
+  data.buffer.push("</p>\n<br>\n<div>");
+  data.buffer.push(escapeExpression((helper = helpers.html || (depth0 && depth0.html),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "group.description", options) : helperMissing.call(depth0, "html", "group.description", options))));
+  data.buffer.push("</div>\n");
+  return buffer;
+  
+});Ember.TEMPLATES['group/addMember'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n  <h4>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.title", options) : helperMissing.call(depth0, "t", "group.invite.form.title", options))));
+  data.buffer.push("</h4>\n  ");
+  stack1 = helpers['if'].call(depth0, "isLoading", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(4, program4, data),fn:self.program(2, program2, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n");
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  
+  data.buffer.push("\n    Enviando ...\n  ");
+  }
+
+function program4(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n    <form role=\"form\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "invite", {hash:{
+    'on': ("submit")
+  },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">\n      <div class=\"form-group\">\n        <label>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.user.email", options) : helperMissing.call(depth0, "t", "group.invite.form.user.email", options))));
+  data.buffer.push("</label>\n        ");
+  data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{
+    'name': ("email"),
+    'value': ("newInvite.email"),
+    'type': ("email"),
+    'required': ("true"),
+    'classNames': ("form-control")
+  },hashTypes:{'name': "STRING",'value': "ID",'type': "STRING",'required': "STRING",'classNames': "STRING"},hashContexts:{'name': depth0,'value': depth0,'type': depth0,'required': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "input", options))));
+  data.buffer.push("\n      </div>\n\n      <div class=\"form-group\">\n        <label>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.user.name", options) : helperMissing.call(depth0, "t", "group.invite.form.user.name", options))));
+  data.buffer.push("</label>\n        ");
+  data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{
+    'name': ("name"),
+    'value': ("newInvite.name"),
+    'type': ("text"),
+    'required': ("true"),
+    'classNames': ("form-control")
+  },hashTypes:{'name': "STRING",'value': "ID",'type': "STRING",'required': "STRING",'classNames': "STRING"},hashContexts:{'name': depth0,'value': depth0,'type': depth0,'required': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "input", options))));
+  data.buffer.push("\n      </div>\n\n      <div class=\"form-group\">\n        <label>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.text", options) : helperMissing.call(depth0, "t", "group.invite.form.text", options))));
+  data.buffer.push("</label>\n        ");
+  data.buffer.push(escapeExpression((helper = helpers['we-editor'] || (depth0 && depth0['we-editor']),options={hash:{
+    'value': ("newInvite.text"),
+    'style': ("small")
+  },hashTypes:{'value': "ID",'style': "STRING"},hashContexts:{'value': depth0,'style': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-editor", options))));
+  data.buffer.push("\n      </div>\n\n      <div class=\"form-group\">\n        <button class=\"btn btn-primary\" type=\"submit\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.submit", options) : helperMissing.call(depth0, "t", "group.invite.form.submit", options))));
+  data.buffer.push("</button>\n        <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "cancelInvite", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-default\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.cancel", options) : helperMissing.call(depth0, "t", "group.invite.form.cancel", options))));
+  data.buffer.push("</button>\n      </div>\n    </form>\n  ");
+  return buffer;
+  }
+
+function program6(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n  <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "showInvite", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-default\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.form.show", options) : helperMissing.call(depth0, "t", "group.invite.form.show", options))));
+  data.buffer.push("</button>\n");
+  return buffer;
+  }
+
+  data.buffer.push("<h2>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.title", options) : helperMissing.call(depth0, "t", "group.invite.title", options))));
+  data.buffer.push("</h2>\n\n");
+  stack1 = helpers['if'].call(depth0, "showInviteForm", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n<h4>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.invite.list.title", options) : helperMissing.call(depth0, "t", "group.invite.list.title", options))));
+  data.buffer.push("</h4>\n\n");
+  data.buffer.push(escapeExpression((helper = helpers['we-group-invite-list'] || (depth0 && depth0['we-group-invite-list']),options={hash:{
+    'groupId': ("group.id")
+  },hashTypes:{'groupId': "ID"},hashContexts:{'groupId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-group-invite-list", options))));
+  data.buffer.push("\n");
+  return buffer;
+  
+});Ember.TEMPLATES['group/edit'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
+
+
+  data.buffer.push("<br>\n<div class=\"row\">\n  <div class=\"col-md-12\">\n    ");
+  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.form", "model", options) : helperMissing.call(depth0, "render", "group.form", "model", options))));
+  data.buffer.push("\n  </div>\n</div>");
+  return buffer;
+  
+});Ember.TEMPLATES['group/feature'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1;
+
+
+  stack1 = helpers._triageMustache.call(depth0, "outlet", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n");
+  return buffer;
+  
+});Ember.TEMPLATES['group/form'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n    <div class=\"form-group\">\n      <table class=\"table table-bordered\">\n        <tbody>\n          <tr>\n            <td>");
+  data.buffer.push(escapeExpression((helper = helpers['we-image'] || (depth0 && depth0['we-image']),options={hash:{
+    'file': ("record.logo"),
+    'size': ("thumbnail"),
+    'width': ("40px")
+  },hashTypes:{'file': "ID",'size': "STRING",'width': "STRING"},hashContexts:{'file': depth0,'size': depth0,'width': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-image", options))));
+  data.buffer.push("</td>\n            <td>");
+  stack1 = helpers._triageMustache.call(depth0, "record.logo.id", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</td>\n            <td>");
+  stack1 = helpers._triageMustache.call(depth0, "record.logo.originalname", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</td>\n          </tr>\n        </tbody>\n      </table>\n    </div>\n  ");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n      ");
+  data.buffer.push(escapeExpression((helper = helpers['image-upload'] || (depth0 && depth0['image-upload']),options={hash:{
+    'classNames': ("form-control header-inputs"),
+    'files': ("selectedImage")
+  },hashTypes:{'classNames': "STRING",'files': "ID"},hashContexts:{'classNames': depth0,'files': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "image-upload", options))));
+  data.buffer.push("\n    ");
+  return buffer;
+  }
+
+function program5(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n      <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "resetSelectedImage", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-default\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "reset", options) : helperMissing.call(depth0, "t", "reset", options))));
+  data.buffer.push("</button>\n    ");
+  return buffer;
+  }
+
+  data.buffer.push("<form role=\"form\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "submit", {hash:{
+    'on': ("submit")
+  },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">\n  <div class=\"form-group\">\n    <div class=\"input-group\">\n      <label for=\"name\" class=\"input-group-addon\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.form.name.label", options) : helperMissing.call(depth0, "t", "group.form.name.label", options))));
+  data.buffer.push("</label>\n      ");
+  data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{
+    'name': ("name"),
+    'value': ("record.name"),
+    'type': ("text"),
+    'placeholderTranslation': ("group.form.name.placeholder"),
+    'required': ("true"),
+    'classNames': ("form-control")
+  },hashTypes:{'name': "STRING",'value': "ID",'type': "STRING",'placeholderTranslation': "STRING",'required': "STRING",'classNames': "STRING"},hashContexts:{'name': depth0,'value': depth0,'type': depth0,'placeholderTranslation': depth0,'required': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "input", options))));
+  data.buffer.push("\n    </div>\n  </div>\n\n  <div class=\"form-group\">\n      <label for=\"description\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.form.description.label", options) : helperMissing.call(depth0, "t", "group.form.description.label", options))));
+  data.buffer.push("</label>\n      ");
+  data.buffer.push(escapeExpression((helper = helpers['we-editor'] || (depth0 && depth0['we-editor']),options={hash:{
+    'name': ("description"),
+    'value': ("record.description"),
+    'type': ("text"),
+    'required': ("true")
+  },hashTypes:{'name': "STRING",'value': "ID",'type': "STRING",'required': "STRING"},hashContexts:{'name': depth0,'value': depth0,'type': depth0,'required': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-editor", options))));
+  data.buffer.push("\n  </div>\n\n  <hr>\n\n  <div class=\"form-group\">\n    <label class=\"story-form-label\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.form.category.label", options) : helperMissing.call(depth0, "t", "group.form.category.label", options))));
+  data.buffer.push("</label>\n    ");
+  data.buffer.push(escapeExpression((helper = helpers['we-category-field'] || (depth0 && depth0['we-category-field']),options={hash:{
+    'required': ("true"),
+    'value': ("record.categories"),
+    'modelName': ("Group"),
+    'field': ("categories")
+  },hashTypes:{'required': "STRING",'value': "ID",'modelName': "STRING",'field': "STRING"},hashContexts:{'required': depth0,'value': depth0,'modelName': depth0,'field': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-category-field", options))));
+  data.buffer.push("\n  </div>\n\n  <div class=\"form-group\">\n    <div class=\"input-group\">\n      <label for=\"privacity\" class=\"input-group-addon\">\n        <span class=\"glyphicon glyphicon-lock\"></span>\n        ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Privacity", options) : helperMissing.call(depth0, "t", "Privacity", options))));
+  data.buffer.push("\n      </label>\n      ");
+  data.buffer.push(escapeExpression(helpers.view.call(depth0, "select", {hash:{
+    'name': ("Privacity"),
+    'value': ("record.privacity"),
+    'optionValuePath': ("content.value"),
+    'optionLabelPath': ("content.label"),
+    'content': ("privacityList"),
+    'classNames': ("form-control")
+  },hashTypes:{'name': "STRING",'value': "ID",'optionValuePath': "STRING",'optionLabelPath': "STRING",'content': "ID",'classNames': "STRING"},hashContexts:{'name': depth0,'value': depth0,'optionValuePath': depth0,'optionLabelPath': depth0,'content': depth0,'classNames': depth0},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push("\n    </div>\n  </div>\n\n  <hr>\n\n  ");
+  stack1 = helpers['if'].call(depth0, "record.logo", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n  <div class=\"form-group\">\n    ");
+  stack1 = helpers.unless.call(depth0, "inputReset", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    ");
+  stack1 = helpers['if'].call(depth0, "selectedImage", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  </div>\n\n  <hr>\n\n  <div class=\"form-group\">\n    <button class=\"btn btn-primary\" type=\"buttom\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "saveRecord", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.form.submit", options) : helperMissing.call(depth0, "t", "group.form.submit", options))));
+  data.buffer.push("</button>\n  </div>\n\n</form>");
+  return buffer;
+  
+});Ember.TEMPLATES['group/groupActionsBlock'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', helper, options, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
+
+
+  data.buffer.push("<div class=\"actions\">\n  <div class=\"btn-group btn-group-sm\">\n    <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "unFollow", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" type=\"button\" class=\"btn btn-default\">\n      <span class=\"glyphicon glyphicon-eye-open\"></span>\n      Sequindo\n    </button>\n\n    <div class=\"btn-group btn-group-sm\">\n      <button class=\"btn btn-default dropdown-toggle\" type=\"button\" id=\"dropdownGroupActions\" data-toggle=\"dropdown\">\n        ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Actions", options) : helperMissing.call(depth0, "t", "Actions", options))));
+  data.buffer.push("\n        <span class=\"caret\"></span>\n      </button>\n      <ul class=\"dropdown-menu\" role=\"menu\" aria-labelledby=\"dropdownGroupActions\">\n        <li role=\"presentation\">\n         <a href=\"#d\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "editItem", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" role=\"menuitem\" tabindex=\"-1\" >\n            <span class=\"text-primary glyphicon glyphicon-pencil\"></span>\n            ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Edit", options) : helperMissing.call(depth0, "t", "Edit", options))));
+  data.buffer.push("\n          </a>\n        <li role=\"presentation\" class=\"divider\"></li>\n        <li role=\"presentation\">\n          <a href=\"#d\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "deleteItem", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" role=\"menuitem\" tabindex=\"-1\" >\n            <span class=\"text-danger glyphicon glyphicon-remove\"></span>\n            ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Delete", options) : helperMissing.call(depth0, "t", "Delete", options))));
+  data.buffer.push("\n          </a>\n        </li>\n      </ul>\n    </div>\n  </div>\n</div>");
+  return buffer;
+  
+});Ember.TEMPLATES['group/index'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
+
+
+  data.buffer.push("<h3>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Activity", options) : helperMissing.call(depth0, "t", "Activity", options))));
+  data.buffer.push("</h3>\n");
+  data.buffer.push(escapeExpression((helper = helpers['we-activities'] || (depth0 && depth0['we-activities']),options={hash:{
+    'groupId': ("group.id")
+  },hashTypes:{'groupId': "ID"},hashContexts:{'groupId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-activities", options))));
+  data.buffer.push("\n");
+  return buffer;
+  
+});Ember.TEMPLATES['group/members'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n  ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(2, program2, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "user", "id", options) : helperMissing.call(depth0, "link-to", "user", "id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n  ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "user", "id", options) : helperMissing.call(depth0, "link-to", "user", "id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n  ");
+  stack1 = helpers._triageMustache.call(depth0, "createdAt", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n");
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n    <span class=\"creator-avatar avatar-small\">");
+  data.buffer.push(escapeExpression((helper = helpers['we-avatar'] || (depth0 && depth0['we-avatar']),options={hash:{
+    'userId': ("id")
+  },hashTypes:{'userId': "ID"},hashContexts:{'userId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-avatar", options))));
+  data.buffer.push("</span>\n  ");
+  return buffer;
+  }
+
+function program4(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n    <h3>");
+  stack1 = helpers._triageMustache.call(depth0, "displayName", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</h3>\n  ");
+  return buffer;
+  }
+
+function program6(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n  ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.members.empty", options) : helperMissing.call(depth0, "t", "group.members.empty", options))));
+  data.buffer.push("\n");
+  return buffer;
+  }
+
+  stack1 = helpers.each.call(depth0, "members", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
+  
+});Ember.TEMPLATES['group/requests'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n          <tr>\n            <td class=\"col-md-1 text-center\">\n            ");
+  data.buffer.push(escapeExpression((helper = helpers['we-avatar'] || (depth0 && depth0['we-avatar']),options={hash:{
+    'userId': ("member.user"),
+    'size': ("small")
+  },hashTypes:{'userId': "ID",'size': "STRING"},hashContexts:{'userId': depth0,'size': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-avatar", options))));
+  data.buffer.push("\n            </td>      \n            <td class=\"col-md-4\">\n            ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(2, program2, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "user", "member.user", options) : helperMissing.call(depth0, "link-to", "user", "member.user", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("            \n            </td>\n            <td class=\"col-md-1 text-center\">\n              <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "denyRequest", "member", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data})));
+  data.buffer.push(" class=\"btn btn-sm btn-danger\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "groupRequest.deny", options) : helperMissing.call(depth0, "t", "groupRequest.deny", options))));
+  data.buffer.push("</button>\n            </td>\n            <td class=\"col-md-1 text-center\">\n              <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "acceptRequest", "member", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data})));
+  data.buffer.push(" class=\"btn btn-sm btn-success\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "groupRequest.accept", options) : helperMissing.call(depth0, "t", "groupRequest.accept", options))));
+  data.buffer.push("</button>\n            </td>\n          </tr>\n          ");
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var stack1;
+  stack1 = helpers._triageMustache.call(depth0, "member.displayName", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
+  }
+
+function program4(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n          <tr>\n            <td colspan=\"3\">\n              <div class=\"jumbotron text-center\">\n                ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "groupRequest.noRequest", options) : helperMissing.call(depth0, "t", "groupRequest.noRequest", options))));
+  data.buffer.push("\n              </div>\n            </td>\n          </tr>\n          ");
+  return buffer;
+  }
+
+  data.buffer.push("<h2 class=\"title\">Solicitações</h2>\n<div class=\"row\">\n    <div>\n      <table class=\"table table-striped table-hover table-condensed\">\n        <tbody>\n          ");
+  stack1 = helpers.each.call(depth0, "member", "in", "memberships", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(4, program4, data),fn:self.program(1, program1, data),contexts:[depth0,depth0,depth0],types:["ID","ID","ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n        </tbody>\n      </table>       \n    </div>\n</div>");
+  return buffer;
+  
+});Ember.TEMPLATES['group/teaser'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n      ");
+  data.buffer.push(escapeExpression((helper = helpers.substr || (depth0 && depth0.substr),options={hash:{
+    'max': (15)
+  },hashTypes:{'max': "INTEGER"},hashContexts:{'max': depth0},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "name", options) : helperMissing.call(depth0, "substr", "name", options))));
+  data.buffer.push("\n    ");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n      ");
+  stack1 = helpers['if'].call(depth0, "logo", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    ");
+  return buffer;
+  }
+function program4(depth0,data) {
+  
+  var buffer = '';
+  data.buffer.push("\n        <img width=\"100%\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'src': ("logo.urls.thumbnail")
+  },hashTypes:{'src': "STRING"},hashContexts:{'src': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(" />\n      ");
+  return buffer;
+  }
+
+function program6(depth0,data) {
+  
+  
+  data.buffer.push("\n        <img width=\"100%\" src=\"/public/plugin/we-core/files/images/logos/group.jpg\">\n      ");
+  }
+
+  data.buffer.push("<div class=\"group group-teaser teaser panel panel-default text-center\">\n  <div class=\"header panel-heading\">\n    <h4>\n    ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group", "id", options) : helperMissing.call(depth0, "link-to", "group", "id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    </h4>\n  </div>\n  <div class=\"content panel-body\">\n    ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group", "id", options) : helperMissing.call(depth0, "link-to", "group", "id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  </div>\n  <div class=\"footer panel-footer\">\n    <span><i class=\"glyphicon glyphicon-user\"></i>");
+  stack1 = helpers._triageMustache.call(depth0, "data.meta.membersCount", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push(" ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.members", options) : helperMissing.call(depth0, "t", "group.members", options))));
+  data.buffer.push("</span> -\n    <span><i class=\"glyphicon glyphicon-file\"></i>");
+  stack1 = helpers._triageMustache.call(depth0, "data.meta.contentsCount", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push(" ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "group.contents", options) : helperMissing.call(depth0, "t", "group.contents", options))));
+  data.buffer.push("</span>\n  </div>\n</div>\n");
+  return buffer;
+  
+});Ember.TEMPLATES['groups'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var stack1;
+
+
+  stack1 = helpers._triageMustache.call(depth0, "outlet", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
+  
+});Ember.TEMPLATES['groups/create'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', helper, options, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
+
+
+  data.buffer.push("<div class=\"bs-docs-header\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'style': ("headerImage")
+  },hashTypes:{'style': "ID"},hashContexts:{'style': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(">\n  <div class=\"container\">\n    <h1>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Create group", options) : helperMissing.call(depth0, "t", "Create group", options))));
+  data.buffer.push("</h1>\n    <h5 class=\"subheading\">");
+  data.buffer.push(escapeExpression((helper = helpers.html || (depth0 && depth0.html),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "record.about", options) : helperMissing.call(depth0, "html", "record.about", options))));
+  data.buffer.push("</h5>\n  </div>\n</div>\n\n\n<div class=\"container bs-docs-container\">\n  <div class=\"row\">\n    <div class=\"col-md-12\">\n      ");
+  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "group.form", "model", options) : helperMissing.call(depth0, "render", "group.form", "model", options))));
+  data.buffer.push("\n    </div>\n  </div>\n</div>");
+  return buffer;
+  
+});Ember.TEMPLATES['groups/index'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n        ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("btn btn-primary")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(2, program2, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "groups.create", options) : helperMissing.call(depth0, "link-to", "groups.create", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n        ");
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n            ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Create group", options) : helperMissing.call(depth0, "t", "Create group", options))));
+  data.buffer.push("\n          ");
+  return buffer;
+  }
+
+  data.buffer.push("<div class=\"bs-docs-header\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'style': ("headerImage")
+  },hashTypes:{'style': "ID"},hashContexts:{'style': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(">\n  <div class=\"container\">\n    <h1>");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "groups.title", options) : helperMissing.call(depth0, "t", "groups.title", options))));
+  data.buffer.push("\n      ");
+  stack1 = helpers['if'].call(depth0, "currentUser.id", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    </h1>\n  </div>\n</div>\n<div class=\"container bs-docs-container\">\n  ");
+  data.buffer.push(escapeExpression((helper = helpers['we-user-membership-list'] || (depth0 && depth0['we-user-membership-list']),options={hash:{
+    'widgetTitle': ("currentUser.groups"),
+    'memberId': ("currentUser.id")
+  },hashTypes:{'widgetTitle': "STRING",'memberId': "ID"},hashContexts:{'widgetTitle': depth0,'memberId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-user-membership-list", options))));
+  data.buffer.push("\n  ");
+  data.buffer.push(escapeExpression((helper = helpers['we-group-list'] || (depth0 && depth0['we-group-list']),options={hash:{
+    'memberId': ("currentUser.id")
+  },hashTypes:{'memberId': "ID"},hashContexts:{'memberId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-group-list", options))));
+  data.buffer.push("\n</div>");
+  return buffer;
   
 });Ember.TEMPLATES['image/UploadPreview'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
@@ -107510,6 +111865,32 @@ function program1(depth0,data) {
   data.buffer.push("\n");
   return buffer;
   
+});Ember.TEMPLATES['page'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
+
+
+  data.buffer.push("<div class=\"bs-docs-header\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'style': ("headerImage")
+  },hashTypes:{'style': "ID"},hashContexts:{'style': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(">\n  <div class=\"container\">\n    <h1>");
+  stack1 = helpers._triageMustache.call(depth0, "record.title", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</h1>\n    <h5 class=\"subheading\">");
+  data.buffer.push(escapeExpression((helper = helpers.html || (depth0 && depth0.html),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "record.about", options) : helperMissing.call(depth0, "html", "record.about", options))));
+  data.buffer.push("</h5>\n  </div>\n</div>\n\n<div class=\"container bs-docs-container\">\n  <div class=\"row\">\n    <div class=\"col-md-9\">\n      ");
+  stack1 = helpers._triageMustache.call(depth0, "outlet", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    </div>\n    <div class=\"col-md-3\">\n      ");
+  data.buffer.push(escapeExpression((helper = helpers['we-menu'] || (depth0 && depth0['we-menu']),options={hash:{
+    'menuName': ("record.categories.firstObject"),
+    'classNames': ("nav-colapsable")
+  },hashTypes:{'menuName': "ID",'classNames': "STRING"},hashContexts:{'menuName': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-menu", options))));
+  data.buffer.push("\n    </div>\n  </div>\n</div>");
+  return buffer;
+  
 });Ember.TEMPLATES['page/edit'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
@@ -107559,16 +111940,12 @@ function program5(depth0,data) {
   return buffer;
   }
 
-  data.buffer.push("<!-- Page Header -->\n<!-- Set your background image for this header on the line below. -->\n<header class=\"intro-header\" ");
-  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
-    'style': ("headerImage")
-  },hashTypes:{'style': "ID"},hashContexts:{'style': depth0},contexts:[],types:[],data:data})));
-  data.buffer.push(">\n  <div class=\"container\">\n    <div class=\"row\">\n      <div class=\"col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1\">\n        <div class=\"post-heading\">\n          <h1>");
+  data.buffer.push("<!-- Page Header -->\n<!-- Set your background image for this header on the line below. -->\n<header class=\"intro-header\">\n  <div class=\"container\">\n    <div class=\"row\">\n      <div class=\"col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1\">\n        <div class=\"post-heading\">\n          <h1>");
   data.buffer.push(escapeExpression((helper = helpers['focus-input'] || (depth0 && depth0['focus-input']),options={hash:{
     'value': ("record.title"),
-    'placeholder': ("Write the title here"),
+    'placeholderTranslation': ("page.form.title.label"),
     'classNames': ("form-control input-lg header-inputs")
-  },hashTypes:{'value': "ID",'placeholder': "STRING",'classNames': "STRING"},hashContexts:{'value': depth0,'placeholder': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "focus-input", options))));
+  },hashTypes:{'value': "ID",'placeholderTranslation': "STRING",'classNames': "STRING"},hashContexts:{'value': depth0,'placeholderTranslation': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "focus-input", options))));
   data.buffer.push("</h1>\n          <h2 class=\"subheading\">\n            <label for=\"about\">");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "page.form.about.label", options) : helperMissing.call(depth0, "t", "page.form.about.label", options))));
   data.buffer.push("</label>\n            ");
@@ -107593,18 +111970,22 @@ function program5(depth0,data) {
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "page.form.category.label", options) : helperMissing.call(depth0, "t", "page.form.category.label", options))));
   data.buffer.push("</label>\n              ");
   data.buffer.push(escapeExpression((helper = helpers['we-category-field'] || (depth0 && depth0['we-category-field']),options={hash:{
-    'value': ("record.category"),
+    'value': ("record.categories"),
     'newTagMark': (" (nova)"),
-    'maximumSelectionSize': ("4")
-  },hashTypes:{'value': "ID",'newTagMark': "STRING",'maximumSelectionSize': "STRING"},hashContexts:{'value': depth0,'newTagMark': depth0,'maximumSelectionSize': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-category-field", options))));
+    'maximumSelectionSize': ("4"),
+    'modelName': ("Page"),
+    'field': ("categories")
+  },hashTypes:{'value': "ID",'newTagMark': "STRING",'maximumSelectionSize': "STRING",'modelName': "STRING",'field': "STRING"},hashContexts:{'value': depth0,'newTagMark': depth0,'maximumSelectionSize': depth0,'modelName': depth0,'field': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-category-field", options))));
   data.buffer.push("\n            </div>\n          </div>\n\n          <div class=\"form-group\">\n            <label for=\"tag\">");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "page.form.tag.label", options) : helperMissing.call(depth0, "t", "page.form.tag.label", options))));
   data.buffer.push("</label>\n            ");
   data.buffer.push(escapeExpression((helper = helpers['we-tag-field'] || (depth0 && depth0['we-tag-field']),options={hash:{
-    'value': ("record.tag"),
+    'value': ("record.tags"),
     'newTagMark': (" (nova)"),
-    'maximumSelectionSize': ("5")
-  },hashTypes:{'value': "ID",'newTagMark': "STRING",'maximumSelectionSize': "STRING"},hashContexts:{'value': depth0,'newTagMark': depth0,'maximumSelectionSize': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-tag-field", options))));
+    'maximumSelectionSize': ("5"),
+    'modelName': ("Page"),
+    'field': ("tags")
+  },hashTypes:{'value': "ID",'newTagMark': "STRING",'maximumSelectionSize': "STRING",'modelName': "STRING",'field': "STRING"},hashContexts:{'value': depth0,'newTagMark': depth0,'maximumSelectionSize': depth0,'modelName': depth0,'field': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-tag-field", options))));
   data.buffer.push("\n          </div>\n\n          <hr>\n\n          <div class=\"checkbox\">\n            <label>\n              ");
   data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{
     'name': ("published"),
@@ -107627,117 +112008,108 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
 function program1(depth0,data) {
   
   var buffer = '', stack1;
-  data.buffer.push("\n              ");
+  data.buffer.push("\n      ");
   stack1 = helpers._triageMustache.call(depth0, "record.creator.displayName", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("</a>\n            ");
+  data.buffer.push("</a>\n    ");
   return buffer;
   }
 
 function program3(depth0,data) {
   
   var buffer = '', stack1, helper, options;
-  data.buffer.push("\n            ");
-  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "page_update", "page", "record", options) : helperMissing.call(depth0, "can", "page_update", "page", "record", options));
+  data.buffer.push("\n      ");
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "update_page", "page", "record", options) : helperMissing.call(depth0, "can", "update_page", "page", "record", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n\n            ");
-  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(7, program7, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "page_delete", "page", "record", options) : helperMissing.call(depth0, "can", "page_delete", "page", "record", options));
+  data.buffer.push("\n\n      ");
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(7, program7, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "delete_page", "page", "record", options) : helperMissing.call(depth0, "can", "delete_page", "page", "record", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n\n          ");
+  data.buffer.push("\n    ");
   return buffer;
   }
 function program4(depth0,data) {
   
   var buffer = '', stack1, helper, options;
-  data.buffer.push("\n              ");
+  data.buffer.push("\n        ");
   stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
     'classNames': ("btn btn-primary")
   },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "page.edit", "record.id", options) : helperMissing.call(depth0, "link-to", "page.edit", "record.id", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n            ");
+  data.buffer.push("\n      ");
   return buffer;
   }
 function program5(depth0,data) {
   
   
-  data.buffer.push("\n                Edit\n              ");
+  data.buffer.push("\n          Edit\n        ");
   }
 
 function program7(depth0,data) {
   
   var buffer = '';
-  data.buffer.push("\n              <button ");
+  data.buffer.push("\n        <button ");
   data.buffer.push(escapeExpression(helpers.action.call(depth0, "deleteRecord", "record.id", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data})));
-  data.buffer.push(" class=\"btn btn-default\">\n                Delete\n              </button>\n            ");
+  data.buffer.push(" class=\"btn btn-default\">\n          Delete\n        </button>\n      ");
   return buffer;
   }
 
 function program9(depth0,data) {
   
   var buffer = '', helper, options;
-  data.buffer.push("\n              <div class=\"record-category\">\n                <label>");
+  data.buffer.push("\n        <div class=\"record-category\">\n          <label>");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "page.form.category.label", options) : helperMissing.call(depth0, "t", "page.form.category.label", options))));
-  data.buffer.push("</label>\n                ");
+  data.buffer.push("</label>\n          ");
   data.buffer.push(escapeExpression((helper = helpers['we-terms'] || (depth0 && depth0['we-terms']),options={hash:{
-    'terms': ("record.category")
+    'terms': ("record.categories")
   },hashTypes:{'terms': "ID"},hashContexts:{'terms': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-terms", options))));
-  data.buffer.push("\n              </div>\n            ");
+  data.buffer.push("\n        </div>\n      ");
   return buffer;
   }
 
 function program11(depth0,data) {
   
   var buffer = '', helper, options;
-  data.buffer.push("\n              <div class=\"record-tag\">\n                <label>");
+  data.buffer.push("\n        <div class=\"record-tag\">\n          <label>");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "page.form.tag.label", options) : helperMissing.call(depth0, "t", "page.form.tag.label", options))));
-  data.buffer.push("</label>\n                ");
+  data.buffer.push("</label>\n          ");
   data.buffer.push(escapeExpression((helper = helpers['we-terms'] || (depth0 && depth0['we-terms']),options={hash:{
-    'terms': ("record.tag")
+    'terms': ("record.tags")
   },hashTypes:{'terms': "ID"},hashContexts:{'terms': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-terms", options))));
-  data.buffer.push("\n              </div>\n            ");
+  data.buffer.push("\n        </div>\n      ");
   return buffer;
   }
 
-  data.buffer.push("<!-- Page Header -->\n<!-- Set your background image for this header on the line below. -->\n<header class=\"intro-header\" ");
-  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
-    'style': ("blogBgImageStyle")
-  },hashTypes:{'style': "ID"},hashContexts:{'style': depth0},contexts:[],types:[],data:data})));
-  data.buffer.push(">\n  <div class=\"container\">\n    <div class=\"row\">\n      <div class=\"col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1\">\n        <div class=\"post-heading\">\n          <h1>");
-  stack1 = helpers._triageMustache.call(depth0, "record.title", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("</h1>\n          <h2 class=\"subheading\">");
-  data.buffer.push(escapeExpression((helper = helpers.html || (depth0 && depth0.html),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "record.about", options) : helperMissing.call(depth0, "html", "record.about", options))));
-  data.buffer.push("</h2>\n          <span class=\"meta\">");
+  data.buffer.push("<article class=\"bs-docs-section\">\n  <span class=\"meta\">");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "page.created.by", options) : helperMissing.call(depth0, "t", "page.created.by", options))));
-  data.buffer.push("\n            ");
+  data.buffer.push("\n    ");
   stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "user", "record.creator.id", options) : helperMissing.call(depth0, "link-to", "user", "record.creator.id", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n             - ");
+  data.buffer.push("\n     - ");
   data.buffer.push(escapeExpression((helper = helpers.date || (depth0 && depth0.date),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "record.createdAt", options) : helperMissing.call(depth0, "date", "record.createdAt", options))));
-  data.buffer.push("\n          </span>\n        </div>\n      </div>\n    </div>\n  </div>\n</header>\n  <!-- Post Content -->\n  <page>\n    <div class=\"container\">\n      <div class=\"row\">\n        <div class=\"col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1\">\n          ");
+  data.buffer.push("\n  </span>\n\n  <div class=\"article-body\">\n    ");
   stack1 = helpers['if'].call(depth0, "record.id", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n        </div>\n        <div class=\"col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1\">\n          <div class=\"page-body\">\n            ");
+  data.buffer.push("\n\n    <div class=\"page-body\">\n      ");
   data.buffer.push(escapeExpression((helper = helpers.html || (depth0 && depth0.html),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "record.body", options) : helperMissing.call(depth0, "html", "record.body", options))));
-  data.buffer.push("\n          </div>\n\n          \n          <div class=\"record-terms\">\n            ");
-  stack1 = helpers['if'].call(depth0, "record.category", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(9, program9, data),contexts:[depth0],types:["ID"],data:data});
+  data.buffer.push("\n    </div>\n\n    \n    <div class=\"record-terms\">\n      ");
+  stack1 = helpers['if'].call(depth0, "record.categories", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(9, program9, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n\n            ");
-  stack1 = helpers['if'].call(depth0, "record.tag", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(11, program11, data),contexts:[depth0],types:["ID"],data:data});
+  data.buffer.push("\n\n      ");
+  stack1 = helpers['if'].call(depth0, "record.tags", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(11, program11, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n          </div>\n          \n\n        </div>\n\n        <div class=\"col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1\">\n          <hr>\n          <div class=\"comment-area\">\n            <a data-link-area=\"comments\" id=\"anchor-comments\"></a>\n            <h3 class=\"comment-title\">");
+  data.buffer.push("\n    </div>\n    \n\n    <hr>\n    <div class=\"comment-area\">\n      <a data-link-area=\"comments\" id=\"anchor-comments\"></a>\n      <h3 class=\"comment-title\">");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "comments.title", options) : helperMissing.call(depth0, "t", "comments.title", options))));
-  data.buffer.push("</h3>\n\n            ");
+  data.buffer.push("</h3>\n\n      ");
   data.buffer.push(escapeExpression((helper = helpers['we-comments'] || (depth0 && depth0['we-comments']),options={hash:{
     'commentedModelName': ("page"),
     'commentedModelId': ("record.id")
   },hashTypes:{'commentedModelName': "STRING",'commentedModelId': "ID"},hashContexts:{'commentedModelName': depth0,'commentedModelId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-comments", options))));
-  data.buffer.push("\n\n            ");
+  data.buffer.push("\n\n      ");
   data.buffer.push(escapeExpression((helper = helpers['we-comment-form'] || (depth0 && depth0['we-comment-form']),options={hash:{
     'commentedModelName': ("page"),
     'commentedModelId': ("record.id")
   },hashTypes:{'commentedModelName': "STRING",'commentedModelId': "ID"},hashContexts:{'commentedModelName': depth0,'commentedModelId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-comment-form", options))));
-  data.buffer.push("\n          </div>\n        </div>\n\n      </div>\n    </div>\n  </page>\n");
+  data.buffer.push("\n    </div>\n  </div>\n\n</artlcle>");
   return buffer;
   
 });Ember.TEMPLATES['page/teaser'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
@@ -107786,7 +112158,7 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
   var helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
 
 
-  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "article.form", "model", options) : helperMissing.call(depth0, "render", "article.form", "model", options))));
+  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "page.form", "model", options) : helperMissing.call(depth0, "render", "page.form", "model", options))));
   
 });Ember.TEMPLATES['pages/index'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
@@ -107829,14 +112201,14 @@ function program4(depth0,data) {
   data.buffer.push("</h1>\n          <hr class=\"small\">\n          <span class=\"subheading\">");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "articles.subTitle", options) : helperMissing.call(depth0, "t", "articles.subTitle", options))));
   data.buffer.push("</span>\n        </div>\n      </div>\n    </div>\n  </div>\n</header>\n\n<!-- Main Content -->\n<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"col-md-8\">\n      ");
-  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "article_create", options) : helperMissing.call(depth0, "can", "article_create", options));
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "create_article", options) : helperMissing.call(depth0, "can", "create_article", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n\n      ");
   data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "articles.list", "records", options) : helperMissing.call(depth0, "render", "articles.list", "records", options))));
   data.buffer.push("\n\n      <div class=\"records-footer\">\n        ");
   stack1 = helpers['if'].call(depth0, "records.isFulfilled", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n      </div>\n     \n    </div>\n\n    ");
+  data.buffer.push("\n      </div>\n\n    </div>\n\n    ");
   data.buffer.push(escapeExpression((helper = helpers.partial || (depth0 && depth0.partial),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "partials/sidebar", options) : helperMissing.call(depth0, "partial", "partials/sidebar", options))));
   data.buffer.push("\n  </div>\n</div>");
   return buffer;
@@ -107864,6 +112236,667 @@ function program3(depth0,data) {
   data.buffer.push("<a id=\"anchor-articles-list\"></a>\n");
   stack1 = helpers.each.call(depth0, {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[],types:[],data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  return buffer;
+  
+});Ember.TEMPLATES['post'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n        <span class=\"creator-avatar avatar-small\">");
+  data.buffer.push(escapeExpression((helper = helpers['we-avatar'] || (depth0 && depth0['we-avatar']),options={hash:{
+    'userId': ("post.creator.id")
+  },hashTypes:{'userId': "ID"},hashContexts:{'userId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-avatar", options))));
+  data.buffer.push("</span>\n        <span class=\"creator-name\">");
+  stack1 = helpers._triageMustache.call(depth0, "post.creator.displayName", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</span>\n      ");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n    <div class=\"panel-body\">\n      ");
+  stack1 = helpers['if'].call(depth0, "isEditing", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(15, program15, data),fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    </div>\n  ");
+  return buffer;
+  }
+function program4(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n        <form role=\"form\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "submit", {hash:{
+    'on': ("submit")
+  },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">\n          <div class=\"form-group\">\n            ");
+  data.buffer.push(escapeExpression((helper = helpers['we-wysiwyg-editor'] || (depth0 && depth0['we-wysiwyg-editor']),options={hash:{
+    'name': ("body"),
+    'linkedPage': ("newWembed"),
+    'value': ("body"),
+    'onChangeText': ("onChangeBodyText"),
+    'onPasteText': ("onPasteBodyText")
+  },hashTypes:{'name': "STRING",'linkedPage': "ID",'value': "ID",'onChangeText': "STRING",'onPasteText': "STRING"},hashContexts:{'name': depth0,'linkedPage': depth0,'value': depth0,'onChangeText': depth0,'onPasteText': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-wysiwyg-editor", options))));
+  data.buffer.push("\n          </div>\n\n          ");
+  stack1 = helpers['if'].call(depth0, "selectingAttachOption", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n          <div class=\"form-group\">\n            ");
+  stack1 = helpers['if'].call(depth0, "wembed.url", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(7, program7, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n          </div>\n\n          ");
+  stack1 = helpers['if'].call(depth0, "shareImages", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(9, program9, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n          <div class=\"form-group images-preview\">\n            <div class=\"row\">\n              ");
+  stack1 = helpers.each.call(depth0, "files", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(11, program11, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n              ");
+  stack1 = helpers.each.call(depth0, "images", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(13, program13, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n            </div>\n          </div>\n\n          <div class=\"footer\">\n            <div class=\"actions\">\n              <button type=\"submit\" class=\"btn btn-primary\">\n                <span class=\"glyphicon glyphicon-ok\"></span> ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Share", options) : helperMissing.call(depth0, "t", "Share", options))));
+  data.buffer.push("\n              </button>\n              <button type=\"button\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "cancel", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-default cancel\"> ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Cancel", options) : helperMissing.call(depth0, "t", "Cancel", options))));
+  data.buffer.push("</button>\n            </div>\n          </div>\n        </form>\n      ");
+  return buffer;
+  }
+function program5(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n          <div class=\"form-group attach-options\">\n            <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "openShareImage", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" type=\"button\" class=\"btn btn-xs btn-default\">\n              <i class=\"glyphicon glyphicon-picture\"></i> ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Image", options) : helperMissing.call(depth0, "t", "Image", options))));
+  data.buffer.push("\n            </button>\n          </div>\n          ");
+  return buffer;
+  }
+
+function program7(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n              ");
+  data.buffer.push(escapeExpression((helper = helpers['we-wembed'] || (depth0 && depth0['we-wembed']),options={hash:{
+    'url': ("wembed.url"),
+    'imageIndex': ("wembed.imageIndex"),
+    'isEditing': ("true")
+  },hashTypes:{'url': "ID",'imageIndex': "ID",'isEditing': "STRING"},hashContexts:{'url': depth0,'imageIndex': depth0,'isEditing': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-wembed", options))));
+  data.buffer.push("\n            ");
+  return buffer;
+  }
+
+function program9(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n            <div class=\"form-group\">\n              <div class=\"form-group row add-images\">\n                <label for=\"addImages\" class=\"col-sm-2 control-label\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Attach images", options) : helperMissing.call(depth0, "t", "Attach images", options))));
+  data.buffer.push("</label>\n                <div class=\"col-sm-10\">\n                  ");
+  data.buffer.push(escapeExpression((helper = helpers['image-upload'] || (depth0 && depth0['image-upload']),options={hash:{
+    'classNames': ("we-share-images-input"),
+    'files': ("filesNew")
+  },hashTypes:{'classNames': "STRING",'files': "ID"},hashContexts:{'classNames': depth0,'files': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "image-upload", options))));
+  data.buffer.push("\n                </div>\n              </div>\n            </div>\n          ");
+  return buffer;
+  }
+
+function program11(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n                <div class=\"col-xs-6 col-md-3\">\n                  ");
+  data.buffer.push(escapeExpression((helper = helpers['we-image-preview'] || (depth0 && depth0['we-image-preview']),options={hash:{
+    'file': (""),
+    'onRemove': ("onRemoveImage")
+  },hashTypes:{'file': "ID",'onRemove': "STRING"},hashContexts:{'file': depth0,'onRemove': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-image-preview", options))));
+  data.buffer.push("\n                </div>\n              ");
+  return buffer;
+  }
+
+function program13(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n                <div class=\"col-xs-6 col-md-3\">\n                  ");
+  data.buffer.push(escapeExpression((helper = helpers['we-image'] || (depth0 && depth0['we-image']),options={hash:{
+    'file': (""),
+    'onClick': ("onRemoveSalvedImage")
+  },hashTypes:{'file': "ID",'onClick': "STRING"},hashContexts:{'file': depth0,'onClick': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-image", options))));
+  data.buffer.push("\n                </div>\n              ");
+  return buffer;
+  }
+
+function program15(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n        <div class=\"content\">\n          <div class=\"post-text\">");
+  data.buffer.push(escapeExpression((helper = helpers['marked-text'] || (depth0 && depth0['marked-text']),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "body", options) : helperMissing.call(depth0, "marked-text", "body", options))));
+  data.buffer.push("</div>\n          ");
+  stack1 = helpers['if'].call(depth0, "wembed.url", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(16, program16, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n          <div class=\"videos\">\n            ");
+  stack1 = helpers.each.call(depth0, "videos", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(18, program18, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n          </div>\n          <div class=\"images row\">\n            ");
+  stack1 = helpers.each.call(depth0, "images", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(20, program20, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n          </div>\n        </div>\n        <div class=\"footer\">\n          <div class=\"actions\">\n            ");
+  data.buffer.push(escapeExpression((helper = helpers['we-flag'] || (depth0 && depth0['we-flag']),options={hash:{
+    'flagType': ("like"),
+    'model': ("post"),
+    'modelId': ("id"),
+    'flagText': ("<span class=\"glyphicon glyphicon-thumbs-up\"></span>")
+  },hashTypes:{'flagType': "STRING",'model': "STRING",'modelId': "ID",'flagText': "STRING"},hashContexts:{'flagType': depth0,'model': depth0,'modelId': depth0,'flagText': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-flag", options))));
+  data.buffer.push("\n\n            ");
+  data.buffer.push(escapeExpression((helper = helpers['we-follow'] || (depth0 && depth0['we-follow']),options={hash:{
+    'model': ("post"),
+    'modelId': ("id"),
+    'flagText': ("Seguir")
+  },hashTypes:{'model': "STRING",'modelId': "ID",'flagText': "STRING"},hashContexts:{'model': depth0,'modelId': depth0,'flagText': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-follow", options))));
+  data.buffer.push("\n\n            ");
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(23, program23, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "update_post", "post", "model", options) : helperMissing.call(depth0, "can", "update_post", "post", "model", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n            ");
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(25, program25, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "delete_post", "post", "model", options) : helperMissing.call(depth0, "can", "delete_post", "post", "model", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n            ");
+  stack1 = helpers['if'].call(depth0, "currentUser.id", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(27, program27, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n          </div>\n        </div>\n      ");
+  return buffer;
+  }
+function program16(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n            ");
+  data.buffer.push(escapeExpression((helper = helpers['we-wembed'] || (depth0 && depth0['we-wembed']),options={hash:{
+    'url': ("wembed.url"),
+    'imageIndex': ("wembed.imageIndex")
+  },hashTypes:{'url': "ID",'imageIndex': "ID"},hashContexts:{'url': depth0,'imageIndex': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-wembed", options))));
+  data.buffer.push("\n          ");
+  return buffer;
+  }
+
+function program18(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n              ");
+  data.buffer.push(escapeExpression((helper = helpers['we-video'] || (depth0 && depth0['we-video']),options={hash:{
+    'url': ("")
+  },hashTypes:{'url': "ID"},hashContexts:{'url': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-video", options))));
+  data.buffer.push("\n            ");
+  return buffer;
+  }
+
+function program20(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n              <div class=\"col-md-3\">\n                ");
+  stack1 = (helper = helpers['we-image-overlay'] || (depth0 && depth0['we-image-overlay']),options={hash:{
+    'href': ("urls.original"),
+    'ligthBoxName': ("inPost")
+  },hashTypes:{'href': "ID",'ligthBoxName': "ID"},hashContexts:{'href': depth0,'ligthBoxName': depth0},inverse:self.noop,fn:self.program(21, program21, data),contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-image-overlay", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n              </div>\n            ");
+  return buffer;
+  }
+function program21(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n                  ");
+  data.buffer.push(escapeExpression((helper = helpers['we-image'] || (depth0 && depth0['we-image']),options={hash:{
+    'file': (""),
+    'size': ("large")
+  },hashTypes:{'file': "ID",'size': "STRING"},hashContexts:{'file': depth0,'size': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-image", options))));
+  data.buffer.push("\n                ");
+  return buffer;
+  }
+
+function program23(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n              <button type=\"button\" class=\"btn btn-xs btn-default\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "edit", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">\n                <span class=\"glyphicon glyphicon-edit text-primary\"></span> ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Edit", options) : helperMissing.call(depth0, "t", "Edit", options))));
+  data.buffer.push("\n              </button>\n            ");
+  return buffer;
+  }
+
+function program25(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n              <button class=\"btn btn-xs btn-default\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "deleteItem", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">\n                <span class=\"glyphicon glyphicon-remove text-danger\"></span> ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Delete", options) : helperMissing.call(depth0, "t", "Delete", options))));
+  data.buffer.push("\n              </button>\n            ");
+  return buffer;
+  }
+
+function program27(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n              ");
+  stack1 = (helper = helpers['query-params'] || (depth0 && depth0['query-params']),options={hash:{
+    'anchor': ("add-comment")
+  },hashTypes:{'anchor': "STRING"},hashContexts:{'anchor': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "query-params", options));
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("btn btn-xs btn-primary")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(28, program28, data),contexts:[depth0,depth0,depth0],types:["STRING","ID","sexpr"],data:data},helper ? helper.call(depth0, "post", "id", stack1, options) : helperMissing.call(depth0, "link-to", "post", "id", stack1, options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n            ");
+  return buffer;
+  }
+function program28(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n                <span class=\"glyphicon glyphicon-comment\"></span> ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Comment", options) : helperMissing.call(depth0, "t", "Comment", options))));
+  data.buffer.push("\n              ");
+  return buffer;
+  }
+
+  data.buffer.push("<div class=\"content-block post\">\n<div class=\"full-post panel panel-default\">\n\n  <div class=\"header panel-heading\">\n    <span class=\"creator\">\n      ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "user", "post.creator.id", options) : helperMissing.call(depth0, "link-to", "user", "post.creator.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    </span>\n    <a ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "showSharedWith", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" href=\"#\" class=\"shared-with text-mute\">\n      <span class=\"glyphicon glyphicon-globe\"></span>\n    </a>\n    <span class=\"createdAt post-created-at\">");
+  data.buffer.push(escapeExpression((helper = helpers['format-date'] || (depth0 && depth0['format-date']),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "post.createdAt", options) : helperMissing.call(depth0, "format-date", "post.createdAt", options))));
+  data.buffer.push("</span>\n  </div>\n  ");
+  stack1 = helpers['with'].call(depth0, "post", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  <div class=\"panel-footer\">\n    ");
+  data.buffer.push(escapeExpression((helper = helpers['we-comments'] || (depth0 && depth0['we-comments']),options={hash:{
+    'commentedModelName': ("post"),
+    'commentedModelId': ("post.id")
+  },hashTypes:{'commentedModelName': "STRING",'commentedModelId': "ID"},hashContexts:{'commentedModelName': depth0,'commentedModelId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-comments", options))));
+  data.buffer.push("\n    ");
+  data.buffer.push(escapeExpression((helper = helpers['we-comment-form'] || (depth0 && depth0['we-comment-form']),options={hash:{
+    'commentedModelName': ("post"),
+    'commentedModelId': ("post.id")
+  },hashTypes:{'commentedModelName': "STRING",'commentedModelId': "ID"},hashContexts:{'commentedModelName': depth0,'commentedModelId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-comment-form", options))));
+  data.buffer.push("\n  </div>\n</div>\n</div>\n\n");
+  return buffer;
+  
+});Ember.TEMPLATES['post/teaser'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n        <span class=\"creator-avatar avatar-small\">");
+  data.buffer.push(escapeExpression((helper = helpers['user-avatar'] || (depth0 && depth0['user-avatar']),options={hash:{
+    'user': ("creator"),
+    'width': ("35px")
+  },hashTypes:{'user': "ID",'width': "STRING"},hashContexts:{'user': depth0,'width': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "user-avatar", options))));
+  data.buffer.push("</span>\n        <span class=\"creator-name\">");
+  stack1 = helpers._triageMustache.call(depth0, "creator.displayName", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</span>\n      ");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  
+  data.buffer.push("\n       Link\n    ");
+  }
+
+function program5(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n    <form role=\"form\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "submit", {hash:{
+    'on': ("submit")
+  },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">\n      <div class=\"form-group\">\n        ");
+  data.buffer.push(escapeExpression((helper = helpers['we-wysiwyg-editor'] || (depth0 && depth0['we-wysiwyg-editor']),options={hash:{
+    'name': ("body"),
+    'linkedPage': ("newWembed"),
+    'value': ("body"),
+    'onChangeText': ("onChangeBodyText"),
+    'onPasteText': ("onPasteBodyText")
+  },hashTypes:{'name': "STRING",'linkedPage': "ID",'value': "ID",'onChangeText': "STRING",'onPasteText': "STRING"},hashContexts:{'name': depth0,'linkedPage': depth0,'value': depth0,'onChangeText': depth0,'onPasteText': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-wysiwyg-editor", options))));
+  data.buffer.push("\n      </div>\n\n      ");
+  stack1 = helpers['if'].call(depth0, "selectingAttachOption", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(6, program6, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n      <div class=\"form-group\">\n        ");
+  stack1 = helpers['if'].call(depth0, "wembed.url", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(8, program8, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n      </div>\n\n      ");
+  stack1 = helpers['if'].call(depth0, "shareImages", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(10, program10, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n      <div class=\"form-group images-preview\">\n        <div class=\"row\">\n          ");
+  stack1 = helpers.each.call(depth0, "files", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(12, program12, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n          ");
+  stack1 = helpers.each.call(depth0, "images", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(14, program14, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n        </div>\n      </div>\n\n      <div class=\"footer\">\n        <div class=\"actions\">\n          <button type=\"submit\" class=\"btn btn-primary\">\n            <span class=\"glyphicon glyphicon-ok\"></span> ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Share", options) : helperMissing.call(depth0, "t", "Share", options))));
+  data.buffer.push("\n          </button>\n          <button type=\"button\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "cancel", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"btn btn-default cancel\"> ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Cancel", options) : helperMissing.call(depth0, "t", "Cancel", options))));
+  data.buffer.push("</button>\n        </div>\n      </div>\n    </form>\n    ");
+  return buffer;
+  }
+function program6(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n      <div class=\"form-group attach-options\">\n        <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "openShareImage", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" type=\"button\" class=\"btn btn-xs btn-default\">\n          <i class=\"glyphicon glyphicon-picture\"></i> ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Image", options) : helperMissing.call(depth0, "t", "Image", options))));
+  data.buffer.push("\n        </button>\n      </div>\n      ");
+  return buffer;
+  }
+
+function program8(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n          ");
+  data.buffer.push(escapeExpression((helper = helpers['we-wembed'] || (depth0 && depth0['we-wembed']),options={hash:{
+    'url': ("wembed.url"),
+    'imageIndex': ("wembed.imageIndex"),
+    'isEditing': ("true")
+  },hashTypes:{'url': "ID",'imageIndex': "ID",'isEditing': "STRING"},hashContexts:{'url': depth0,'imageIndex': depth0,'isEditing': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-wembed", options))));
+  data.buffer.push("\n        ");
+  return buffer;
+  }
+
+function program10(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n        <div class=\"form-group\">\n          <div class=\"form-group row add-images\">\n            <label for=\"addImages\" class=\"col-sm-2 control-label\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Attach images", options) : helperMissing.call(depth0, "t", "Attach images", options))));
+  data.buffer.push("</label>\n            <div class=\"col-sm-10\">\n              ");
+  data.buffer.push(escapeExpression((helper = helpers['image-upload'] || (depth0 && depth0['image-upload']),options={hash:{
+    'classNames': ("we-share-images-input"),
+    'files': ("filesNew")
+  },hashTypes:{'classNames': "STRING",'files': "ID"},hashContexts:{'classNames': depth0,'files': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "image-upload", options))));
+  data.buffer.push("\n            </div>\n          </div>\n        </div>\n      ");
+  return buffer;
+  }
+
+function program12(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n            <div class=\"col-xs-6 col-md-3\">\n              ");
+  data.buffer.push(escapeExpression((helper = helpers['we-image-preview'] || (depth0 && depth0['we-image-preview']),options={hash:{
+    'file': (""),
+    'onRemove': ("onRemoveImage")
+  },hashTypes:{'file': "ID",'onRemove': "STRING"},hashContexts:{'file': depth0,'onRemove': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-image-preview", options))));
+  data.buffer.push("\n            </div>\n          ");
+  return buffer;
+  }
+
+function program14(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n            <div class=\"col-xs-6 col-md-3\">\n              ");
+  data.buffer.push(escapeExpression((helper = helpers['we-image'] || (depth0 && depth0['we-image']),options={hash:{
+    'file': (""),
+    'onClick': ("onRemoveSalvedImage")
+  },hashTypes:{'file': "ID",'onClick': "STRING"},hashContexts:{'file': depth0,'onClick': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-image", options))));
+  data.buffer.push("\n            </div>\n          ");
+  return buffer;
+  }
+
+function program16(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n      <div class=\"content\">\n        <div class=\"post-text\">");
+  data.buffer.push(escapeExpression((helper = helpers['marked-text'] || (depth0 && depth0['marked-text']),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "body", options) : helperMissing.call(depth0, "marked-text", "body", options))));
+  data.buffer.push("</div>\n        ");
+  stack1 = helpers['if'].call(depth0, "wembed.url", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(17, program17, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n        <div class=\"images row\">\n          ");
+  stack1 = helpers.each.call(depth0, "images", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(19, program19, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n        </div>\n      </div>\n      <div class=\"footer\">\n        <div class=\"actions\">\n          ");
+  stack1 = helpers['if'].call(depth0, "id", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(22, program22, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n        </div>\n      </div>\n    ");
+  return buffer;
+  }
+function program17(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n          ");
+  data.buffer.push(escapeExpression((helper = helpers['we-wembed'] || (depth0 && depth0['we-wembed']),options={hash:{
+    'url': ("wembed.url"),
+    'imageIndex': ("wembed.imageIndex")
+  },hashTypes:{'url': "ID",'imageIndex': "ID"},hashContexts:{'url': depth0,'imageIndex': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-wembed", options))));
+  data.buffer.push("\n        ");
+  return buffer;
+  }
+
+function program19(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n            <div class=\"col-md-3\">\n              ");
+  stack1 = (helper = helpers['we-image-overlay'] || (depth0 && depth0['we-image-overlay']),options={hash:{
+    'href': ("urls.original"),
+    'data-fancybox-group': ("postGaleria")
+  },hashTypes:{'href': "ID",'data-fancybox-group': "STRING"},hashContexts:{'href': depth0,'data-fancybox-group': depth0},inverse:self.noop,fn:self.program(20, program20, data),contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-image-overlay", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n            </div>\n          ");
+  return buffer;
+  }
+function program20(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n                ");
+  data.buffer.push(escapeExpression((helper = helpers['we-image'] || (depth0 && depth0['we-image']),options={hash:{
+    'file': (""),
+    'size': ("large"),
+    'class': ("img-thumb img-responsive")
+  },hashTypes:{'file': "ID",'size': "STRING",'class': "STRING"},hashContexts:{'file': depth0,'size': depth0,'class': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-image", options))));
+  data.buffer.push("\n              ");
+  return buffer;
+  }
+
+function program22(depth0,data) {
+  
+  var buffer = '', stack1, helper, options;
+  data.buffer.push("\n            ");
+  data.buffer.push(escapeExpression((helper = helpers['we-flag'] || (depth0 && depth0['we-flag']),options={hash:{
+    'flagType': ("like"),
+    'model': ("post"),
+    'modelId': ("id"),
+    'flagText': ("<span class=\"glyphicon glyphicon-thumbs-up\"></span>")
+  },hashTypes:{'flagType': "STRING",'model': "STRING",'modelId': "ID",'flagText': "STRING"},hashContexts:{'flagType': depth0,'model': depth0,'modelId': depth0,'flagText': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-flag", options))));
+  data.buffer.push("\n\n            ");
+  data.buffer.push(escapeExpression((helper = helpers['we-follow'] || (depth0 && depth0['we-follow']),options={hash:{
+    'model': ("post"),
+    'modelId': ("id"),
+    'flagText': ("Seguir")
+  },hashTypes:{'model': "STRING",'modelId': "ID",'flagText': "STRING"},hashContexts:{'model': depth0,'modelId': depth0,'flagText': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-follow", options))));
+  data.buffer.push("\n\n            ");
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(23, program23, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "update_post", "post", "model", options) : helperMissing.call(depth0, "can", "update_post", "post", "model", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n            ");
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(25, program25, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "delete_post", "post", "model", options) : helperMissing.call(depth0, "can", "delete_post", "post", "model", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n            ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("btn btn-xs btn-default")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(27, program27, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "post", "id", options) : helperMissing.call(depth0, "link-to", "post", "id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n          ");
+  return buffer;
+  }
+function program23(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n              <button type=\"button\" class=\"btn btn-xs btn-default\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "edit", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">\n                <span class=\"glyphicon glyphicon-edit text-primary\"></span> ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Edit", options) : helperMissing.call(depth0, "t", "Edit", options))));
+  data.buffer.push("\n              </button>\n            ");
+  return buffer;
+  }
+
+function program25(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n              <button class=\"btn btn-xs btn-default\" ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "deleteItem", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(">\n                <span class=\"glyphicon glyphicon-remove text-danger\"></span> ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Delete", options) : helperMissing.call(depth0, "t", "Delete", options))));
+  data.buffer.push("\n              </button>\n            ");
+  return buffer;
+  }
+
+function program27(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n              <span class=\"glyphicon glyphicon-link text-success\"></span>  ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "post.link.show", options) : helperMissing.call(depth0, "t", "post.link.show", options))));
+  data.buffer.push("\n            ");
+  return buffer;
+  }
+
+  data.buffer.push("<div class=\"content-block post\">\n<div class=\"post-teaser teaser panel panel-default\">\n  <div class=\"header panel-heading\">\n    <span class=\"creator\">\n      ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "user", "creator.id", options) : helperMissing.call(depth0, "link-to", "user", "creator.id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    </span>\n    <a ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "showSharedWith", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" href=\"#\" class=\"shared-with text-mute\">\n      <span class=\"glyphicon glyphicon-globe\"></span>\n    </a>\n    |\n    ");
+  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
+    'classNames': ("small")
+  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "post", "id", options) : helperMissing.call(depth0, "link-to", "post", "id", options));
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    <span class=\"createdAt post-created-at\">");
+  data.buffer.push(escapeExpression((helper = helpers['format-date'] || (depth0 && depth0['format-date']),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "createdAt", options) : helperMissing.call(depth0, "format-date", "createdAt", options))));
+  data.buffer.push("</span>\n  </div>\n\n  <div class=\"panel-body\">\n    ");
+  stack1 = helpers['if'].call(depth0, "isEditing", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(16, program16, data),fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  </div>\n  <div class=\"panel-footer\">\n    <div class=\"comments-area\">\n      ");
+  data.buffer.push(escapeExpression((helper = helpers['we-comments'] || (depth0 && depth0['we-comments']),options={hash:{
+    'commentedModelName': ("post"),
+    'commentedModelId': ("id")
+  },hashTypes:{'commentedModelName': "STRING",'commentedModelId': "ID"},hashContexts:{'commentedModelName': depth0,'commentedModelId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-comments", options))));
+  data.buffer.push("\n      ");
+  data.buffer.push(escapeExpression((helper = helpers['we-comment-form'] || (depth0 && depth0['we-comment-form']),options={hash:{
+    'commentedModelName': ("post"),
+    'commentedModelId': ("id")
+  },hashTypes:{'commentedModelName': "STRING",'commentedModelId': "ID"},hashContexts:{'commentedModelName': depth0,'commentedModelId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-comment-form", options))));
+  data.buffer.push("\n    </div>\n  </div>\n</div>\n</div>\n");
+  return buffer;
+  
+});Ember.TEMPLATES['posts'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var stack1;
+
+
+  stack1 = helpers._triageMustache.call(depth0, "outlet", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
+  
+});Ember.TEMPLATES['posts/index'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
+
+
+  data.buffer.push("<div class=\"row\">\n  <div class=\"col-md-3\">\n    TODO! add filters here\n  </div>\n\n  <div class=\"col-md-9\">\n    ");
+  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "posts/list", "posts", options) : helperMissing.call(depth0, "render", "posts/list", "posts", options))));
+  data.buffer.push("\n  </div>\n</div>");
+  return buffer;
+  
+});Ember.TEMPLATES['posts/list'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var buffer = '', stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n    <br>\n    <div class=\"alert alert-info text-center\" role=\"alert\">\n      ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "posts.loading", options) : helperMissing.call(depth0, "t", "posts.loading", options))));
+  data.buffer.push("... <img src=\"/core/images/loading.gif\">\n    </div>\n  ");
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n    ");
+  stack1 = helpers.each.call(depth0, {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(6, program6, data),fn:self.program(4, program4, data),contexts:[],types:[],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  ");
+  return buffer;
+  }
+function program4(depth0,data) {
+  
+  var buffer = '', helper, options;
+  data.buffer.push("\n      ");
+  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "post/teaser", "", options) : helperMissing.call(depth0, "render", "post/teaser", "", options))));
+  data.buffer.push("\n    ");
+  return buffer;
+  }
+
+function program6(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n      ");
+  stack1 = helpers.unless.call(depth0, "postIsLoading", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(7, program7, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    ");
+  return buffer;
+  }
+function program7(depth0,data) {
+  
+  
+  data.buffer.push("\n        <br>\n        <div class=\"alert alert-warning text-center\" role=\"alert\">\n          Nenhum conteúdo encontrado\n        </div>\n      ");
+  }
+
+  data.buffer.push("<div class=\"context-search\">\n  <form  ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "filter", {hash:{
+    'on': ("submit")
+  },hashTypes:{'on': "STRING"},hashContexts:{'on': depth0},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"form-inline\" role=\"form\">\n    <div class=\"form-group\">\n      <label for=\"searchString\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "posts.search.string.label", options) : helperMissing.call(depth0, "t", "posts.search.string.label", options))));
+  data.buffer.push("</label>\n    </div>\n    <div class=\"form-group\">\n      ");
+  data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{
+    'name': ("searchString"),
+    'placeholderTranslation': ("posts.search.string.placeholder"),
+    'classNames': ("form-control input-sm"),
+    'value': ("searchString")
+  },hashTypes:{'name': "STRING",'placeholderTranslation': "STRING",'classNames': "STRING",'value': "ID"},hashContexts:{'name': depth0,'placeholderTranslation': depth0,'classNames': depth0,'value': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "input", options))));
+  data.buffer.push("\n    </div>\n\n    <div class=\"form-group\">\n      ");
+  data.buffer.push(escapeExpression(helpers.view.call(depth0, "select", {hash:{
+    'name': ("searchSort"),
+    'classNames': ("form-control input-sm"),
+    'content': ("sortOptions"),
+    'optionValuePath': ("content.value"),
+    'optionLabelPath': ("content.label"),
+    'value': ("sort")
+  },hashTypes:{'name': "STRING",'classNames': "STRING",'content': "ID",'optionValuePath': "STRING",'optionLabelPath': "STRING",'value': "ID"},hashContexts:{'name': depth0,'classNames': depth0,'content': depth0,'optionValuePath': depth0,'optionLabelPath': depth0,'value': depth0},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push("\n    </div>\n\n    <div class=\"form-group\">\n      <button class=\"form-control input-sm btn-info\" type=\"submit\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "posts.search.submit", options) : helperMissing.call(depth0, "t", "posts.search.submit", options))));
+  data.buffer.push("</button>\n    </div>\n    <div class=\"form-group\">\n      <button ");
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "resetSearch", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
+  data.buffer.push(" class=\"form-control input-sm\" type=\"button\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "posts.search.reset", options) : helperMissing.call(depth0, "t", "posts.search.reset", options))));
+  data.buffer.push("</button>\n    </div>\n  </form>\n</div>\n\n<div id=\"posts\" class=\"posts\">\n  ");
+  stack1 = helpers['if'].call(depth0, "postIsLoading", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n\n</div>\n");
+  data.buffer.push(escapeExpression((helper = helpers['we-timeline-loading'] || (depth0 && depth0['we-timeline-loading']),options={hash:{
+    'loadingMore': ("loadingMore"),
+    'haveMore': ("haveMore"),
+    'getMore': ("getMore")
+  },hashTypes:{'loadingMore': "ID",'haveMore': "ID",'getMore': "ID"},hashContexts:{'loadingMore': depth0,'haveMore': depth0,'getMore': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-timeline-loading", options))));
+  data.buffer.push("\n");
   return buffer;
   
 });Ember.TEMPLATES['term/item'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
@@ -107987,7 +113020,7 @@ function program16(depth0,data) {
   return buffer;
   }
 
-  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "user_update", "user", "user", options) : helperMissing.call(depth0, "can", "user_update", "user", "user", options));
+  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "update_user", "user", "user", options) : helperMissing.call(depth0, "can", "update_user", "user", "user", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n\n<div class=\"user-full\">\n  <div class=\"panel panel-default\">\n    <div class=\"header panel-body\">\n      <div class=\"user-area-data row\">\n        <div class=\"user-area-data-left col-md-2\" >\n          <span class=\"avatar-large\">");
   data.buffer.push(escapeExpression((helper = helpers['we-avatar'] || (depth0 && depth0['we-avatar']),options={hash:{
@@ -108154,13 +113187,12 @@ function program1(depth0,data) {
   data.buffer.push("\n        </a>\n      </li>\n      <li class=\"divider\"></li>\n      <li>\n        ");
   stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(2, program2, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "user", "currentUser.id", options) : helperMissing.call(depth0, "link-to", "user", "currentUser.id", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n      </li>\n      <li class=\"divider\"></li>      \n      <li>\n        ");
+  data.buffer.push("\n      </li>\n      <li class=\"divider\"></li>\n      <li>\n        ");
   stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "authChangePassword", options) : helperMissing.call(depth0, "link-to", "authChangePassword", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n      </li>\n      <li class=\"divider\"></li>\n      ");
-  stack1 = helpers['if'].call(depth0, "adminMenu", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(6, program6, data),contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n      <li>\n        <a href=\"/auth/logout\" ");
+  data.buffer.push("\n      </li>\n      <li class=\"divider\"></li>\n\n      <li>\n        <a href=\"/admin\">");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "menu.link.manage", options) : helperMissing.call(depth0, "t", "menu.link.manage", options))));
+  data.buffer.push("</a>\n      </li>\n      <li class=\"divider\"></li>\n\n      <li>\n        <a href=\"/auth/logout\" ");
   data.buffer.push(escapeExpression(helpers.action.call(depth0, "logOut", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
   data.buffer.push(" class=\"\">");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Exit", options) : helperMissing.call(depth0, "t", "Exit", options))));
@@ -108177,15 +113209,6 @@ function program4(depth0,data) {
   
   var helper, options;
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Change password", options) : helperMissing.call(depth0, "t", "Change password", options))));
-  }
-
-function program6(depth0,data) {
-  
-  var buffer = '', helper, options;
-  data.buffer.push("\n        <li>\n          <a href=\"/admin\">");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "menu.link.manage", options) : helperMissing.call(depth0, "t", "menu.link.manage", options))));
-  data.buffer.push("</a>\n        </li>\n        <li class=\"divider\"></li>      \n      ");
-  return buffer;
   }
 
   stack1 = helpers['if'].call(depth0, "currentUser.id", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
@@ -108223,6 +113246,77 @@ function program1(depth0,data) {
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n</div>");
   return buffer;
+  
+});Ember.TEMPLATES['views/post-wembed'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
+  var stack1, escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n  <div class=\"site-embed\">\n    ");
+  stack1 = helpers.each.call(depth0, "wembed.images", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(2, program2, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n    <h1 class=\"site-embed-title\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.title", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</h1>\n    <p class=\"site-embed-description\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.description", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</p>\n    <div class=\"site-embed-domain\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.domain", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</div>\n\n  </div>\n");
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = '';
+  data.buffer.push("\n      <div class=\"site-embed-image\">\n        <img ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'src': ("url")
+  },hashTypes:{'src': "ID"},hashContexts:{'src': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(">\n      </div>\n    ");
+  return buffer;
+  }
+
+function program4(depth0,data) {
+  
+  var buffer = '', stack1;
+  data.buffer.push("\n  <div class=\"site-embed\">\n    <a class=\"embed-link\" target=\"_blank\" ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'href': ("wembed.url")
+  },hashTypes:{'href': "ID"},hashContexts:{'href': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(">\n      ");
+  stack1 = helpers.each.call(depth0, "wembed.images", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n      <h1 class=\"site-embed-title\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.title", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</h1>\n      <p class=\"site-embed-description\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.description", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</p>\n      <div class=\"site-embed-domain\">");
+  stack1 = helpers._triageMustache.call(depth0, "wembed.domain", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("</div>\n    </a>\n  </div>\n");
+  return buffer;
+  }
+function program5(depth0,data) {
+  
+  var buffer = '';
+  data.buffer.push("\n        <div class=\"site-embed-image\">\n          <img ");
+  data.buffer.push(escapeExpression(helpers['bind-attr'].call(depth0, {hash:{
+    'src': ("url")
+  },hashTypes:{'src': "ID"},hashContexts:{'src': depth0},contexts:[],types:[],data:data})));
+  data.buffer.push(">\n        </div>\n      ");
+  return buffer;
+  }
+
+  stack1 = helpers['if'].call(depth0, "isOpen", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(4, program4, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  else { data.buffer.push(''); }
   
 });Ember.TEMPLATES['widget-wrapper'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [4,'>= 1.0.0'];
@@ -108448,280 +113542,6 @@ helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
     'classNames': ("nav bs-docs-sidenav")
   },hashTypes:{'menuName': "STRING",'classNames': "STRING"},hashContexts:{'menuName': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-menu", options))));
   data.buffer.push("\n  </nav>\n</div>");
-  return buffer;
-  
-});Ember.TEMPLATES['article/form'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
-this.compilerInfo = [4,'>= 1.0.0'];
-helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
-  var buffer = '', stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
-
-function program1(depth0,data) {
-  
-  var buffer = '', helper, options;
-  data.buffer.push("\n      ");
-  data.buffer.push(escapeExpression((helper = helpers['image-upload'] || (depth0 && depth0['image-upload']),options={hash:{
-    'classNames': ("form-control header-inputs"),
-    'files': ("selectedImage")
-  },hashTypes:{'classNames': "STRING",'files': "ID"},hashContexts:{'classNames': depth0,'files': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "image-upload", options))));
-  data.buffer.push("\n    ");
-  return buffer;
-  }
-
-function program3(depth0,data) {
-  
-  var buffer = '', helper, options;
-  data.buffer.push("\n      <button ");
-  data.buffer.push(escapeExpression(helpers.action.call(depth0, "resetSelectedImage", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-  data.buffer.push(" class=\"btn btn-default\">");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "reset", options) : helperMissing.call(depth0, "t", "reset", options))));
-  data.buffer.push("</button>\n    ");
-  return buffer;
-  }
-
-function program5(depth0,data) {
-  
-  var buffer = '';
-  data.buffer.push("\n	    <div class=\"form-group\">\n	      <button ");
-  data.buffer.push(escapeExpression(helpers.action.call(depth0, "saveRecord", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-  data.buffer.push(" class=\"btn btn-success\">Save</button>\n	      <button ");
-  data.buffer.push(escapeExpression(helpers.action.call(depth0, "saveAndPublishRecord", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-  data.buffer.push(" class=\"btn btn-primary\">Save and publish</button>\n	      <button ");
-  data.buffer.push(escapeExpression(helpers.action.call(depth0, "cancel", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
-  data.buffer.push(" class=\"btn btn-default\">Cancel</button>\n	    </div>\n	  ");
-  return buffer;
-  }
-
-  data.buffer.push("<article>\n  <h1>");
-  data.buffer.push(escapeExpression((helper = helpers['focus-input'] || (depth0 && depth0['focus-input']),options={hash:{
-    'value': ("record.title"),
-    'placeholder': ("Write the title here"),
-    'classNames': ("form-control input-lg header-inputs")
-  },hashTypes:{'value': "ID",'placeholder': "STRING",'classNames': "STRING"},hashContexts:{'value': depth0,'placeholder': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "focus-input", options))));
-  data.buffer.push("</h1>\n  <h2 class=\"subheading\">\n    <label for=\"about\">");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "article.form.about.label", options) : helperMissing.call(depth0, "t", "article.form.about.label", options))));
-  data.buffer.push("</label>\n    ");
-  data.buffer.push(escapeExpression((helper = helpers['we-editor'] || (depth0 && depth0['we-editor']),options={hash:{
-    'value': ("record.about"),
-    'style': ("small"),
-    'classNames': ("header-inputs")
-  },hashTypes:{'value': "ID",'style': "STRING",'classNames': "STRING"},hashContexts:{'value': depth0,'style': depth0,'classNames': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-editor", options))));
-  data.buffer.push("\n  </h2>\n  <div class=\"record-featuredImage\">\n    ");
-  stack1 = helpers.unless.call(depth0, "inputReset", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n    ");
-  stack1 = helpers['if'].call(depth0, "selectedImage", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n  </div>\n\n	<form>\n	  <div class=\"form-group\">\n	    <div class=\"post-edit-body\">\n	      <label for=\"body\">");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "article.form.body.label", options) : helperMissing.call(depth0, "t", "article.form.body.label", options))));
-  data.buffer.push("</label>\n	      ");
-  data.buffer.push(escapeExpression((helper = helpers['we-editor'] || (depth0 && depth0['we-editor']),options={hash:{
-    'value': ("record.body")
-  },hashTypes:{'value': "ID"},hashContexts:{'value': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-editor", options))));
-  data.buffer.push("\n	    </div>\n	  </div>\n\n	  <hr>\n\n	  <div class=\"form-group\">\n	    <div class=\"post-edit-category\">\n	      <label for=\"category\">");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "article.form.category.label", options) : helperMissing.call(depth0, "t", "article.form.category.label", options))));
-  data.buffer.push("</label>\n	      ");
-  data.buffer.push(escapeExpression((helper = helpers['we-category-field'] || (depth0 && depth0['we-category-field']),options={hash:{
-    'value': ("record.category"),
-    'newTagMark': (" (nova)"),
-    'maximumSelectionSize': ("4")
-  },hashTypes:{'value': "ID",'newTagMark': "STRING",'maximumSelectionSize': "STRING"},hashContexts:{'value': depth0,'newTagMark': depth0,'maximumSelectionSize': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-category-field", options))));
-  data.buffer.push("\n	    </div>\n	  </div>\n\n	  <div class=\"form-group\">\n	    <label for=\"tag\">");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "article.form.tag.label", options) : helperMissing.call(depth0, "t", "article.form.tag.label", options))));
-  data.buffer.push("</label>\n	    ");
-  data.buffer.push(escapeExpression((helper = helpers['we-tag-field'] || (depth0 && depth0['we-tag-field']),options={hash:{
-    'value': ("record.tag"),
-    'newTagMark': (" (nova)"),
-    'maximumSelectionSize': ("5")
-  },hashTypes:{'value': "ID",'newTagMark': "STRING",'maximumSelectionSize': "STRING"},hashContexts:{'value': depth0,'newTagMark': depth0,'maximumSelectionSize': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-tag-field", options))));
-  data.buffer.push("\n	  </div>\n\n	  <hr>\n\n	  <div class=\"checkbox\">\n	    <label>\n	      ");
-  data.buffer.push(escapeExpression((helper = helpers.input || (depth0 && depth0.input),options={hash:{
-    'name': ("published"),
-    'type': ("checkbox"),
-    'checked': ("record.published")
-  },hashTypes:{'name': "STRING",'type': "STRING",'checked': "ID"},hashContexts:{'name': depth0,'type': depth0,'checked': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "input", options))));
-  data.buffer.push("\n	      ");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "article.form.published.label", options) : helperMissing.call(depth0, "t", "article.form.published.label", options))));
-  data.buffer.push("\n	    </label>\n	  </div>\n\n	  <hr>\n\n	  ");
-  stack1 = helpers['if'].call(depth0, "record.id", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(5, program5, data),fn:self.program(5, program5, data),contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n\n	</form>\n</article>\n");
-  return buffer;
-  
-});Ember.TEMPLATES['article/index'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
-this.compilerInfo = [4,'>= 1.0.0'];
-helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
-  var buffer = '', stack1, self=this, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
-
-function program1(depth0,data) {
-  
-  var buffer = '', stack1, helper, options;
-  data.buffer.push("\n  <!-- Post Content -->\n  <article class=\"bs-docs-section\">\n    <h1 class=\"page-header\">");
-  stack1 = helpers._triageMustache.call(depth0, "record.title", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("</h1>\n    ");
-  stack1 = helpers['if'].call(depth0, "record.id", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(2, program2, data),contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n    <div class=\"article-body\">\n      ");
-  data.buffer.push(escapeExpression((helper = helpers.html || (depth0 && depth0.html),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data},helper ? helper.call(depth0, "record.body", options) : helperMissing.call(depth0, "html", "record.body", options))));
-  data.buffer.push("\n    </div>\n    <br>\n    \n    <div class=\"record-terms\">\n      ");
-  stack1 = helpers['if'].call(depth0, "record.category", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(8, program8, data),contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n      ");
-  stack1 = helpers['if'].call(depth0, "record.tag", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(10, program10, data),contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n    </div>\n    \n    <hr>\n    <div class=\"comment-area\">\n      <a data-link-area=\"comments\" id=\"anchor-comments\"></a>\n      <h3 class=\"comment-title\">");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "comments.title", options) : helperMissing.call(depth0, "t", "comments.title", options))));
-  data.buffer.push("</h3>\n      ");
-  data.buffer.push(escapeExpression((helper = helpers['we-comments'] || (depth0 && depth0['we-comments']),options={hash:{
-    'commentedModelName': ("article"),
-    'commentedModelId': ("record.id")
-  },hashTypes:{'commentedModelName': "STRING",'commentedModelId': "ID"},hashContexts:{'commentedModelName': depth0,'commentedModelId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-comments", options))));
-  data.buffer.push("\n      ");
-  data.buffer.push(escapeExpression((helper = helpers['we-comment-form'] || (depth0 && depth0['we-comment-form']),options={hash:{
-    'commentedModelName': ("article"),
-    'commentedModelId': ("record.id")
-  },hashTypes:{'commentedModelName': "STRING",'commentedModelId': "ID"},hashContexts:{'commentedModelName': depth0,'commentedModelId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-comment-form", options))));
-  data.buffer.push("\n    </div>\n  </article>\n");
-  return buffer;
-  }
-function program2(depth0,data) {
-  
-  var buffer = '', stack1, helper, options;
-  data.buffer.push("\n      ");
-  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "article_update", "article", "record", options) : helperMissing.call(depth0, "can", "article_update", "article", "record", options));
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n      ");
-  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(6, program6, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "article_delete", "article", "record", options) : helperMissing.call(depth0, "can", "article_delete", "article", "record", options));
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n    ");
-  return buffer;
-  }
-function program3(depth0,data) {
-  
-  var buffer = '', stack1, helper, options;
-  data.buffer.push("\n        ");
-  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{
-    'classNames': ("btn btn-primary")
-  },hashTypes:{'classNames': "STRING"},hashContexts:{'classNames': depth0},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "article.edit", "record.id", options) : helperMissing.call(depth0, "link-to", "article.edit", "record.id", options));
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n      ");
-  return buffer;
-  }
-function program4(depth0,data) {
-  
-  
-  data.buffer.push("\n          Edit\n        ");
-  }
-
-function program6(depth0,data) {
-  
-  var buffer = '';
-  data.buffer.push("\n        <button ");
-  data.buffer.push(escapeExpression(helpers.action.call(depth0, "deleteRecord", "record.id", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data})));
-  data.buffer.push(" class=\"btn btn-default\">\n          Delete\n        </button>\n      ");
-  return buffer;
-  }
-
-function program8(depth0,data) {
-  
-  var buffer = '', helper, options;
-  data.buffer.push("\n        <div class=\"record-category\">\n          <label>");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "article.form.category.label", options) : helperMissing.call(depth0, "t", "article.form.category.label", options))));
-  data.buffer.push("</label>\n          ");
-  data.buffer.push(escapeExpression((helper = helpers['we-terms'] || (depth0 && depth0['we-terms']),options={hash:{
-    'terms': ("record.category")
-  },hashTypes:{'terms': "ID"},hashContexts:{'terms': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-terms", options))));
-  data.buffer.push("\n        </div>\n      ");
-  return buffer;
-  }
-
-function program10(depth0,data) {
-  
-  var buffer = '', helper, options;
-  data.buffer.push("\n        <div class=\"record-tag\">\n          <label>");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "article.form.tag.label", options) : helperMissing.call(depth0, "t", "article.form.tag.label", options))));
-  data.buffer.push("</label>\n          ");
-  data.buffer.push(escapeExpression((helper = helpers['we-terms'] || (depth0 && depth0['we-terms']),options={hash:{
-    'terms': ("record.tag")
-  },hashTypes:{'terms': "ID"},hashContexts:{'terms': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-terms", options))));
-  data.buffer.push("\n        </div>\n      ");
-  return buffer;
-  }
-
-function program12(depth0,data) {
-  
-  
-  data.buffer.push("\n  Loading ...\n");
-  }
-
-  stack1 = helpers['if'].call(depth0, "record.isFulfilled", {hash:{},hashTypes:{},hashContexts:{},inverse:self.program(12, program12, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n");
-  return buffer;
-  
-});Ember.TEMPLATES['articles'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
-this.compilerInfo = [4,'>= 1.0.0'];
-helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
-  var buffer = '', stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
-
-
-  data.buffer.push("<!-- Page Header -->\n<div class=\"bs-docs-header\" id=\"content\">\n  <div class=\"container\">\n    <h1>Features</h1>\n  </div>\n</div>\n<div class=\"container bs-docs-container\">\n	<div class=\"row\">\n		<div class=\"col-md-9\">\n		  ");
-  stack1 = helpers._triageMustache.call(depth0, "outlet", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n		</div>\n		<div class=\"col-md-3\">\n			");
-  data.buffer.push(escapeExpression((helper = helpers.partial || (depth0 && depth0.partial),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "partials/sidebar", options) : helperMissing.call(depth0, "partial", "partials/sidebar", options))));
-  data.buffer.push("\n		</div>\n	</div>\n</div>");
-  return buffer;
-  
-});Ember.TEMPLATES['articles/index'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
-this.compilerInfo = [4,'>= 1.0.0'];
-helpers = this.merge(helpers, Ember.Handlebars.helpers); data = data || {};
-  var buffer = '', stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
-
-function program1(depth0,data) {
-  
-  var buffer = '', stack1, helper, options;
-  data.buffer.push("\n        <div class=\"articles-actions\">\n          ");
-  stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(2, program2, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "articles.create", options) : helperMissing.call(depth0, "link-to", "articles.create", options));
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n        </div>\n      ");
-  return buffer;
-  }
-function program2(depth0,data) {
-  
-  var buffer = '', helper, options;
-  data.buffer.push("\n            ");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "article.create", options) : helperMissing.call(depth0, "t", "article.create", options))));
-  data.buffer.push("\n          ");
-  return buffer;
-  }
-
-function program4(depth0,data) {
-  
-  var buffer = '', helper, options;
-  data.buffer.push("\n          <div class=\"articles-pagination\">\n            ");
-  data.buffer.push(escapeExpression((helper = helpers['we-pagination'] || (depth0 && depth0['we-pagination']),options={hash:{
-    'currentPage': ("currentPage"),
-    'totalPages': ("totalPages"),
-    'maxPagesToDisplay': ("maxPagesToDisplay")
-  },hashTypes:{'currentPage': "ID",'totalPages': "ID",'maxPagesToDisplay': "ID"},hashContexts:{'currentPage': depth0,'totalPages': depth0,'maxPagesToDisplay': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-pagination", options))));
-  data.buffer.push("\n          </div>\n        ");
-  return buffer;
-  }
-
-  data.buffer.push("<!-- Page Header -->\n<header class=\"intro-header\">\n  <div class=\"container\">\n    <div class=\"site-heading\">\n      <h1>");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "articles.title", options) : helperMissing.call(depth0, "t", "articles.title", options))));
-  data.buffer.push("</h1>\n      <hr class=\"small\">\n      <span class=\"subheading\">");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "articles.subTitle", options) : helperMissing.call(depth0, "t", "articles.subTitle", options))));
-  data.buffer.push("</span>\n    </div>\n  </div>\n</header>\n\n<!-- Main Content -->\n<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"col-md-8\">\n      ");
-  stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "article_create", options) : helperMissing.call(depth0, "can", "article_create", options));
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n\n      ");
-  data.buffer.push(escapeExpression((helper = helpers.render || (depth0 && depth0.render),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0,depth0],types:["STRING","ID"],data:data},helper ? helper.call(depth0, "articles.list", "records", options) : helperMissing.call(depth0, "render", "articles.list", "records", options))));
-  data.buffer.push("\n\n      <div class=\"records-footer\">\n        ");
-  stack1 = helpers['if'].call(depth0, "records.isFulfilled", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n      </div>\n    </div>\n  </div>\n</div>");
   return buffer;
   
 });Ember.TEMPLATES['auth/RegisterForm'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
@@ -109026,10 +113846,9 @@ function program1(depth0,data) {
   data.buffer.push("\n      </li>\n      <li class=\"divider\"></li>\n      <li>\n        ");
   stack1 = (helper = helpers['link-to'] || (depth0 && depth0['link-to']),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "authChangePassword", options) : helperMissing.call(depth0, "link-to", "authChangePassword", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n      </li>\n      <li class=\"divider\"></li>      \n      ");
-  stack1 = helpers['if'].call(depth0, "adminMenu", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(6, program6, data),contexts:[depth0],types:["ID"],data:data});
-  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n      <li>\n        <a href=\"/auth/logout\" ");
+  data.buffer.push("\n      </li>\n      <li class=\"divider\"></li>\n\n      <li>\n        <a href=\"/admin\">\n          ");
+  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "menu.link.manage", options) : helperMissing.call(depth0, "t", "menu.link.manage", options))));
+  data.buffer.push("\n        </a>\n      </li>\n      <li class=\"divider\"></li>\n\n      <li>\n        <a href=\"/auth/logout\" ");
   data.buffer.push(escapeExpression(helpers.action.call(depth0, "logOut", {hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data})));
   data.buffer.push(" class=\"\">");
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Exit", options) : helperMissing.call(depth0, "t", "Exit", options))));
@@ -109049,15 +113868,6 @@ function program4(depth0,data) {
   
   var helper, options;
   data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "Change password", options) : helperMissing.call(depth0, "t", "Change password", options))));
-  }
-
-function program6(depth0,data) {
-  
-  var buffer = '', helper, options;
-  data.buffer.push("\n      <li>\n        <a href=\"/admin\">\n          ");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "menu.link.manage", options) : helperMissing.call(depth0, "t", "menu.link.manage", options))));
-  data.buffer.push("\n        </a>\n\n      </li>      \n      <li class=\"divider\"></li>\n      ");
-  return buffer;
   }
 
   stack1 = helpers['if'].call(depth0, "currentUser.id", {hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],data:data});
