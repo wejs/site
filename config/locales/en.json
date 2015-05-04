@@ -1,7 +1,5 @@
 {
-
   "app.copyright": "Copyleft, <strong>{{appName}}</strong> 2014",
-
   "Welcome": "Welcome",
   "Email address": "Email address",
   "Remember me": "Remember me",
@@ -200,6 +198,9 @@
   "auth.change-password.oldpassword": "Current password",
   "auth.change-password.newpassword": "New password",
   "auth.change-password.repeatpassword": "Repeat new password",
+
+  "auth.forgot-password.user.not-found": "Your email or password is wrong.",
+  "auth.register.require.email.activation": "Your account is registered but you need to valid your account with access to link send to your email.",
 
   "admin.permissions.title": "Access permissions",
   "admin.create.role": "Create account",

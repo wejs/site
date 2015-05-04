@@ -79,6 +79,7 @@ module.exports.clientside = {
       },
 
       admin: {
+        restrictAccess: true,
         links: [
           // // Submenu item example
           // {
