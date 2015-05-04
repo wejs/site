@@ -7,11 +7,11 @@ module.exports = function(we, done, sget, program) {
     }
 
     var userStub = {
-      username: 'afrosamuray',
-      biography: 'Afro Samuray is a hero how helps people!',
+      username: 'administrator',
+      biography: 'The administrator user account!',
       email: 'contato@albertosouza.net',
       password: '123',
-      displayName: 'Afro Samuray',
+      displayName: 'Administrator',
       language: 'pt-br',
       active: true
     };
