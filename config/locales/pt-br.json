@@ -221,8 +221,8 @@
 	"role.field.name.label": "Nome do perfil",
 	"role.field.name.description": "",
 	"role.field.description.label": "Descrição do perfil",
-  "role.field.description.description": "",
-  "admin.roles": "Perfis de usuário",
+	"role.field.description.description": "",
+	"admin.roles": "Perfis de usuário",
 	"vocabulary.field.name.label": "Nome do vocabulário",
 	"vocabulary.field.name.description": "Exemplo: Categorias do site",
 	"vocabulary.field.name.placeholder": " ",
@@ -274,5 +274,6 @@
 	"we.email.groupInvite.subject": "Você foi convidado para o grupo {{group.name}}",
 	"Alteração de senha disponível": "Alteração de senha disponível",
 	"currentUser.groups": "Meus grupos",
-	"auth.consumeForgotPasswordToken.token.invalid": "auth.consumeForgotPasswordToken.token.invalid"
+	"auth.consumeForgotPasswordToken.token.invalid": "auth.consumeForgotPasswordToken.token.invalid",
+	"O seu email ou senha estão errados ou você ainda não está registrado no sistema.": "O seu email ou senha estão errados ou você ainda não está registrado no sistema."
 }
