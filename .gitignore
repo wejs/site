@@ -41,3 +41,4 @@ files/tmp
 files/private
 
 .tmp
+config/local.js
