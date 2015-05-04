@@ -1,11 +1,11 @@
 [
   "public/plugin/we-core/client/shared/beforeAll/1_jquery.js",
   "public/plugin/we-core/client/shared/beforeAll/2_handlebars.js",
+  "public/plugin/we-core/client/shared/beforeAll/5_CLDR.js",
   "public/plugin/we-core/client/shared/beforeAll/5_ember.js",
   "public/plugin/we-core/client/shared/beforeAll/6_Ember.I18n.js",
   "public/plugin/we-core/client/shared/beforeAll/6_ember-data.js",
   "public/plugin/we-core/client/shared/beforeAll/8_socket.io.js",
-  "public/plugin/we-core/client/shared/libs/CLDR.js",
   "public/plugin/we-core/client/shared/libs/Ember.WeApplication.js",
   "public/plugin/we-core/client/shared/libs/EmberNotificator.js",
   "public/plugin/we-core/client/shared/libs/Ember_body_class.js",

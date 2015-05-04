@@ -3130,19 +3130,7 @@ function program10(depth0,data) {
   data.buffer.push("\n  ");
   stack1 = (helper = helpers.can || (depth0 && depth0.can),options={hash:{},hashTypes:{},hashContexts:{},inverse:self.noop,fn:self.program(10, program10, data),contexts:[depth0,depth0,depth0],types:["STRING","STRING","STRING"],data:data},helper ? helper.call(depth0, "page_delete", "page", "record", options) : helperMissing.call(depth0, "can", "page_delete", "page", "record", options));
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n\n  <hr>\n  <div class=\"comment-area\">\n    <a data-link-area=\"comments\" id=\"anchor-comments\"></a>\n    <h3 class=\"comment-title\">");
-  data.buffer.push(escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},hashTypes:{},hashContexts:{},contexts:[depth0],types:["STRING"],data:data},helper ? helper.call(depth0, "comments.title", options) : helperMissing.call(depth0, "t", "comments.title", options))));
-  data.buffer.push("</h3>\n    ");
-  data.buffer.push(escapeExpression((helper = helpers['we-comments'] || (depth0 && depth0['we-comments']),options={hash:{
-    'commentedModelName': ("page"),
-    'commentedModelId': ("record.id")
-  },hashTypes:{'commentedModelName': "STRING",'commentedModelId': "ID"},hashContexts:{'commentedModelName': depth0,'commentedModelId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-comments", options))));
-  data.buffer.push("\n    ");
-  data.buffer.push(escapeExpression((helper = helpers['we-comment-form'] || (depth0 && depth0['we-comment-form']),options={hash:{
-    'commentedModelName': ("page"),
-    'commentedModelId': ("record.id")
-  },hashTypes:{'commentedModelName': "STRING",'commentedModelId': "ID"},hashContexts:{'commentedModelName': depth0,'commentedModelId': depth0},contexts:[],types:[],data:data},helper ? helper.call(depth0, options) : helperMissing.call(depth0, "we-comment-form", options))));
-  data.buffer.push("\n  </div>\n</div>");
+  data.buffer.push("\n\n</div>");
   return buffer;
   
 });Ember.TEMPLATES['page/regions'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {

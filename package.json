@@ -1,6 +1,6 @@
 {
   "name": "wejs_site",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "main": "./app.js",
   "scripts": {
@@ -9,9 +9,9 @@
   "dependencies": {
     "async": "^0.9.0",
     "lodash": "^3.3.1",
-    "we-core": "0.3.8",
+    "we-core": "0.3.9",
     "we-theme-admin-default": "0.3.1",
-    "we-theme-site-wejs": "0.3.4"
+    "we-theme-site-wejs": "0.3.5"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
