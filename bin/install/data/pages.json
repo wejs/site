@@ -4,7 +4,7 @@
     "about": "",
     "active": true,
     "published": 1,
-    "body": "<p><br></p>",
+    "body": "<div><br></div><p></p><blockquote><span style=\"color: rgb(0, 0, 0); font-family: Arial; font-size: 15px; line-height: 18.75px; white-space: pre-wrap;\">We.js have features like pages, posts, messenger, users, categories, tags, groups, notifications, administrative interface, ACL and suport to extensions with plugins and themes. </span></blockquote><p></p><h3>Links:</h3><ul><li>We.js site: <a href=\"http://wejs.org\" target=\"_blank\">http://wejs.org</a></li><li>Github main repo:&nbsp;<a href=\"https://github.com/wejs/we\" target=\"_blank\">https://github.com/wejs/we</a></li></ul><h3>Copyright and license</h3><p>Copyright 2013-2015 <a href=\"http://albertosouza.net/\" target=\"_blank\">Alberto Souza</a> alberto.souza.dev@gmail.com and <a href=\"https://github.com/wejs/we-core/graphs/contributors\" target=\"_blank\">contributors</a> , under the MIT license.<br></p>",
     "categories": [
       "Get started"
     ]

@@ -10,7 +10,8 @@
             "find_vocabulary",
             "find_post",
             "find_group",
-            "find_role"
+            "find_role",
+            "find_room"
         ],
         "name": "unAuthenticated",
         "description": null
@@ -33,7 +34,10 @@
             "create_group",
             "find_role",
             "use_flag",
-            "use_follow"
+            "use_follow",
+            "use_messenger",
+            "find_room",
+            "create_room"
         ],
         "name": "authenticated",
         "description": null
@@ -55,7 +59,9 @@
             "update_group",
             "delete_group",
             "update_user",
-            "delete_user"
+            "delete_user",
+            "update_room",
+            "delete_room"
         ],
         "name": "owner",
         "description": null
