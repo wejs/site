@@ -10758,9 +10758,11 @@ body {
   margin: 0 auto 30px;
 }
 .bs-docs-masthead h1 {
-  font-weight: 300;
+  font-weight: bolder;
   line-height: 1;
   color: #fff;
+  font-size: 95px;
+  margin-bottom: 50px;
 }
 .bs-docs-masthead .lead {
   margin: 0 auto 30px;
@@ -10787,9 +10789,6 @@ body {
 @media (min-width: 768px) {
   .bs-docs-masthead {
     padding: 80px 0;
-  }
-  .bs-docs-masthead h1 {
-    font-size: 60px;
   }
   .bs-docs-masthead .lead {
     font-size: 24px;

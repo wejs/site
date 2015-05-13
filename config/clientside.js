@@ -30,12 +30,12 @@ module.exports.clientside = {
             model: 'page',
             modelId: '1'
           },
-          {
-            text: 'Features',
-            type: 'resource',
-            model: 'page',
-            modelId: '3'
-          },
+          // {
+          //   text: 'Features',
+          //   type: 'resource',
+          //   model: 'page',
+          //   modelId: '3'
+          // },
           // {
           //   text: 'Forum',
           //   type: 'page',
@@ -53,17 +53,11 @@ module.exports.clientside = {
       'Get started': {
         links: [
           {
-            text: 'About',
+            text: 'Get started',
             type: 'resource',
             model: 'page',
             modelId: '1'
-          },
-          {
-            text: 'Instalation',
-            type: 'resource',
-            model: 'page',
-            modelId: '2'
-          },
+          }
         ]
       },
 
