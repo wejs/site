@@ -93,6 +93,7 @@
   "public/plugin/we-core/client/shared/models/MessagesModel.js",
   "public/plugin/we-core/client/shared/models/RoleModel.js",
   "public/plugin/we-core/client/shared/models/UserModel.js",
+  "public/plugin/we-plugin-contact/client/shared/models/ContactModel.js",
   "public/plugin/we-core/client/shared/components/ActiveLIComponent.js",
   "public/plugin/we-core/client/shared/components/App.AutoExpandingTextAreaComponent.js",
   "public/plugin/we-core/client/shared/components/App.FocusTextAreaComponent.js",
@@ -154,6 +155,7 @@
   "public/plugin/we-core/client/shared/components/WeVideoPreviewComponent.js",
   "public/plugin/we-core/client/shared/components/WeWembedComponent.js",
   "public/plugin/we-core/client/shared/components/WeWysiwygEditorComponent.js",
+  "public/plugin/we-plugin-contact/client/shared/components/WeContactComponent.js",
   "public/plugin/we-plugin-messenger/client/shared/components/WeChatBoxComponent.js",
   "public/project/client/appAdmin/afterEmberFilesLoaded.js"
 ]

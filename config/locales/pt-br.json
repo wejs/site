@@ -275,5 +275,10 @@
 	"Alteração de senha disponível": "Alteração de senha disponível",
 	"currentUser.groups": "Meus grupos",
 	"auth.consumeForgotPasswordToken.token.invalid": "auth.consumeForgotPasswordToken.token.invalid",
-	"O seu email ou senha estão errados ou você ainda não está registrado no sistema.": "O seu email ou senha estão errados ou você ainda não está registrado no sistema."
+	"O seu email ou senha estão errados ou você ainda não está registrado no sistema.": "O seu email ou senha estão errados ou você ainda não está registrado no sistema.",
+	"Sua conta de usuário foi criada mas é nescessário valida-la acessando o email informado.": "Sua conta de usuário foi criada mas é nescessário valida-la acessando o email informado.",
+	"messenger.is.writing": "digitando ...",
+	"messenger.loading": "carregando ...",
+	"field.password.invalid": "field.password.invalid",
+	"field.confirm-password.password.required": "field.confirm-password.password.required"
 }
