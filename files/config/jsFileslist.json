@@ -64,6 +64,7 @@
   "public/plugin/we-core/client/app/routes/PostRoute.js",
   "public/plugin/we-core/client/app/routes/UnknownRoute.js",
   "public/plugin/we-core/client/app/routes/UserRoutes.js",
+  "public/plugin/we-plugin-doc-git/client/app/routes/WejsdocRoute.js",
   "public/plugin/we-core/client/shared/controllers/CommentItemController.js",
   "public/plugin/we-core/client/app/controllers/ActivityListController.js",
   "public/plugin/we-core/client/app/controllers/ApplicationController.js",

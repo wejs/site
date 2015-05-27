@@ -27,8 +27,8 @@ module.exports.clientside = {
           {
             text: 'Get started',
             type: 'resource',
-            model: 'page',
-            modelId: '1'
+            model: 'wejsdoc',
+            modelId: 'we-core'
           },
           // {
           //   text: 'Features',

@@ -39,6 +39,8 @@ files/tmp
 
 # private files
 files/private
+files/public/static
+files/wejsdoc
 
 .tmp
 config/local.js
