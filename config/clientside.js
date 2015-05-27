@@ -28,7 +28,7 @@ module.exports.clientside = {
             text: 'Get started',
             type: 'resource',
             model: 'wejsdoc',
-            modelId: 'we-core'
+            modelId: 'we'
           },
           // {
           //   text: 'Features',
@@ -46,28 +46,6 @@ module.exports.clientside = {
             external: true,
             href: 'https://github.com/wejs/we',
             target: '_blank'
-          }
-        ]
-      },
-
-      'Get started': {
-        links: [
-          {
-            text: 'Get started',
-            type: 'resource',
-            model: 'page',
-            modelId: '1'
-          }
-        ]
-      },
-
-      'Features': {
-        links: [
-          {
-            text: 'Features',
-            type: 'resource',
-            model: 'page',
-            modelId: '3'
           }
         ]
       },
