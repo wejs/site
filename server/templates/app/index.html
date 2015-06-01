@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>We.js site</title>
+    <!-- build:js bower_components/webcomponentsjs/webcomponents.min.js -->
+    <script src="/public/project/client/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+    <!-- endbuild -->
+
+    <script type="text/javascript" src="/public/project/client/bower_components/jquery/dist/jquery.min.js"></script>
+
+    <!-- will be replaced with elements/elements.vulcanized.html -->
+    <link rel="import" href="/public/project/client/app/elements.html">
+    <!-- endreplace-->
+  </head>
+  <body unresolved class="fullbleed layout vertical">
+    <template is="dom-bind" id="app">
+      <paper-drawer-panel id="paperDrawerPanel">
+        <div drawer>
+          <!-- Drawer Toolbar -->
+          <paper-toolbar id="drawerToolbar">
+            <span>Menu</span>
+          </paper-toolbar>
+
+          <!-- Drawer Content -->
+          <paper-menu class="list" attr-for-selected="data-route" selected="{{route}}">
+            <a data-route="home" href="/">
+              <iron-icon icon="home"></iron-icon>
+              <span>Home</span>
+            </a>
+            <a data-route="wejsdocs.we" href="/docs/we">
+              <iron-icon icon="info"></iron-icon>
+              <span>Documentation</span>
+            </a>
+          </paper-menu>
+        </div>
+        <paper-header-panel main mode="waterfall-tall">
+          <!-- Main Toolbar -->
+          <paper-toolbar id="mainToolbar">
+            <button tabindex="1" id="paperToggle" paper-drawer-toggle>
+              <iron-icon icon="menu" paper-drawer-toggle></iron-icon>
+            </button>
+            <span class="flex"></span>
+
+            <!-- Toolbar icons -->
+            <paper-icon-button icon="refresh"></paper-icon-button>
+            <paper-icon-button icon="search"></paper-icon-button>
+            <div class="middle"></div>
+
+            <!-- Application name -->
+            <div class="appname bottom paper-font-display2">{{title}}</div>
+          </paper-toolbar>
+          <!-- Main Content -->
+          <section>
+            <paper-material elevation="1">
+              <div id="content"></div>
+            </paper-material>
+          </section>
+        </paper-header-panel>
+      </paper-drawer-panel>
+    </template>
+
+    <script src="/public/project/client/app/scripts/app.js"></script>
+  </body>
+</html>

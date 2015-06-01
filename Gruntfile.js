@@ -16,8 +16,6 @@ var projectFolder = process.cwd();
 
 
 module.exports = function(grunt) {
-  var wg = require('we-core/lib/grunt/index.js')(projectFolder);
 
-  wg.loadDefaultTasks();
-  wg.initGrunt(grunt);
-}
+
+};
