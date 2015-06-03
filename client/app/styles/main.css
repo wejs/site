@@ -1,32 +1,10 @@
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
-<style is="custom-style">
-
-/*
- Polymer includes a shim for CSS Custom Properties that we can
- use for application theming. Below, you'll find the default
- palette for the Polymer Starter Kit layout. Feel free to play
- with changing the colors used or generate your own palette of
- colours at MaterialPalette.com.
- */
-
-/* Application theme */
-
 :root {
     --dark-primary-color: #303F9F;
     --default-primary-color:#3F51B5;
     --light-primary-color: #C5CAE9;
     --text-primary-color: #ffffff; /*text/icons*/
     --accent-color: #FF4081;
-    --primary-background-color: #c5cae9;
+    --primary-background-color: #38B982;
     --primary-text-color: #212121;
     --secondary-text-color: #727272;
     --disabled-text-color: #bdbdbd;
@@ -55,10 +33,13 @@ paper-material {
   background: white;
 }
 
-#mainToolbar {
-  box-shadow: 0 4px 5px 0 rgba(0,0,0,.14),
-  0 2px 9px 1px rgba(0,0,0,.12),
-  0 4px 2px -2px rgba(0,0,0,.2);
+#mainToolbar,
+#drawerToolbar {
+  background-color: #000;
+}
+
+#drawerToolbar {
+  border-bottom: var(--drawer-toolbar-border-color);
 }
 
 paper-menu iron-icon {
@@ -87,7 +68,7 @@ paper-menu a {
   -ms-flex-align: center;
   -webkit-align-items: center;
   align-items: center;
-  font-family: 'Roboto', 'Noto', sans-serif;
+  font-family: 'Arial', sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-size: 14px;
@@ -95,11 +76,6 @@ paper-menu a {
   line-height: 24px;
   min-height: 48px;
   padding: 0px 16px;
-}
-
-#drawerToolbar {
-  border-bottom: var(--drawer-toolbar-border-color);
-  height: 120px;
 }
 
 #paperToggle {
@@ -213,4 +189,3 @@ paper-menu a {
 @media all and (min-width: 1281px) and (max-width: 1600px) { }
 /* desktop-xlarge */
 @media all and (min-width: 1601px) and (min-width: 1920px) { }
-</style>

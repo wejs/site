@@ -1,0 +1,85 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<!-- Paper, Iron and Platinum elements -->
+<link rel="import" href="../bower_components/paper-styles/paper-styles-classes.html">
+<link rel="import" href="../bower_components/iron-flex-layout/classes/iron-flex-layout.html">
+<link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+
+<link rel="import" href="./custom-elements/wejs-docs/wejs-docs.html">
+
+<script src="/public/project/client/app/scripts/app.js"></script>
+
+<!-- Configure your routes here -->
+<link rel="import" href="routing.html">
+
+<dom-module id="wejs-app">
+  <template>
+    <link rel="stylesheet" type="text/css" href="./styles/main.css">
+    <paper-drawer-panel id="paperDrawerPanel">
+      <paper-header-panel drawer mode="waterfall">
+        <!-- Drawer Toolbar -->
+        <paper-toolbar id="drawerToolbar"></paper-toolbar>
+        <!-- Drawer Content -->
+        <paper-menu id="appMenu" class="list" attr-for-selected="data-route" selected="{{route}}">
+          <a data-route="home" href="/">
+            <iron-icon icon="home"></iron-icon>
+            <span>Home</span>
+          </a>
+          <paper-item><iron-icon icon="info"></iron-icon> Documentation</paper-item>
+          <template is="dom-repeat" items="{{docMenu.links}}">
+            <a data-route="{{item.model}}.{{item.modelId}}" href="{{item.url}}">
+              <iron-icon icon="chevron-right"></iron-icon>
+              <span>{{item.title}}</span>
+            </a>
+          </template>
+        </paper-menu>
+      </paper-header-panel>
+      <paper-header-panel main mode="waterfall">
+        <!-- Main Toolbar -->
+        <paper-toolbar id="mainToolbar">
+          <button tabindex="1" id="paperToggle" paper-drawer-toggle>
+            <iron-icon icon="menu" paper-drawer-toggle></iron-icon>
+          </button>
+          <!-- Application name -->
+          <span class="appname flex paper-font-display2">{{config.appName}}</span>
+
+          <!-- Toolbar icons -->
+          <paper-icon-button icon="refresh"></paper-icon-button>
+          <paper-icon-button icon="search"></paper-icon-button>
+        </paper-toolbar>
+        <!-- Main Content -->
+        <section>
+          <paper-material elevation="1">
+            <div id="content"></div>
+          </paper-material>
+        </section>
+      </paper-header-panel>
+    </paper-drawer-panel>
+  </template>
+</dom-module>
+
+<script>
+(function() {
+  Polymer({ is: 'wejs-app',
+    properties: {
+      title: {
+        type: String,
+        value: ''
+      }
+    },
+
+    ready: function() {
+      this.config = WE_BOOTSTRAP_CONFIG;
+    }
+  });
+})();
+</script>

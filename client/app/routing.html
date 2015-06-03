@@ -1,13 +1,3 @@
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
 <script type="text/javascript" src="/public/project/client/bower_components/page/page.js"></script>
 <script>
   window.addEventListener('WebComponentsReady', function() {
@@ -15,15 +5,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     // client-side router inspired by the Express router
     // More info: https://visionmedia.github.io/page.js/
     page('*', function (ctx, next) {
+      console.log('transition start [');
       ctx.pageContent = '';
       next();
     });
 
     page('/', function (ctx, next) {
+      app.route = 'home';
       next();
     });
 
     page('/docs/:project', function (ctx, next) {
+      app.route = 'wejsdocs.'+ctx.params.project;
       var url = '/docs/'+ ctx.params.project;
 
       ctx.model = $.get(url).then(function (r) {
@@ -38,8 +31,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     });
 
     page('/docs/:project/:file', function (ctx, next) {
-      var url = '/docs/'+ ctx.params.project + '/' + ctx.params.file;
+      app.route = 'wejsdocs.'+ctx.params.project + '.' + ctx.params.file;
 
+      var url = '/docs/'+ ctx.params.project + '/' + ctx.params.file;
       ctx.model = $.get(url).then(function (r) {
         var s = document.createElement('wejs-docs');
 
@@ -63,12 +57,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     page('*', function (ctx) {
       $('#content').html(ctx.pageContent);
 
-      console.log('<<transition done');
+      console.log('] transition done');
     });
 
     page({
       hashbang: false
     });
-
   });
 </script>
