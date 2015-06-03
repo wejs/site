@@ -29,19 +29,21 @@
         <!-- Drawer Toolbar -->
         <paper-toolbar id="drawerToolbar"></paper-toolbar>
         <!-- Drawer Content -->
-        <paper-menu id="appMenu" class="list" attr-for-selected="data-route" selected="{{route}}">
-          <a data-route="home" href="/">
+        <ul class="nav nav-pills nav-stacked">
+          <li><a data-route="home" href="/">
             <iron-icon icon="home"></iron-icon>
             <span>Home</span>
-          </a>
-          <paper-item><iron-icon icon="info"></iron-icon> Documentation</paper-item>
+          </a></li>
+          <li><a><iron-icon icon="info"></iron-icon> Documentation</a></li>
           <template is="dom-repeat" items="{{docMenu.links}}">
-            <a data-route="{{item.model}}.{{item.modelId}}" href="{{item.url}}">
+            <li>
+            <a data-route="{{item.modelId}}" href="{{item.url}}">
               <iron-icon icon="chevron-right"></iron-icon>
               <span>{{item.title}}</span>
             </a>
+            </li>
           </template>
-        </paper-menu>
+        </ul>
       </paper-header-panel>
       <paper-header-panel main mode="waterfall">
         <!-- Main Toolbar -->
@@ -50,7 +52,7 @@
             <iron-icon icon="menu" paper-drawer-toggle></iron-icon>
           </button>
           <!-- Application name -->
-          <span class="appname flex paper-font-display2">{{config.appName}}</span>
+          <span class="appname flex paper-font-display2"><a class="logo" href="/">{{config.appName}}</a></span>
 
           <!-- Toolbar icons -->
           <paper-icon-button icon="refresh"></paper-icon-button>
