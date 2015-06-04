@@ -21,6 +21,7 @@
     "paper-elements": "PolymerElements/paper-elements#1.0.1",
     "platinum-elements": "PolymerElements/platinum-elements#1.0.0",
     "page": "visionmedia/page.js#~1.6.3",
-    "jquery": "~2.1.4"
+    "jquery": "~2.1.4",
+    "polymer-fork-me-on-github": "*"
   }
 }

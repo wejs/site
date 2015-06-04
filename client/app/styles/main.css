@@ -22,6 +22,11 @@
     --menu-link-color: #111111;
 }
 
+
+.navbar-brand {
+  color: #fff;
+}
+
 /* General styles */
 
 paper-material {

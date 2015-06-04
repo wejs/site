@@ -14,6 +14,8 @@
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 
+<link rel="import" href="../bower_components/polymer-fork-me-on-github/fork-me-on-github.html">
+
 <link rel="import" href="./custom-elements/wejs-docs/wejs-docs.html">
 
 <script src="/public/project/client/app/scripts/app.js"></script>
@@ -52,12 +54,41 @@
             <iron-icon icon="menu" paper-drawer-toggle></iron-icon>
           </button>
           <!-- Application name -->
-          <span class="appname flex paper-font-display2"><a class="logo" href="/">{{config.appName}}</a></span>
+          <span class="appname flex paper-font-display1">
+            <a class="navbar-brand" href="/">
+              <img class="img-responsive navbar-logo" src="/public/plugin/we-core/files/images/logo-small.png">
+              <span>{{config.appName}}</span>
+            </a>
+          </span>
 
           <!-- Toolbar icons -->
-          <paper-icon-button icon="refresh"></paper-icon-button>
-          <paper-icon-button icon="search"></paper-icon-button>
+
+          <a target="_blank" href="https://twitter.com/we_js">
+            <paper-icon-button src="/public/project/client/app/images/icons/twitter-icon-128x128.png"></paper-icon-button>
+          </a>
+          <a target="_blank" href="https://github.com/wejs/we">
+            <paper-icon-button src="/public/project/client/app/images/icons/github_icon-128x128.png"></paper-icon-button>
+          </a>
+
         </paper-toolbar>
+
+        <section>
+          <div class="bs-docs-social">
+            <br>
+            <div class="bs-docs-social-buttons">
+              <span>
+                <iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=wejs&amp;repo=we&amp;type=watch&amp;count=true" width="100" height="20" title="Star on GitHub"></iframe>
+              </span>
+              <span>
+                <iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=wejs&amp;repo=we&amp;type=fork&amp;count=true" width="102" height="20" title="Fork on GitHub"></iframe>
+              </span>
+              <span class="follow-btn">
+                <iframe id="twitter-widget-1" scrolling="no" frameborder="0" allowtransparency="true" src="http://platform.twitter.com/widgets/follow_button.a5bbbb7216610af1306d56b0f28a67d7.en.html#_=1424192283453&amp;dnt=false&amp;id=twitter-widget-1&amp;lang=en&amp;screen_name=we_js&amp;show_count=true&amp;show_screen_name=true&amp;size=m" class="twitter-follow-button twitter-follow-button" title="Twitter Follow Button" data-twttr-rendered="true" style="width: 240px; height: 20px;"></iframe>
+              </span>
+            </ul>
+          </div>
+        </section>
+
         <!-- Main Content -->
         <section>
           <paper-material elevation="1">
@@ -66,6 +97,7 @@
         </section>
       </paper-header-panel>
     </paper-drawer-panel>
+
   </template>
 </dom-module>
 
