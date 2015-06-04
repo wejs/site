@@ -12,13 +12,20 @@
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+
+<link rel="import" href="../bower_components/platinum-sw/platinum-sw-register.html">
+<link rel="import" href="../bower_components/platinum-sw/platinum-sw-fetch.html">
+<link rel="import" href="../bower_components/platinum-sw/platinum-sw-import-script.html">
+<link rel="import" href="../bower_components/platinum-sw/platinum-sw-cache.html">
 
 <link rel="import" href="../bower_components/polymer-fork-me-on-github/fork-me-on-github.html">
 
 <link rel="import" href="./custom-elements/wejs-docs/wejs-docs.html">
+<link rel="import" href="./custom-elements/wejs-static-home-page/wejs-static-home-page.html">
 
-<script src="/public/project/client/app/scripts/app.js"></script>
+<script src="./scripts/app.js"></script>
 
 <!-- Configure your routes here -->
 <link rel="import" href="routing.html">
@@ -26,6 +33,7 @@
 <dom-module id="wejs-app">
   <template>
     <link rel="stylesheet" type="text/css" href="./styles/main.css">
+
     <paper-drawer-panel id="paperDrawerPanel">
       <paper-header-panel drawer mode="waterfall">
         <!-- Drawer Toolbar -->
@@ -62,15 +70,14 @@
           </span>
 
           <!-- Toolbar icons -->
-
           <a target="_blank" href="https://twitter.com/we_js">
             <paper-icon-button src="/public/project/client/app/images/icons/twitter-icon-128x128.png"></paper-icon-button>
           </a>
           <a target="_blank" href="https://github.com/wejs/we">
             <paper-icon-button src="/public/project/client/app/images/icons/github_icon-128x128.png"></paper-icon-button>
           </a>
-
         </paper-toolbar>
+
 
         <section>
           <div class="bs-docs-social">
@@ -91,15 +98,32 @@
 
         <!-- Main Content -->
         <section>
-          <paper-material elevation="1">
+          <paper-material elevation="0">
             <div id="content"></div>
           </paper-material>
         </section>
+
       </paper-header-panel>
     </paper-drawer-panel>
 
+    <paper-toast id="caching-complete"
+                 duration="6000"
+                 text="Caching complete! This app will work offline.">
+    </paper-toast>
+
+
+
+    <template is="dom-if" if="{{docPreloadedPages}}">
+      <platinum-sw-register auto-register clients-claim skip-waiting
+                        on-service-worker-installed="displayInstalledToast">
+        <platinum-sw-cache default-cache-strategy="networkFirst" precache="{{docPreloadedPages}}"></platinum-sw-cache>
+      </platinum-sw-register>
+    </template>
+
+
   </template>
 </dom-module>
+
 
 <script>
 (function() {

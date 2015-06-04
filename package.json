@@ -4,12 +4,14 @@
   "private": true,
   "main": "./app.js",
   "scripts": {
+    "prod": "NODE_ENV=prod node app.js",
+    "deps": "npm install && bower install",
     "start": "grunt && node app.js"
   },
   "dependencies": {
     "async": "^0.9.0",
     "lodash": "^3.3.1",
-    "we-core": "0.3.24",
+    "we-core": "0.3.25",
     "we-plugin-contact": "^0.3.1",
     "we-plugin-doc-git": "^0.3.3",
     "we-plugin-messenger": "0.3.2",
@@ -18,14 +20,10 @@
   },
   "devDependencies": {
     "grunt": "^0.4.5",
-    "grunt-cli": "^0.1.13",
-    "grunt-contrib-copy": "^0.8.0",
-    "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-concat": "^0.5.1",
+    "grunt-contrib-copy": "^0.8.0",
     "grunt-contrib-cssmin": "^0.12.2",
-    "grunt-contrib-uglify": "^0.8.0",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-fileindex": "^0.1.0",
-    "grunt-we-ember-template": "0.0.3"
+    "vulcanize": "^1.8.1"
   }
 }

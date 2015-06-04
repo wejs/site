@@ -32,7 +32,7 @@
 paper-material {
   border-radius: 2px;
   height: 100%;
-  padding: 16px 0px 16px 0px;
+  /*padding: 16px 0px 16px 0px;*/
   width: calc(98.66% - 16px);
   margin: 16px auto;
   background: white;
@@ -148,7 +148,7 @@ paper-menu a {
 
   paper-material {
     width: calc(98% - 16px);
-    padding-left: 30px;
+    /*padding-left: 30px;*/
   }
 
 }
