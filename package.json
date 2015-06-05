@@ -13,9 +13,9 @@
     "async": "^0.9.0",
     "lodash": "^3.3.1",
     "we-core": "0.3.26",
-    "we-plugin-contact": "^0.3.1",
+    "we-plugin-contact": "^0.3.2",
     "we-plugin-doc-git": "^0.3.4",
-    "we-plugin-messenger": "0.3.2",
+    "we-plugin-messenger": "0.3.4",
     "we-theme-admin-default": "0.3.1",
     "we-theme-site-wejs": "0.3.11"
   },
