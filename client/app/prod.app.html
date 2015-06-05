@@ -10161,7 +10161,9 @@ Note: announcements are only audible if you have a screen reader enabled.
 <script>
   (function() {
     // Grab the URI of this file to use as a base when resolving relative paths.
-    var baseURI = document.currentScript.baseURI;
+    // Fallback to './' as a default, though current browsers that don't support
+    // document.currentScript also don't support service workers.
+    var baseURI = document.currentScript ? document.currentScript.baseURI : './';
 
     /**
      * The `<platinum-sw-register>` element handles
@@ -10761,6 +10763,8 @@ Note: announcements are only audible if you have a screen reader enabled.
     }
   });
 </script>
+<link rel="stylesheet" type="text/css" href="./styles/main.css">
+
 <script src="./scripts/app.js"></script>
 
 <!-- Configure your routes here -->
@@ -10782,6 +10786,8 @@ Note: announcements are only audible if you have a screen reader enabled.
     page('/', function (ctx, next) {
       app.route = 'home';
       ctx.pageContent = '<wejs-static-home-page></wejs-static-home-page>';
+      ctx.fullLayout = true;
+
       next();
     });
 
@@ -10790,12 +10796,7 @@ Note: announcements are only audible if you have a screen reader enabled.
       var url = '/docs/'+ ctx.params.project;
 
       ctx.model = $.get(url).then(function (r) {
-        var s = document.createElement('wejs-docs');
-
-        app.title = r.title;
-        s.$.docHTML.innerHTML = r.html;
-        ctx.pageContent = s;
-
+        ctx.pageContent = r.html;
         next();
       });
     });
@@ -10805,12 +10806,7 @@ Note: announcements are only audible if you have a screen reader enabled.
 
       var url = '/docs/'+ ctx.params.project + '/' + ctx.params.file;
       ctx.model = $.get(url).then(function (r) {
-        var s = document.createElement('wejs-docs');
-
-        app.title = r.title;
-        s.$.docHTML.innerHTML = r.html;
-        ctx.pageContent = s;
-
+        ctx.pageContent = r.html;
         next();
       });
     });
@@ -10825,7 +10821,14 @@ Note: announcements are only audible if you have a screen reader enabled.
     });
 
     page('*', function (ctx) {
-      $('#content').html(ctx.pageContent);
+      if (ctx.fullLayout) {
+        document.querySelector('#content').innerHTML = ctx.pageContent;
+      } else {
+        document.querySelector('#content').innerHTML =
+          '<section><paper-material elevation="0">' +
+            ctx.pageContent +
+          '</paper-material></section>';
+      }
 
       console.log('] transition done');
     });
@@ -13520,39 +13523,7 @@ Note: announcements are only audible if you have a screen reader enabled.
 
 })();
 </script>
-<dom-module id="wejs-docs" assetpath="custom-elements/wejs-docs/">
-  <style>
-    :host {
-      display: block;
-    }
-    @media (max-width: 600px) {
-      h1.paper-font-display1 {
-        font-size: 24px;
-      }
-    }
-  </style>
-  <template>
-    <div id="docHTML"></div>
-  </template>
-</dom-module>
-<script>
-(function() {
-  Polymer({
-    is: 'wejs-docs',
-
-    properties: {
-      title: {
-        type: String,
-        value: ''
-      },
-      projectName: {
-        type: String,
-        value: ''
-      }
-    }
-  });
-  })();
-</script><dom-module id="wejs-static-home-page" assetpath="custom-elements/wejs-static-home-page/">
+<dom-module id="wejs-static-home-page" assetpath="custom-elements/wejs-static-home-page/">
   <style>
     :host {
       display: block;
@@ -13696,10 +13667,8 @@ Note: announcements are only audible if you have a screen reader enabled.
     properties: {}
   });
   })();
-</script></div><dom-module id="wejs-app">
+</script></div><dom-module is="dom-bind" id="wejs-app">
   <template>
-    <link rel="stylesheet" type="text/css" href="./styles/main.css">
-
     <paper-drawer-panel id="paperDrawerPanel">
       <paper-header-panel drawer="" mode="waterfall">
         <!-- Drawer Toolbar -->
@@ -13745,11 +13714,7 @@ Note: announcements are only audible if you have a screen reader enabled.
         </paper-toolbar>
 
         <!-- Main Content -->
-        <section>
-          <paper-material elevation="0">
-            <div id="content"></div>
-          </paper-material>
-        </section>
+        <div id="content"></div>
 
       </paper-header-panel>
     </paper-drawer-panel>

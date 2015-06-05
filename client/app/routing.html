@@ -16,6 +16,8 @@
     page('/', function (ctx, next) {
       app.route = 'home';
       ctx.pageContent = '<wejs-static-home-page></wejs-static-home-page>';
+      ctx.fullLayout = true;
+
       next();
     });
 
@@ -24,12 +26,7 @@
       var url = '/docs/'+ ctx.params.project;
 
       ctx.model = $.get(url).then(function (r) {
-        var s = document.createElement('wejs-docs');
-
-        app.title = r.title;
-        s.$.docHTML.innerHTML = r.html;
-        ctx.pageContent = s;
-
+        ctx.pageContent = r.html;
         next();
       });
     });
@@ -39,12 +36,7 @@
 
       var url = '/docs/'+ ctx.params.project + '/' + ctx.params.file;
       ctx.model = $.get(url).then(function (r) {
-        var s = document.createElement('wejs-docs');
-
-        app.title = r.title;
-        s.$.docHTML.innerHTML = r.html;
-        ctx.pageContent = s;
-
+        ctx.pageContent = r.html;
         next();
       });
     });
@@ -59,7 +51,14 @@
     });
 
     page('*', function (ctx) {
-      $('#content').html(ctx.pageContent);
+      if (ctx.fullLayout) {
+        document.querySelector('#content').innerHTML = ctx.pageContent;
+      } else {
+        document.querySelector('#content').innerHTML =
+          '<section><paper-material elevation="0">' +
+            ctx.pageContent +
+          '</paper-material></section>';
+      }
 
       console.log('] transition done');
     });

@@ -20,18 +20,17 @@
 <link rel="import" href="../bower_components/platinum-sw/platinum-sw-import-script.html">
 <link rel="import" href="../bower_components/platinum-sw/platinum-sw-cache.html">
 
-<link rel="import" href="./custom-elements/wejs-docs/wejs-docs.html">
 <link rel="import" href="./custom-elements/wejs-static-home-page/wejs-static-home-page.html">
+
+<link rel="stylesheet" type="text/css" href="./styles/main.css">
 
 <script src="./scripts/app.js"></script>
 
 <!-- Configure your routes here -->
 <link rel="import" href="routing.html">
 
-<dom-module id="wejs-app">
+<dom-module is="dom-bind" id="wejs-app">
   <template>
-    <link rel="stylesheet" type="text/css" href="./styles/main.css">
-
     <paper-drawer-panel id="paperDrawerPanel">
       <paper-header-panel drawer mode="waterfall">
         <!-- Drawer Toolbar -->
@@ -77,11 +76,7 @@
         </paper-toolbar>
 
         <!-- Main Content -->
-        <section>
-          <paper-material elevation="0">
-            <div id="content"></div>
-          </paper-material>
-        </section>
+        <div id="content"></div>
 
       </paper-header-panel>
     </paper-drawer-panel>
