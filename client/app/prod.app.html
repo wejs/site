@@ -10158,6 +10158,609 @@ Note: announcements are only audible if you have a screen reader enabled.
 @demo demo/index.html
 @hero hero.svg
 -->
+<script>
+  (function() {
+    // Grab the URI of this file to use as a base when resolving relative paths.
+    var baseURI = document.currentScript.baseURI;
+
+    /**
+     * The `<platinum-sw-register>` element handles
+     * [service worker](http://www.html5rocks.com/en/tutorials/service-worker/introduction/)
+     * registration, reflects the overall service worker state, and coordinates the configuration
+     * provided by other Service Worker Elements.
+     * `<platinum-sw-register>` is used as a parent element for child elements in the
+     * `<platinum-sw-*>` group.
+     *
+     *     <platinum-sw-register skip-waiting
+     *                           clients-claim
+     *                           auto-register
+     *                           state="{{state}}"
+     *                           on-service-worker-error="handleSWError"
+     *                           on-service-worker-updated="handleSWUpdated"
+     *                           on-service-worker-installed="handleSWInstalled">
+     *       ...one or more <platinum-sw-*> children which share the service worker registration...
+     *     </platinum-sw-register>
+     *
+     * Please see https://github.com/PolymerElements/platinum-sw#top-level-sw-importjs for a
+     * *crucial* prerequisite file you must create before `<platinum-sw-register>` can be used!
+     *
+     * @demo demo/index.html An offline-capable eReader demo.
+     */
+    Polymer({
+      is: 'platinum-sw-register',
+
+      // Used as an "emergency" switch if we make breaking changes in the way <platinum-sw-register>
+      // talks to service-worker.js. Otherwise, it shouldn't need to change, and isn't meant to be
+      // kept in sync with the element's release number.
+      _version: '1.0',
+
+      /**
+       * Fired when the initial service worker installation completes successfully.
+       * The service worker will normally only be installed once, the first time a page with a
+       * `<platinum-sw-register>` element is visited in a given browser. If the same page is visited
+       * again, the existing service worker will be reused, and there won't be another
+       * `service-worker-installed` fired.
+       *
+       * @event service-worker-installed
+       * @param {String} A message indicating that the installation succeeded.
+       */
+
+      /**
+       * Fired when the service worker update flow completes successfully.
+       * If you make changes to your `<platinum-sw-register>` configuration (i.e. by adding in new
+       * `<platinum-sw-*>` child elements, or changing their attributes), users who had the old
+       * service worker installed will get the update installed when they see the modified elements.
+       *
+       * @event service-worker-updated
+       * @param {String} A message indicating that the update succeeded.
+       */
+
+      /**
+       * Fired when an error prevents the service worker installation from completing.
+       *
+       * @event service-worker-error
+       * @param {String} A message indicating what went wrong.
+       */
+
+      properties: {
+        /**
+         * Whether this element should automatically register the corresponding service worker as
+         * soon as its added to a page.
+         *
+         * If set to `false`, then the service worker won't be automatically registered, and you
+         * must call this element's `register()` method if you want service worker functionality.
+         * This is useful if, for example, the service worker needs to be configured using
+         * information that isn't immediately available at the time the page loads.
+         *
+         * If set to `true`, the service worker will be automatically registered without having to
+         * call any methods.
+         */
+        autoRegister: {
+          type: Boolean,
+          value: false
+        },
+
+        /**
+         * Whether the activated service worker should [take immediate control](https://slightlyoff.github.io/ServiceWorker/spec/service_worker/#clients-claim-method)
+         * of any pages under its scope.
+         *
+         * If this is `false`, the service worker won't have any effect until the next time the page
+         * is visited/reloaded.
+         * If this is `true`, it will take control and start handling events for the current page
+         * (and any pages under the same scope open in other tabs/windows) as soon it's active.
+         * @see {@link https://slightlyoff.github.io/ServiceWorker/spec/service_worker/#clients-claim-method}
+         */
+        clientsClaim: {
+          type: Boolean,
+          value: false
+        },
+
+        /**
+         * The service worker script that is [registered](https://slightlyoff.github.io/ServiceWorker/spec/service_worker/#navigator-service-worker-register).
+         * The script *should* be located at the top level of your site, to ensure that it is able
+         * to control all the pages on your site.
+         *
+         * It's *strongly* recommended that you create a top-level file named `sw-import.js`
+         * containing only:
+         *
+         * `importScripts('bower_components/platinum-sw/service-worker.js');`
+         *
+         * (adjust to match the path where your `platinum-sw` element directory can be found).
+         *
+         * This will ensure that your service worker script contains everything needed to play
+         * nicely with the Service Worker Elements group.
+         *
+         * @see {@link https://slightlyoff.github.io/ServiceWorker/spec/service_worker/#navigator-service-worker-register}
+         */
+        href: {
+          type: String,
+          value: 'sw-import.js'
+        },
+
+        /**
+         * Whether the page should be automatically reloaded (via `window.location.reload()`) when
+         * the service worker is successfully installed.
+         *
+         * While it's perfectly valid to continue using a page with a freshly installed service
+         * worker, it's a common pattern to want to reload it immediately following the install.
+         * This ensures that, for example, if you're using a `<platinum-sw-cache>` with an on the
+         * fly caching strategy, it will get a chance to intercept all the requests needed to render
+         * your page and store them in the cache.
+         *
+         * If you don't immediately reload your page, then any resources that were loaded before the
+         * service worker was installed (e.g. this `platinum-sw-register.html` file) won't be present
+         * in the cache until the next time the page is loaded.
+         *
+         * Note that this reload will only happen when a service worker is installed for the first
+         * time. If the service worker is subsequently updated, it won't trigger another reload.
+         */
+        reloadOnInstall: {
+          type: Boolean,
+          value: false
+        },
+
+        /**
+         * The scope of the service worker, relative to the registered service worker script.
+         * All pages that fall under this scope will be controlled by the registered service worker.
+         *
+         * Normally, this would not need to be changed, unless you want the service worker to only
+         * apply to a subset of your site.
+         *
+         * @see {@link https://slightlyoff.github.io/ServiceWorker/spec/service_worker/#navigator-service-worker-register}
+         */
+        scope: {
+          type: String,
+          value: './'
+        },
+
+        /**
+         * Whether an updated service worker should [bypass the `waiting` state](https://slightlyoff.github.io/ServiceWorker/spec/service_worker/#service-worker-global-scope-skipwaiting)
+         * and immediately become `active`.
+         *
+         * Normally, during an update, the new service worker stays in the
+         * `waiting` state until the current page and any other tabs/windows that are using the old
+         * service worker are unloaded.
+         *
+         * If this is `false`, an updated service worker won't be activated until all instances of
+         * the old server worker have been unloaded.
+         *
+         * If this is `true`, an updated service worker will become `active` immediately.
+         * @see {@link https://slightlyoff.github.io/ServiceWorker/spec/service_worker/#service-worker-global-scope-skipwaiting}
+         */
+        skipWaiting: {
+          type: Boolean,
+          value: false
+        },
+
+        /**
+         * The current state of the service worker registered by this element.
+         *
+         * One of:
+         * - 'installed'
+         * - 'updated'
+         * - 'error'
+         * - 'unsupported'
+         */
+        state: {
+          notify: true,
+          readOnly: true,
+          type: String
+        }
+      },
+
+      /**
+       * Registers the service worker based on the configuration options in this element and any
+       * child elements.
+       *
+       * If you set the `autoRegister` property to `true`, then this method is called automatically
+       * at page load.
+       * It can be useful to set `autoRegister` to `false` and then explicitly call this method if
+       * there are options that are only configured after the page is loaded.
+       */
+      register: function() {
+        if ('serviceWorker' in navigator) {
+          this._constructServiceWorkerUrl().then(function(serviceWorkerUrl) {
+            this._registerServiceWorker(serviceWorkerUrl);
+          }.bind(this));
+        } else {
+          this._setState('unsupported');
+          this.fire('service-worker-error', 'Service workers are not available in the current browser.');
+        }
+      },
+
+      _constructServiceWorkerUrl: function() {
+        var paramsPromises = [];
+        var children = Polymer.dom(this).childNodes;
+        for (var i = 0; i < children.length; i++) {
+          if (typeof children[i]._getParameters === 'function') {
+            paramsPromises.push(children[i]._getParameters(baseURI));
+          }
+        }
+
+        return Promise.all(paramsPromises).then(function(paramsResolutions) {
+          var params = {
+            baseURI: baseURI,
+            version: this._version
+          };
+
+          paramsResolutions.forEach(function(childParams) {
+            Object.keys(childParams).forEach(function(key) {
+              if (Array.isArray(params[key])) {
+                params[key].push(childParams[key]);
+              } else {
+                params[key] = [childParams[key]];
+              }
+            });
+          });
+
+          return params;
+        }.bind(this)).then(function(params) {
+          if (params.importscriptLate) {
+            if (params.importscript) {
+              params.importscript = params.importscript.concat(params.importscriptLate);
+            } else {
+              params.importscript = params.importscriptLate;
+            }
+          }
+
+          if (params.importscript) {
+            params.importscript = this._unique(params.importscript);
+          }
+
+          params.clientsClaim = this.clientsClaim;
+          params.skipWaiting = this.skipWaiting;
+
+          var serviceWorkerUrl = new URL(this.href, window.location);
+          // It's very important to ensure that the serialization is stable.
+          // Serializing the same settings should always produce the same URL.
+          // Serializing different settings should always produce a different URL.
+          // This ensures that the service worker upgrade flow is triggered when settings change.
+          serviceWorkerUrl.search = this._serializeUrlParams(params);
+
+          return serviceWorkerUrl;
+        }.bind(this));
+      },
+
+      _unique: function(arr) {
+        return arr.filter(function(item, index) {
+          return arr.indexOf(item) === index;
+        });
+      },
+
+      _serializeUrlParams: function(params) {
+        return Object.keys(params).sort().map(function(key) {
+          // encodeURIComponent(['a', 'b']) => 'a%2Cb',
+          // so this will still work when the values are Arrays.
+          // TODO: It won't work if the values in the Arrays have ',' characters in them.
+          return encodeURIComponent(key) + "=" + encodeURIComponent(params[key]);
+        }).join('&');
+      },
+
+      _registerServiceWorker: function(serviceWorkerUrl) {
+        navigator.serviceWorker.register(serviceWorkerUrl, {scope: this.scope}).then(function(registration) {
+          if (registration.active) {
+            this._setState('installed');
+          }
+
+          registration.onupdatefound = function() {
+            var installingWorker = registration.installing;
+            installingWorker.onstatechange = function() {
+              switch (installingWorker.state) {
+                case 'installed':
+                  if (navigator.serviceWorker.controller) {
+                    this._setState('updated');
+                    this.fire('service-worker-updated',
+                      'A new service worker was installed, replacing the old service worker.');
+                  } else {
+                    if (this.reloadOnInstall) {
+                      window.location.reload();
+                    } else {
+                      this._setState('installed');
+                      this.fire('service-worker-installed', 'A new service worker was installed.');
+                    }
+                  }
+                break;
+
+                case 'redundant':
+                  this._setState('error');
+                  this.fire('service-worker-error', 'The installing service worker became redundant.');
+                break;
+              }
+            }.bind(this);
+          }.bind(this);
+        }.bind(this)).catch(function(error) {
+          this._setState('error');
+          this.fire('service-worker-error', error.toString());
+          if (error.name === 'NetworkError') {
+            var location = serviceWorkerUrl.origin + serviceWorkerUrl.pathname;
+            console.error('A valid service worker script was not found at ' + location + '\n' +
+              'To learn how to fix this, please see\n' +
+              'https://github.com/PolymerElements/platinum-sw#top-level-sw-importjs');
+          }
+        }.bind(this));
+      },
+
+      attached: function() {
+        if (this.autoRegister) {
+          this.async(this.register);
+        }
+      }
+    });
+  })();
+</script>
+<script>
+  /**
+   * The `<platinum-sw-fetch>` element creates custom [`fetch` event](https://slightlyoff.github.io/ServiceWorker/spec/service_worker/#fetch-event-section)
+   * handlers for given URL patterns. Possible use cases include:
+   *
+   * - Using a special caching strategy for specific URLs.
+   * - Returning static "fallback" responses instead of network errors when a remote API
+   * is unavailable.
+   *
+   * In short, any scenario in which you'd like a service worker to intercept network
+   * requests and provide custom response handling.
+   *
+   * If you'd like a single caching policy applied to all same-origin requests, then an alternative
+   * to using `<platinum-sw-fetch>` is to use `<platinum-sw-cache>` with the `defaultCacheStategy`
+   * property set.
+   *
+   * Under the hood, the [sw-toolbox](https://github.com/googlechrome/sw-toolbox) library is used
+   * for all the request handling logic.
+   *
+   * `<platinum-sw-fetch>` needs to be a child element of `<platinum-sw-register>`.
+   *
+   * An example configuration is:
+   *
+   *     <platinum-sw-register>
+   *       <platinum-sw-import-script href="custom-fetch-handler.js"></platinum-sw-import-script>
+   *       <platinum-sw-fetch handler="customFetchHandler"
+   *                          path="/(.*)/customFetch"></platinum-sw-fetch>
+   *     </platinum-sw-register>
+   *
+   * This implies that there's a `custom-fetch-handler.js` file in the same directory as the current
+   * page, which defines a `sw-toolbox` compliant
+   * [request handler](https://github.com/googlechrome/sw-toolbox#request-handlers) named
+   * `customFetchHandler`. This definition is imported using `<platinum-sw-import-script>`. The
+   * `<platinum-sw-fetch>` element takes care of mapping which request paths are handled by
+   * `customFetchHandler`.
+   *
+   * Anything not matching the `path` pattern is ignored by `<platinum-sw-fetch>`,
+   * and it's possible to have multiple `<platinum-sw-fetch>` elements that each define different
+   * paths and different handlers. The path matching is performed top-down, starting with the first
+   * `<platinum-sw-fetch>` element.
+   */
+  Polymer({
+    is: 'platinum-sw-fetch',
+
+    properties: {
+      /**
+       * The name of the request handler to use. This should be a `sw-toolbox`-style
+       * [request handler](https://github.com/googlechrome/sw-toolbox#request-handlers).
+       *
+       * `handler` is a `String`, not a `function`, so you're providing the name of a function, not
+       * the function itself. It can be a function defined in the
+       * [`toolbox` scope](https://github.com/googlechrome/sw-toolbox#built-in-handlers)
+       * (e.g. 'networkFirst', 'fastest', 'networkOnly', etc.) or a function defined in the
+       * [`ServiceWorkerGlobalScope`](https://slightlyoff.github.io/ServiceWorker/spec/service_worker/#service-worker-global-scope),
+       * like a function that is defined in a file that's imported via `platinum-sw-import-script`.
+       **
+       * @see {@link https://github.com/GoogleChrome/sw-toolbox#built-in-handlers}
+       */
+      handler: String,
+
+      /**
+       * By default, `path` will only match URLs under the current host (i.e. same-origin requests).
+       * If you'd like to apply `handler` to cross-origin requests, then use `origin` to specify
+       * which hosts will match. Setting `origin` is optional.
+       *
+       * `origin` is a `String`, but it is used internally to construct a
+       * [`RegExp` object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions),
+       * which is used for the matching. To properly escape RegExp sequences like `\.`, it's
+       * necessary to add in an extra level of string-escaping first ('\\.').
+       *
+       * Note that the `origin` value will be matched against the full domain name and the protocol.
+       * If you want to match  'http' and 'https', then use 'https?://' at the start of your string.
+       *
+       * Some examples:
+       * - `origin="https?://.+\\.google\\.com"` → a RegExp that matches `http` or `https` requests
+       *   made to any domain, as long as it ends in `.google.com`.
+       * - `origin="https://www\\.example\\.com" → a RegExp that will only match `https` requests to
+       *   one domain, `www.example.com`.
+       *
+       * @see {@link https://github.com/googlechrome/sw-toolbox#toolboxrouterheadurlpattern-handler-options}
+       */
+      origin: String,
+
+      /**
+       * URLs with paths matching `path` will have `handler` applied to them.
+       *
+       * By default, `path` will only match same-origin URLs. If you'd like it to match
+       * cross-origin URLs, use `path` in conjunction with `origin`.
+       *
+       * As explained in the
+       * [`sw-toolbox` docs](https://github.com/googlechrome/sw-toolbox#toolboxrouterheadurlpattern-handler-options),
+       * the URL path matching is done using the [`path-to-regexp`](https://github.com/pillarjs/path-to-regexp)
+       * module, which is the same logic used in [Express-style routing](http://expressjs.com/guide/routing.html).
+       *
+       * In practice, you need to always use '/' as the first character of your `path`, and then
+       * can use '(.*)' as a wildcard.
+       *
+       * Some examples:
+       * - `path="/(.*)/customFetch"` → matches any path that ends with '/customFetch'.
+       * - `path="/customFetch(.*)"` → matches any path that starts with '/customFetch', optionally
+       *   followed by other characters.
+       *
+       * @see {@link https://github.com/pillarjs/path-to-regexp}
+       */
+      path: String
+    },
+
+    _getParameters: function(baseURI) {
+      return new Promise(function(resolve) {
+        var params = {
+          importscriptLate: new URL('bootstrap/sw-toolbox-setup.js', baseURI).href
+        };
+        if (this.path && this.handler) {
+          params.route = [this.path, this.handler, this.origin];
+        }
+        resolve(params);
+      }.bind(this));
+    }
+  });
+</script>
+<script>
+  /**
+   * The `<platinum-sw-import-script>` element is used to import a JavaScript file that is executed
+   * each time the service worker starts up.
+   *
+   * `<platinum-sw-import-script>` needs to be a child element of `<platinum-sw-register>`.
+   *
+   * A common use case is to define a custom request handler for a `fetch` event, but it can be used
+   * for any type of code that you want to be executed by the service worker.
+   *
+   *     <platinum-sw-register>
+   *       <platinum-sw-import-script href="custom-fetch-handler.js"></platinum-sw-import-script>
+   *       <platinum-sw-fetch handler="customFetchHandler"
+   *                          path="/(.*)/customFetch"></platinum-sw-fetch>
+   *     </platinum-sw-register>
+   *
+   * You can specify multiple `<platinum-sw-import-script>` elements, each one corresponding to a
+   * different JavaScript file. The JavaScript files will be loaded in the order in which the
+   * `<platinum-sw-import-script>` elements appear. Under the hood, this results in an
+   * [`importScripts()`](https://developer.mozilla.org/en-US/docs/Web/API/WorkerGlobalScope/importScripts)
+   * call made from the context of the service worker.
+   */
+  Polymer({
+    is: 'platinum-sw-import-script',
+
+    properties: {
+      /**
+       * The URL of the JavaScript file that you want imported.
+       *
+       * Relative URLs are assumed to be
+       * relative to the service worker's script location, which will almost always be the same
+       * location as the page which includes this element.
+       */
+      href: String
+    },
+
+    _getParameters: function() {
+      return new Promise(function(resolve) {
+        var params = {};
+        if (this.href) {
+          params.importscript = this.href;
+        }
+        resolve(params);
+      }.bind(this));
+    }
+  });
+</script>
+<script>
+  /**
+   * The `<platinum-sw-cache>` element makes it easy to precache specific resources, perform runtime
+   * caching, and serve your cached resources when a network is unavailable.
+   * Under the hood, the [sw-toolbox](https://github.com/googlechrome/sw-toolbox) library is used
+   * for all the caching and request handling logic.
+   * `<platinum-sw-cache>` needs to be a child element of `<platinum-sw-register>`.
+   * A simple, yet useful configuration is
+   *
+   *     <platinum-sw-register>
+   *       <platinum-sw-cache></platinum-sw-cache>
+   *     </platinum-sw-register>
+   *
+   * This is enough to have all of the (local) resources your site uses cached at runtime.
+   * (It uses the default `defaultCacheStrategy` of "networkFirst".)
+   * When there's a network available, visits to your site will go against the network copy of the
+   * resources, but if someone visits your site when they're offline, all the cached resources will
+   * be used.
+   *
+   * @demo demo/index.html An offline-capable eReader demo.
+   */
+  Polymer({
+    is: 'platinum-sw-cache',
+
+    properties: {
+      /**
+       * The caching strategy used for all local (i.e. same-origin) requests.
+       *
+       * For a list of strategies, see the [`sw-toolbox` documentation](https://github.com/GoogleChrome/sw-toolbox#built-in-handlers).
+       * Specify a strategy as a string, without the "toolbox" prefix. E.g., for
+       * `toolbox.networkFirst`, set `defaultCacheStrategy` to "networkFirst".
+       *
+       * Note that the "cacheFirst" and "cacheOnly" strategies are not recommended, and may be
+       * explicitly prevented in a future release. More information can be found at
+       * https://github.com/PolymerElements/platinum-sw#cacheonly--cachefirst-defaultcachestrategy-considered-harmful
+       *
+       * @see {@link https://github.com/GoogleChrome/sw-toolbox#built-in-handlers}
+       */
+      defaultCacheStrategy: {
+        type: String,
+        value: 'networkFirst'
+      },
+
+      /**
+       * Used to provide a list of URLs that are always precached as soon as the service worker is
+       * installed. Corresponds to  [`sw-toolbox`'s `precache()` method](https://github.com/GoogleChrome/sw-toolbox#toolboxprecachearrayofurls).
+       *
+       * This is useful for URLs that that wouldn't necessarily be picked up by runtime caching,
+       * i.e. a list of resources that are needed by one of the subpages of your site, or a list of
+       * resources that are only loaded via user interaction.
+       *
+       * `precache` can be used in conjunction with `precacheFile`, and the two arrays will be
+       * concatenated.
+       *
+       * @see {@link https://github.com/GoogleChrome/sw-toolbox#toolboxprecachearrayofurls}
+       */
+      precache: {
+        type: Array,
+        value: function() { return []; }
+      },
+
+      /**
+       * Used to provide a list of URLs that are always precached as soon as the service worker is
+       * installed. Corresponds to  [`sw-toolbox`'s `precache()` method](https://github.com/GoogleChrome/sw-toolbox#toolboxprecachearrayofurls).
+       *
+       * While the `precache` option supports provided the array of URLs in as an inline attribute,
+       * this option supports providing them as an array in JSON file, which is fetched at runtime.
+       * This is useful if the array is generated via a separate build step, as it's easier to
+       * write that output to a file then it is to modify inline HTML content.
+       *
+       * `precacheFile` can be used in conjunction with `precache`, and the two arrays will be
+       * concatenated.
+       *
+       * @see {@link https://github.com/GoogleChrome/sw-toolbox#toolboxprecachearrayofurls}
+       */
+      precacheFile: String
+    },
+
+    _getParameters: function(baseURI) {
+      return new Promise(function(resolve) {
+        var params = {
+          importscriptLate: new URL('bootstrap/sw-toolbox-setup.js', baseURI).href,
+          defaultCacheStrategy: this.defaultCacheStrategy,
+          precache: this.precache
+        };
+
+        if (this.precacheFile) {
+          window.fetch(this.precacheFile).then(function(response) {
+            if (!response.ok) {
+              throw Error('unable to load ' + this.precacheFile);
+            }
+            return response.json();
+          }.bind(this)).then(function(files) {
+            params.precache = params.precache.concat(files);
+          }).catch(function(error) {
+            console.info('Skipping precaching: ' + error.message);
+          }).then(function() {
+            resolve(params);
+          });
+        } else {
+          resolve(params);
+        }
+      }.bind(this));
+    }
+  });
+</script>
 <!-- Defines element markup -->
 
 <!--
@@ -10178,12 +10781,16 @@ A Fork Me On Github ribbon custom element using Polymer
     // More info: https://visionmedia.github.io/page.js/
     page('*', function (ctx, next) {
       console.log('transition start [');
+
+      app.isHomePage = false;
       ctx.pageContent = '';
+
       next();
     });
 
     page('/', function (ctx, next) {
       app.route = 'home';
+      ctx.pageContent = '<wejs-static-home-page></wejs-static-home-page>';
       next();
     });
 
@@ -13004,7 +13611,6 @@ A Fork Me On Github ribbon custom element using Polymer
     :host {
       display: block;
     }
-
     @media (max-width: 600px) {
       h1.paper-font-display1 {
         font-size: 24px;
@@ -13032,9 +13638,154 @@ A Fork Me On Github ribbon custom element using Polymer
     }
   });
   })();
+</script><dom-module id="wejs-static-home-page" assetpath="custom-elements/wejs-static-home-page/">
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <template>
+    <main class="bs-docs-masthead" role="main">
+      <div>
+        <h1>We.js</h1>
+        <br><br>
+        <p class="lead">A node.js framework for real time applications, sites or blogs!</p>
+        <p class="lead">
+          <a class="ember-view btn btn-outline-inverse btn-lg" href="/docs/we/getstarted">
+            Install We.js
+          </a>
+        </p>
+      </div>
+
+      <div class="bs-docs-social">
+        <br>
+        <div class="bs-docs-social-buttons">
+          <span>
+            <iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=wejs&amp;repo=we&amp;type=watch&amp;count=true" width="100" height="20" title="Star on GitHub"></iframe>
+          </span>
+          <span>
+            <iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=wejs&amp;repo=we&amp;type=fork&amp;count=true" width="102" height="20" title="Fork on GitHub"></iframe>
+          </span>
+          <span class="follow-btn">
+            <iframe id="twitter-widget-1" scrolling="no" frameborder="0" allowtransparency="true" src="http://platform.twitter.com/widgets/follow_button.a5bbbb7216610af1306d56b0f28a67d7.en.html#_=1424192283453&amp;dnt=false&amp;id=twitter-widget-1&amp;lang=en&amp;screen_name=we_js&amp;show_count=true&amp;show_screen_name=true&amp;size=m" class="twitter-follow-button twitter-follow-button" title="Twitter Follow Button" data-twttr-rendered="true" style="width: 240px; height: 20px;"></iframe>
+          </span>
+        
+      </div>
+    </div></main>
+    <div class="bs-docs-featurette">
+      <div>
+        <h2 class="bs-docs-featurette-title">We.js makes building web applications simpler and faster.</h2>
+        <p class="lead">We.js core has many built-in features but you can create plugins to extend server and client resources.</p>
+
+        <hr class="half-rule">
+
+        <div class="row">
+          <div class="col-sm-4">
+            <a href="https://github.com/wejs?query=plugin" target="_blank">
+              <img alt="Generators" src="/public/theme/we-theme-site-wejs/images/plugins.png">
+            </a>
+            <h3>Plugins</h3>
+            <p>We.js core has many features but you can create plugins for extend server and client resources.</p>
+          </div>
+          <div class="col-sm-4">
+            <a href="https://github.com/wejs?query=theme" target="_blank">
+              <img src="/public/theme/we-theme-site-wejs/images/themes.png">
+            </a>
+            <h3>Themes</h3>
+            <p>Be free to create beautiful themes for your own projects. Themes have the power to extend default plugin templates</p>
+          </div>
+
+          <div class="col-sm-4">
+            <a href="https://github.com/wejs/generator-wejs" target="_blank">
+              <img alt="Generators" src="/public/theme/we-theme-site-wejs/images/generators.png">
+            </a>
+            <h3>Generators</h3>
+            <p>Generate one functional project structure in seconds with <a alt="We.js plugins" href="https://github.com/wejs/generator-wejs">we.js generator</a>.</p>
+          </div>
+        </div>
+
+        <hr class="half-rule">
+
+        <h2 id="features">Features</h2>
+
+        <hr class="half-rule">
+
+        <div class="row">
+          <div class="col-sm-3">
+            <span class="glyphicon glyphicon-user bs-docs-booticon-lg bs-docs-booticon-outline"></span>
+            <h3>User</h3>
+            <p>Login, regiter, change password profile, and user management.</p>
+          </div>
+          <div class="col-sm-3">
+            <span class="glyphicon glyphicon glyphicon-comment bs-docs-booticon-lg bs-docs-booticon-outline"></span>
+            <h3>Comment</h3>
+            <p>Comment upon any model defined.</p>
+          </div>
+          <div class="col-sm-3">
+            <span class="glyphicon glyphicon-picture bs-docs-booticon-lg bs-docs-booticon-outline"></span>
+            <h3>Image</h3>
+            <p>Upload, resize and load images in multiple styles.</p>
+          </div>
+          <div>
+            <span class="glyphicon glyphicon-list-alt bs-docs-booticon-lg bs-docs-booticon-outline"></span>
+            <h3>Page</h3>
+            <p>Write html texts with suport to tags, categories and images.</p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-3">
+            <span class="glyphicon glyphicon-tag bs-docs-booticon-lg bs-docs-booticon-outline"></span>
+            <h3>Terms and Tags</h3>
+            <p>Configurable term field for any model with suport to vocabulary.</p>
+          </div>
+          <div class="col-sm-3">
+            <span class="glyphicon glyphicon-globe bs-docs-booticon-lg bs-docs-booticon-outline"></span>
+            <h3>Group</h3>
+            <p>Groups are a fabulous way to share content and conversation, either privately or with the world.</p>
+          </div>
+          <div class="col-sm-3">
+            <span class="glyphicon glyphicon-share-alt bs-docs-booticon-lg bs-docs-booticon-outline"></span>
+            <h3>Post</h3>
+            <p>Use the sharebox to share texts, videos, images and wembeds to groups and users.</p>
+          </div>
+          <div class="col-sm-3">
+            <span class="glyphicon glyphicon-cog bs-docs-booticon-lg bs-docs-booticon-outline"></span>
+            <h3>Administrative interface</h3>
+            <p>Clean interface to manage your project resources.</p>
+          </div>
+        </div>
+
+        <hr class="half-rule">
+
+        <div class="row">
+          <div class="col-sm-10 col-sm-offset-1">
+            <h2>Real time features like we.js chat box:</h2>
+            <br><br>
+
+            <iframe width="100%" height="400px" frameborder="0" src="/widget/room/1?height=300"></iframe>
+          </div>
+        </div>
+
+        <hr class="half-rule">
+
+        <p class="lead">We.js and related modules is open source. It's hosted, developed, and maintained on GitHub.</p>
+        <a href="https://github.com/wejs/we" class="btn btn-outline btn-lg">View the GitHub project</a>
+      </div>
+    </div>
+
+  </template>
+</dom-module>
+<script>
+(function() {
+  Polymer({
+    is: 'wejs-static-home-page',
+    properties: {}
+  });
+  })();
 </script></div><dom-module id="wejs-app">
   <template>
     <link rel="stylesheet" type="text/css" href="./styles/main.css">
+
     <paper-drawer-panel id="paperDrawerPanel">
       <paper-header-panel drawer="" mode="waterfall">
         <!-- Drawer Toolbar -->
@@ -13079,34 +13830,28 @@ A Fork Me On Github ribbon custom element using Polymer
           </a>
         </paper-toolbar>
 
-        <section>
-          <div class="bs-docs-social">
-            <br>
-            <div class="bs-docs-social-buttons">
-              <span>
-                <iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=wejs&amp;repo=we&amp;type=watch&amp;count=true" width="100" height="20" title="Star on GitHub"></iframe>
-              </span>
-              <span>
-                <iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=wejs&amp;repo=we&amp;type=fork&amp;count=true" width="102" height="20" title="Fork on GitHub"></iframe>
-              </span>
-              <span class="follow-btn">
-                <iframe id="twitter-widget-1" scrolling="no" frameborder="0" allowtransparency="true" src="http://platform.twitter.com/widgets/follow_button.a5bbbb7216610af1306d56b0f28a67d7.en.html#_=1424192283453&amp;dnt=false&amp;id=twitter-widget-1&amp;lang=en&amp;screen_name=we_js&amp;show_count=true&amp;show_screen_name=true&amp;size=m" class="twitter-follow-button twitter-follow-button" title="Twitter Follow Button" data-twttr-rendered="true" style="width: 240px; height: 20px;"></iframe>
-              </span>
-            
-          </div>
-        </div></section>
-
         <!-- Main Content -->
         <section>
-          <paper-material elevation="1">
+          <paper-material elevation="0">
             <div id="content"></div>
           </paper-material>
         </section>
+
       </paper-header-panel>
     </paper-drawer-panel>
 
+    <paper-toast id="caching-complete" duration="6000" text="Caching complete! This app will work offline.">
+    </paper-toast>
+
+    <template is="dom-if" if="{{docPreloadedPages}}">
+      <platinum-sw-register auto-register="" clients-claim="" skip-waiting="" on-service-worker-installed="displayInstalledToast">
+        <platinum-sw-cache default-cache-strategy="networkFirst" precache="{{docPreloadedPages}}"></platinum-sw-cache>
+      </platinum-sw-register>
+    </template>
+
   </template>
 </dom-module>
+
 
 <script>
 (function() {
