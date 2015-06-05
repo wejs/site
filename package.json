@@ -17,7 +17,7 @@
     "we-plugin-doc-git": "^0.3.4",
     "we-plugin-messenger": "0.3.2",
     "we-theme-admin-default": "0.3.1",
-    "we-theme-site-wejs": "0.3.10"
+    "we-theme-site-wejs": "0.3.11"
   },
   "devDependencies": {
     "vulcanize": "^1.8.1"
