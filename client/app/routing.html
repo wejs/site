@@ -1,6 +1,8 @@
 <script type="text/javascript" src="../bower_components/page/page.js"></script>
 <script>
   window.addEventListener('WebComponentsReady', function() {
+    var app = document.querySelector('#app');
+
     // We use Page.js for routing. This is a Micro
     // client-side router inspired by the Express router
     // More info: https://visionmedia.github.io/page.js/
@@ -51,6 +53,7 @@
     });
 
     page('*', function (ctx) {
+      if (!document.querySelector('#content')) return;
       if (ctx.fullLayout) {
         document.querySelector('#content').innerHTML = ctx.pageContent;
       } else {
