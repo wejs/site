@@ -10604,6 +10604,8 @@ Note: announcements are only audible if you have a screen reader enabled.
 <script type="text/javascript" src="../bower_components/page/page.js"></script>
 <script>
   window.addEventListener('WebComponentsReady', function() {
+    var app = document.querySelector('#app');
+
     // We use Page.js for routing. This is a Micro
     // client-side router inspired by the Express router
     // More info: https://visionmedia.github.io/page.js/
@@ -10654,6 +10656,7 @@ Note: announcements are only audible if you have a screen reader enabled.
     });
 
     page('*', function (ctx) {
+      if (!document.querySelector('#content')) return;
       if (ctx.fullLayout) {
         document.querySelector('#content').innerHTML = ctx.pageContent;
       } else {
@@ -13490,7 +13493,6 @@ Note: announcements are only audible if you have a screen reader enabled.
         <a href="https://github.com/wejs/we" class="btn btn-outline btn-lg">View the GitHub project</a>
       </div>
     </div>
-
   </template>
 </dom-module>
 <script>
@@ -13500,7 +13502,7 @@ Note: announcements are only audible if you have a screen reader enabled.
     properties: {}
   });
   })();
-</script></div><dom-module is="dom-bind" id="wejs-app">
+</script></div><dom-module id="wejs-app">
   <template>
     <paper-drawer-panel id="paperDrawerPanel">
       <paper-header-panel drawer="" mode="waterfall">
@@ -13563,7 +13565,6 @@ Note: announcements are only audible if you have a screen reader enabled.
 
   </template>
 </dom-module>
-
 
 <script>
 (function() {
