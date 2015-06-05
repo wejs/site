@@ -79,17 +79,17 @@
       </paper-header-panel>
     </paper-drawer-panel>
 
-    <paper-toast id="caching-complete"
-                 duration="6000"
-                 text="Caching complete! This app will work offline.">
+    <paper-toast id="caching-complete" duration="6000" text="Caching complete! This app will work offline.">
     </paper-toast>
 
-    <template is="dom-if" if="{{docPreloadedPages}}">
-      <platinum-sw-register auto-register clients-claim skip-waiting
-                        on-service-worker-installed="displayInstalledToast">
+    <!-- SW Test feature -->
+    <!-- <platinum-sw-register id="appServiceWorker" auto-register clients-claim skip-waiting
+      on-service-worker-error="error"
+      on-service-worker-installed="displayInstalledSW">
+      <template is="dom-if" if="{{docPreloadedPages}}">
         <platinum-sw-cache default-cache-strategy="networkFirst" precache="{{docPreloadedPages}}"></platinum-sw-cache>
-      </platinum-sw-register>
-    </template>
+      </template>
+    </platinum-sw-register> -->
 
   </template>
 </dom-module>
@@ -106,6 +106,14 @@
 
     ready: function() {
       this.config = WE_BOOTSTRAP_CONFIG;
+    },
+
+    // custom methods
+    error: function(e) {
+      console.error('errr>', e);
+    },
+    displayInstalledSW: function() {
+      document.querySelector('#caching-complete').show();
     }
   });
 })();

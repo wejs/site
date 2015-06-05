@@ -26,10 +26,6 @@
 
     $.ajaxSetup({ data: { responseType: 'json' } });
 
-    app.displayInstalledToast = function() {
-      document.querySelector('#caching-complete').show();
-    };
-
     var loadMenu = $.get('/api/v1/docs/we/menu').then(function(r) {
       app.docMenu = r.menu;
       app.docPreloadedPages = app.docMenu.links.map(function (d){
