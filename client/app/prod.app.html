@@ -10761,15 +10761,6 @@ Note: announcements are only audible if you have a screen reader enabled.
     }
   });
 </script>
-<!-- Defines element markup -->
-
-<!--
-A Fork Me On Github ribbon custom element using Polymer
-
-@element fork-me-on-github
-@demo https://tcyrus.github.io/fork-me-on-github/index.html
--->
-
 <script src="./scripts/app.js"></script>
 
 <!-- Configure your routes here -->
@@ -13528,83 +13519,6 @@ A Fork Me On Github ribbon custom element using Polymer
   PaperToast.currentToast = null;
 
 })();
-</script>
-<dom-module id="fork-me-on-github" assetpath="../bower_components/polymer-fork-me-on-github/">
-    <link rel="import" type="css" href="../bower_components/github-fork-ribbon-css/gh-fork-ribbon.css">
-    <!--[if lt IE 9]>
-        <link rel="import" type="css" href="../github-fork-ribbon-css/gh-fork-ribbon.ie.css">
-    <![endif]-->
-    <style>
-        .green {
-            background-color: #007200;
-        }
-
-        .orange {
-            background-color: #ff7600;
-        }
-
-        .black {
-            background-color: #121621;
-        }
-
-        .grey {
-            background-color: #6d6d6d;
-        }
-
-        .white {
-            background-color: #fff;
-        }
-
-        .white a,
-        .white a:hover {
-            color: #000;
-            border-color: #000;
-            border-color: rgba(0, 0, 0, 0.7);
-        }
-    </style>
-    <template>
-        <div class="{{computeClassAlign(align)}}">
-            <div class="{{computeClassColor(color)}}">
-                <a href="{{computeRepoLink(repo)}}">Fork me on GitHub</a>
-            </div>
-        </div>
-    </template>
-</dom-module>
-
-<script>
-    Polymer({
-        is: 'fork-me-on-github',
-
-        properties: {
-            repo: String,
-            align: String,
-            color: String
-        },
-        computeClassAlign: function(align) {
-            return 'github-fork-ribbon-wrapper '+(((align=='left-bottom')||(align=='right-bottom')||(align=='right'))?align:'left');
-        },
-        computeClassColor: function(color) {
-            return 'github-fork-ribbon'+((color=='green')||(color=='orange')||(color=='black')||(color=='grey')||(color=='white'))?(' '+color):'';
-        },
-        computeRepoLink: function(repo) {
-            return "https://github.com/"+repo?repo:'tcyrus/fork-me-on-github'+"/fork";
-        },
-
-        // Fires when an instance of the element is created
-        created: function() {},
-
-        // Fires when the local DOM has been fully prepared
-        ready: function() {},
-
-        // Fires when the element was inserted into the document
-        attached: function() {},
-
-        // Fires when the element was removed from the document
-        detached: function() {},
-
-        // Fires when an attribute was added, removed, or updated
-        attributeChanged: function(name, type) {}
-    });
 </script>
 <dom-module id="wejs-docs" assetpath="custom-elements/wejs-docs/">
   <style>
