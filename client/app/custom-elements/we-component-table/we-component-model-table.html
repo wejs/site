@@ -1,0 +1,80 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<script type="text/javascript" charset="utf8" src="./jquery.dataTables.js"></script>
+
+<dom-module id="we-component-model-table">
+  <link rel="stylesheet" type="text/css" href="./jquery.dataTables.css">
+  <template>
+    <table id="datatable" class="display" cellspacing="0" width="100%">
+      <thead>
+        <tr role="row">
+          <template is="dom-repeat" items="{{columns}}" as="column">
+            <th>{{column.label}}</th>
+          </template>
+        </tr>
+      </thead>
+      <tfoot>
+        <tr>
+          <template is="dom-repeat" items="{{columns}}" as="column">
+            <th>{{column.label}}</th>
+          </template>
+        </tr>
+      </tfoot>
+    </table>
+    <content></content>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'we-component-model-table',
+
+    properties: {
+      modelName: String,
+      modelAttributes: String,
+      columns: {
+        type: Array,
+        value: [{
+          name: 'id',
+          label: 'ID'
+        }]
+      },
+      values: Array,
+      ajaxUrl: String
+    },
+
+    ready: function() {
+      console.log('ready');
+      console.log('columns', this.columns);
+
+      this.columns = [];
+      var attrs = this.modelAttributes.split(',');
+
+      this.columns = attrs.map(function (a) {
+        return { name: a, label: a };
+      });
+    },
+    attached: function() {
+      if (!this.ajaxUrl) this.ajaxUrl = '/' + this.modelName;
+
+      this.dataTablecolumns = this.columns.map(function (d) {
+        return { 'data': d.name };
+      });
+
+      // init databable
+      $(this.$.datatable).dataTable( {
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+          "url": this.ajaxUrl,
+          "data": function ( d ) {
+              console.log('d>', d);
+              delete d.order;
+              // we.js data table response type
+              d.responseType = 'datatable';
+          }
+        },
+        "columns": this.dataTablecolumns
+      });
+    }
+  });
+</script>

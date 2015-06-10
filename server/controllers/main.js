@@ -12,10 +12,5 @@ module.exports = {
     res.locals.template = 'home/index';
 
     res.view({ title: we.config.appName });
-  },
-
-  'sw-import.js': function(req, res) {
-    res.set('Content-Type', 'application/javascript')
-    .send("importScripts('/public/project/client/bower_components/platinum-sw/service-worker.js');");
   }
 };

@@ -48,56 +48,6 @@ module.exports.clientside = {
             target: '_blank'
           }
         ]
-      },
-
-      admin: {
-        restrictAccess: true,
-        links: [
-          // // Submenu item example
-          // {
-          //   text: 'User and permissions',
-          //   isSubmenu: true,
-          //   links: [
-          //     {
-          //       text: 'User',
-          //       type: 'resource',
-          //       model: 'user'
-          //     }
-          //   ]
-          // },
-          //
-
-          {
-            i18nText: 'menu.link.page',
-            type: 'resource',
-            model: 'pages'
-          },
-
-          // {
-          //   i18nText: 'menu.link.url',
-          //   type: 'resource',
-          //   model: 'urls'
-          // },
-
-
-          {
-            i18nText: 'menu.link.vocabulary',
-            type: 'resource',
-            model: 'vocabularies'
-          },
-
-          {
-            i18nText: 'menu.link.user',
-            type: 'resource',
-            model: 'user'
-          },
-
-          {
-            i18nText: 'menu.link.permissions',
-            type: 'resource',
-            model: 'permissions'
-          }
-        ]
       }
     }
   } // end publicVars
