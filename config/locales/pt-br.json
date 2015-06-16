@@ -280,5 +280,6 @@
 	"messenger.is.writing": "digitando ...",
 	"messenger.loading": "carregando ...",
 	"field.password.invalid": "field.password.invalid",
-	"field.confirm-password.password.required": "field.confirm-password.password.required"
+	"field.confirm-password.password.required": "field.confirm-password.password.required",
+	"widgets body params is required": "widgets body params is required"
 }

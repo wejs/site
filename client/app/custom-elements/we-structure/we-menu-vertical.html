@@ -28,7 +28,7 @@
       var App = window.App;
       if (!this.menu) return console.error('menu attribute is required for we-menu');
 
-      window.$.get('http://wejs.dev/public/project/client/admin/styles/menu.json')
+      window.$.get('/public/project/client/admin/styles/menu.json')
       .then(function(menu){
 
         self.links = menu.links;
