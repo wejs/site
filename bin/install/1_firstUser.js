@@ -1,5 +1,5 @@
 module.exports = function(we, done, sget, program) {
-  we.db.models.user.find(1)
+  we.db.models.user.findById(1)
   .then(function(u) {
     if (u) {
       we.log.info('User 1 already exists: ', u.get());
@@ -40,9 +40,7 @@ module.exports = function(we, done, sget, program) {
     we.log.info('I will create the user: ', userStub);
 
     we.db.models.user.create(userStub)
-    .done(function (err, u) {
-      if (err) return done(err);
-
+    .then(function (u) {
       we.log.info('New User with id: ', u.id);
 
       u.updatePassword(userStub.password , function(error) {

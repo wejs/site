@@ -1,8 +1,8 @@
 {
-  "name": "wejs_site",
-  "version": "0.3.7",
+  "name": "we-plugin-conference",
+  "version": "0.3.0",
   "private": true,
-  "homepage": "https://github.com/wejs/we-project-v3",
+  "homepage": "https://github.com/wejs/we-plugin-conference",
   "authors": [
     "albertosouza <alberto.souza.99@gmail.com>"
   ],

@@ -1,7 +1,7 @@
 module.exports = function(we, done) {
   we.db.models.user.find({ limit: 1}).then(function(user) {
-    we.db.models.vocabulary.find(1)
-    .then(function(v){
+    we.db.models.vocabulary.findById(1)
+    .then(function(v) {
       if (v) {
         we.log.info('Vocabulary 1 already exists:', v.id);
         return done();

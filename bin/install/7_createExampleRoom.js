@@ -6,8 +6,7 @@ module.exports = function(we, done) {
       name: 'First example room',
       description: 'First we.js example room'
     })
-    .done(function (err, r) {
-      if (err) return done(err);
+    .then(function (r) {
       var roommessages = [
         'Amazing!',
         'Others users in same room will receive my posts!',

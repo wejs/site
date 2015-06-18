@@ -188,6 +188,7 @@
 	"page.create": "Criar artigo",
 	"pages.link.older": "Artigos antigos",
 	"page.created.by": "Criado por",
+	"auth.login.title": "Entrar",
 	"auth.register.email.label": "Seu email",
 	"auth.register.confirmEmail.label": "Repetir o email",
 	"auth.register.description": "Informações nescessárias para criação da conta:",
@@ -281,5 +282,12 @@
 	"messenger.loading": "carregando ...",
 	"field.password.invalid": "field.password.invalid",
 	"field.confirm-password.password.required": "field.confirm-password.password.required",
-	"widgets body params is required": "widgets body params is required"
+	"widgets body params is required": "widgets body params is required",
+	"form-login-email": "Email",
+	"field.placeholder": "field.placeholder",
+	"form-placeholder-login-email": "form-placeholder-login-email",
+	"form-login-password": "form-login-password",
+	"form-placeholder-login-password": "form-placeholder-login-password",
+	"form-login-submit": "form-login-submit",
+	"Missing credentials": "Missing credentials"
 }
