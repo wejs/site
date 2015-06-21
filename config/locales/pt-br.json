@@ -289,5 +289,17 @@
 	"form-login-password": "form-login-password",
 	"form-placeholder-login-password": "form-placeholder-login-password",
 	"form-login-submit": "form-login-submit",
-	"Missing credentials": "Missing credentials"
+	"Missing credentials": "Missing credentials",
+	"Get started": "Get started",
+	"not.found": "A página não foi encontrada.",
+	"return.to": "voltar para",
+	"home": "página incial",
+	"go.to": "ir para",
+	"theme.link": "theme.link",
+	"users.link": "users.link",
+	"permission.link": "permission.link",
+	"permission.title": "permission.title",
+	"title": "title",
+	"widget.title": "widget.title",
+	"Projects": "Projects"
 }
