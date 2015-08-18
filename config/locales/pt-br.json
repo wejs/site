@@ -301,5 +301,8 @@
 	"permission.title": "permission.title",
 	"title": "title",
 	"widget.title": "widget.title",
-	"Projects": "Projects"
+	"Projects": "Projects",
+	"widget.delete.confirm.msg": "widget.delete.confirm.msg",
+	"Plugins": "Plugins",
+	"Themes": "Themes"
 }
