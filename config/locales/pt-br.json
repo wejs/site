@@ -304,5 +304,8 @@
 	"Projects": "Projects",
 	"widget.delete.confirm.msg": "widget.delete.confirm.msg",
 	"Plugins": "Plugins",
-	"Themes": "Themes"
+	"Themes": "Themes",
+	"nome": "nome",
+	"name": "name",
+	"link": "link"
 }
