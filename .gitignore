@@ -48,4 +48,4 @@ files/public/static
 files/wejsdoc
 
 .tmp
-config/local.js
+config/locals.js
