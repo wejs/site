@@ -69,6 +69,16 @@ module.exports = {
               text: 'Get started',
               title: 'Get started',
               menuId: r.id
+            }, {
+              href: '/plugin',
+              text: 'Plugins',
+              title: 'Plugins',
+              menuId: r.id
+            }, {
+              href: '/theme',
+              text: 'Themes',
+              title: 'Themes',
+              menuId: r.id
             }
           ]).then(function(){
             done();
