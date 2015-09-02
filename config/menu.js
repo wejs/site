@@ -15,6 +15,16 @@ module.exports.menu = {
         params: [ 'we', 'getstarted']
       },
       {
+        text: 'Plugins',
+        type: 'route',
+        name: 'main.plugin'
+      },
+      {
+        text: 'Themes',
+        type: 'route',
+        name: 'main.theme'
+      },
+      {
         text: 'Github',
         external: true,
         href: 'https://github.com/wejs/we',

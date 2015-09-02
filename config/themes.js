@@ -1,4 +1,5 @@
 module.exports.themes = {
-  app: 'we-theme-site-wejs',
-  admin: 'we-theme-admin-default'
+    enabled: ['we-theme-site-wejs'],
+    app: 'we-theme-site-wejs',
+    admin: 'we-theme-admin-default'
 };

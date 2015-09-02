@@ -5,7 +5,6 @@
 **Build With:**
 
 - We.js
-- Polymer
 - Mysql
 
 #How to install
