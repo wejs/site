@@ -1,4 +1,3 @@
-var async = require('async');
 module.exports = function(we, done) {
   we.db.models.user.find({ limit: 1}).then(function(user) {
     we.db.models.room.create({
@@ -13,12 +12,12 @@ module.exports = function(we, done) {
         'This is a iframe and may be added in any page.',
         'Login and try it!'
       ];
-      async.each(roommessages, function(m, next) {
+      we.utils.async.each(roommessages, function (m, next) {
         we.db.models.roommessage.create({
           roomId: r.id,
           content: m,
           creatorId: user.id
-        }).then(function (ms) {
+        }).then(function () {
           next();
         }).catch(next);
       },done);
