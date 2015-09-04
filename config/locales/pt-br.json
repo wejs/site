@@ -412,5 +412,7 @@
 	"widget.in-portal": "widget.in-portal",
 	"widget.in-session": "widget.in-session",
 	"widget.in-page": "widget.in-page",
-	"Widget": "Widget"
+	"Widget": "Widget",
+	"menus": "menus",
+	"done": "done"
 }
