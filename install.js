@@ -70,12 +70,12 @@ module.exports = {
               title: 'Get started',
               menuId: r.id
             }, {
-              href: '/plugin',
+              href: '/github/plugin',
               text: 'Plugins',
               title: 'Plugins',
               menuId: r.id
             }, {
-              href: '/theme',
+              href: '/github/theme',
               text: 'Themes',
               title: 'Themes',
               menuId: r.id
