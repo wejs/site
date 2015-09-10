@@ -65,7 +65,9 @@ module.exports = {
             name: 'main',
             class: 'nav navbar-nav'
           }
-        }).then(function (r){
+        }).then(function (rs){
+          var r = rs[0];
+
           we.log.info('New menu with name: '+r.name+' and id: '+r.id);
           // then create menu links
           we.db.models.link.bulkCreate([
