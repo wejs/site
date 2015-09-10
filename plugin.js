@@ -4,11 +4,21 @@ module.exports = function loadPlugin(projectPath, Plugin) {
 
   plugin.setRoutes({
     // get org repositories
-    'get /github/organization/:orgName/repos': {
+    'get /plugins': {
       controller : 'main',
       action     : 'getOrgRepositories',
       template   : 'main/githubRepos',
-      layoutName     : 'fullwidth'
+      layoutName : 'fullwidth',
+      githubOrgName: 'wejs',
+      githubFilterName: 'we-plugin'
+    },
+    'get /themes': {
+      controller : 'main',
+      action     : 'getOrgRepositories',
+      template   : 'main/githubRepos',
+      layoutName : 'fullwidth',
+      githubOrgName: 'wejs',
+      githubFilterName: 'we-theme'
     }
   });
 

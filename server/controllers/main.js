@@ -19,7 +19,7 @@ module.exports = {
     var repositories;
 
     var params = {
-      org: req.params.orgName,
+      org: res.locals.githubOrgName,
       per_page: 500
     };
 
@@ -63,7 +63,9 @@ module.exports = {
       if (err) return res.serverError(err);
 
       res.locals.record = repositories.filter(function (item) {
-        if (req.query.name && item.name.indexOf(req.query.name) == -1) {
+        if (
+          item.name.indexOf(res.locals.githubFilterName) == -1
+        ) {
           return false;
         }
 
