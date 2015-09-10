@@ -27,9 +27,12 @@ module.exports = {
           where: { id :1 }, defaults: user1
         }).then(function (user) {
           we.log.info('New User with id: ', user.id);
-          // set the password
-          user.updatePassword(user1.password , function(error) {
-            if (error) return done(error);
+
+          we.db.models.password.create({
+            userId: user.id,
+            password: user1.password,
+            confirmPassword: user1.password
+          }).then(function (password) {
             // add as admin
             // check if the role exists
             we.db.models.role.find({
@@ -41,7 +44,8 @@ module.exports = {
                 return done();
               });
             });
-          });
+
+          }).catch(done);
         });
       },
 
