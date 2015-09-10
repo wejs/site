@@ -14,25 +14,63 @@ module.exports = {
     res.view({ title: we.config.appName });
   },
 
-  plugin: function(req, res) {
-    var we = req.getWe();
+  getOrgRepositories: function(req, res) {
+    var we = req.we;
+    var repositories;
 
-    res.locals.template = 'home/plugin';
+    var params = {
+      org: req.params.orgName,
+      per_page: 500
+    };
 
-    // use fullwidth layout in home page
-    res.locals.layoutName = 'fullwidth';
+    we.utils.async.series([
+      function getFromCache(done) {
+        // first try to get from cache
+        we.github.getFromCache({
+          params: params
+        }, function (err, cache) {
+          if (err) return done(err);
+          // not have the cache
+          if (!cache) return done();
+          // check expires date
+          if (cache.expires > (new Date().getTime())) {
+            repositories = cache.response;
+          } else {
+            cache.destroy();
+          }
 
-    res.view({ title: we.config.appName });
-  },
+          done();
+        });
+      },
+      function getRepos(done) {
+        // skip if already loaded from cache
+        if (repositories) return done();
 
-  theme: function(req, res) {
-    var we = req.getWe();
+        we.github.repos.getFromOrg(params, function (err, res) {
+          if (err) return done(err);
 
-    res.locals.template = 'home/theme';
+          we.github.saveCache({
+            params: params,
+            res: res
+          }, function (err) {
+            if (err) return done(err);
+            repositories = res;
+            done();
+          });
+        });
+      }
+    ], function doneAll(err) {
+      if (err) return res.serverError(err);
 
-    // use fullwidth layout in home page
-    res.locals.layoutName = 'fullwidth';
+      res.locals.record = repositories.filter(function (item) {
+        if (req.query.name && item.name.indexOf(req.query.name) == -1) {
+          return false;
+        }
 
-    res.view({ title: we.config.appName });
+        return true;
+      });
+
+      res.ok();
+    });
   }
 };
