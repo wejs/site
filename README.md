@@ -1,21 +1,23 @@
 #We.js site
+> We.js site: http://wejs.org
 
-> This project load and show wejs/we documentation from github link: http://wejs.org
+This project load and show we.js documentation from github: https://github.com/wejs
 
 **Build With:**
 
 - We.js
 - Mysql
+- Gulp
 
 #How to install
 
-Clone the project
+> Clone the project
 ```sh
 git clone https://github.com/wejs/site.git
 cd site
 ```
 
-Install **npm** and **bower** dependencies
+> Install npm (including gulp) dependencies
 ```sh
 npm run deps
 
