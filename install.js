@@ -25,7 +25,8 @@ module.exports = {
 
         we.db.models.user.findOrCreate({
           where: { id :1 }, defaults: user1
-        }).then(function (user) {
+        }).then(function (r) {
+          var user = r[0];
           we.log.info('New User with id: ', user.id);
 
           we.db.models.password.create({
