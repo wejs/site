@@ -22,8 +22,9 @@ module.exports = {
 
         we.log.info('I will create the user: ', user1);
 
-        we.db.models.user.create(user1)
-        .then(function (user) {
+        we.db.models.user.findOrCreate({
+          where: { id :1 }, defaults: user1
+        }).then(function (user) {
           we.log.info('New User with id: ', user.id);
           // set the password
           user.updatePassword(user1.password , function(error) {
@@ -52,9 +53,12 @@ module.exports = {
         fn(we, done);
       },
       function createDefaultMenus(done) {
-        we.db.models.menu.create({
-          name: 'main',
-          class: 'nav navbar-nav'
+        we.db.models.menu.findOrCreate({
+          where: { 'name': 'main'},
+          defaults: {
+            name: 'main',
+            class: 'nav navbar-nav'
+          }
         }).then(function (r){
           we.log.info('New menu with name: '+r.name+' and id: '+r.id);
           // then create menu links
