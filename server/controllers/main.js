@@ -7,11 +7,10 @@ module.exports = {
    * Index page route /
    */
   index: function(req, res) {
-    var we = req.getWe();
-
     res.locals.template = 'home/index';
+    res.title = 'We.js site';
 
-    res.view({ title: we.config.appName });
+    res.ok();
   },
 
   getOrgRepositories: function(req, res) {
