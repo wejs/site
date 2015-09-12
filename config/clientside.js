@@ -1,7 +1,7 @@
 
 module.exports.clientside = {
   publicVars: {
-    dynamicLayout: true,
+    dynamicLayout: false,
 
     appLogo: '/core/images/logo.png',
     appName: 'We.js site',
