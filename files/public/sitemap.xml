@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<url><loc>http://wejs.org/</loc><changefreq>weekly</changefreq><priority>1.00</priority></url>
+<url><loc>http://wejs.org/docs/we/getstarted</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/plugins</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/themes</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/docs/we/features.internationalization</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/docs/we/features.hooks-events</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/docs/we/features.acl</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/docs/we/features.controllers</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/docs/we/features.routes</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/docs/we/features.customresponse</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/docs/we/features.configuration</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/docs/we/features.admin</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/docs/we/features.logging</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/widget/room/1?height=300</loc><changefreq>weekly</changefreq><priority>0.85</priority></url>
+<url><loc>http://wejs.org/docs/we/getstarted.installation</loc><changefreq>weekly</changefreq><priority>0.69</priority></url>
+</urlset>
