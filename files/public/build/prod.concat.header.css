@@ -48,9 +48,16 @@ a.tabledrag-handle .handle {
   width: 25px !important;
 }
 
+/* side menu */
+
 .li-submenu ul {
   border-left: 10px solid #ddd;
   padding-left: 3px;
+  display: none;
+}
+
+.li-submenu.active ul {
+  display: block;
 }
 /*! jQuery UI - v1.11.4 - 2015-06-16
 * http://jqueryui.com
