@@ -1,6 +1,6 @@
 {
   "name": "wejs-site",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "private": true,
   "main": "./app.js",
   "scripts": {
@@ -28,7 +28,7 @@
     "we-plugin-socketio": "^0.3.1",
     "we-plugin-vocabulary": "0.3.8",
     "we-theme-admin-default": "0.3.9",
-    "we-theme-site-wejs": "0.3.25"
+    "we-theme-site-wejs": "0.3.26"
   },
   "devDependencies": {
     "gulp": "^3.9.0",
