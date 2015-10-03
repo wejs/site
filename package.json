@@ -24,11 +24,11 @@
     "we-plugin-github": "0.3.2",
     "we-plugin-google-analytics": "^0.3.2",
     "we-plugin-menu": "0.3.4",
-    "we-plugin-messenger": "0.3.6",
+    "we-plugin-messenger": "0.3.7",
     "we-plugin-socketio": "^0.3.1",
     "we-plugin-vocabulary": "0.3.8",
     "we-theme-admin-default": "0.3.9",
-    "we-theme-site-wejs": "0.3.24"
+    "we-theme-site-wejs": "0.3.25"
   },
   "devDependencies": {
     "gulp": "^3.9.0",
