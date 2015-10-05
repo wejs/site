@@ -61,7 +61,7 @@ module.exports = {
     ], function doneAll(err) {
       if (err) return res.serverError(err);
 
-      res.locals.record = repositories.filter(function (item) {
+      res.locals.data = repositories.filter(function (item) {
         if (
           item.name.indexOf(res.locals.githubFilterName) == -1
         ) {
