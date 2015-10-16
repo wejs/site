@@ -3,7 +3,6 @@
   "Edit": "Edit",
   "Login": "Login",
   "Logout": "Logout",
-  "Next": "Next",
   "Profile": "Profile",
   "Register": "Register",
   "Validation isEmail failed": "The email format is invalid",
@@ -23,9 +22,6 @@
   "auth.register.require.email.activation": "We send an account validation email to the email account you entered with how to validate your account",
   "auth.reset-password.success.can": "Your password is updated",
   "file.image.select.btn": "select image",
-  "file.selector": "file.selector",
-  "file.upload.selector.btn": "file.upload.selector.btn",
-  "file.uploader.title": "file.uploader.title",
   "form-change-password-newPassword": "New password",
   "form-change-password-password": "Current password",
   "form-change-password-rNewPassword": "Repeat your new password",
@@ -137,7 +133,7 @@
   "form-placeholder-vocabulary-name": " ",
   "form-register-acceptTerms": "You accept your terms of use?",
   "form-register-confirmEmail": "Repeat the email",
-  "form-register-confirmPassword": "Repeat the email",
+  "form-register-confirmPassword": "Repeat the password",
   "form-register-email": "Email",
   "form-register-fullName": "Full name",
   "form-register-gender": "Gender",
@@ -212,6 +208,5 @@
   "widget.passport-strategies.label": "Authentication options block",
   "widget.sort": "Sort widgets",
   "widget.title": "Widget title",
-  "widget.update": "widget.update",
   "widget.visibility": "Show the widget: "
 }
