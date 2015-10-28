@@ -50598,7 +50598,7 @@ we.components.imageSelector = {
       },
       done: function (e, data) {
         if (self.imageSelectedHandler) {
-          self.imageSelectedHandler(null, data.result.image[0]);
+          self.imageSelectedHandler(null, data.result.image);
           self.modal.modal('hide');
         } else {
           console.log('TODO show done in image selector modal');
@@ -50704,7 +50704,7 @@ we.components.fileSelector = {
       },
       done: function (e, data) {
         if (self.fileSelectedHandler) {
-          self.fileSelectedHandler(null, data.result.file[0]);
+          self.fileSelectedHandler(null, data.result.file);
           self.modal.modal('hide');
         } else {
           console.log('TODO show done in file selector modal');
