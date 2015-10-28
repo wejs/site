@@ -1,0 +1,224 @@
+<span id="fb-root"></span>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/pt_BR/sdk.js#xfbml=1&version=v2.4";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+<div class="bs-docs-masthead" role="main">
+  <div>
+    <h1>We.js</h1>
+    <br><br>
+    <p class="lead">Server side javascript framework for build real time applications, sites or blogs!</p>
+    <p class="lead">
+      {{#link-to 'wejsdoc.findOnePage' 'we' 'getstarted' class="ember-view btn btn-outline-inverse btn-lg"}}
+        Install We.js
+      {{/link-to}}
+    </p>
+  </div>
+
+  <div class="bs-docs-social">
+    <br>
+
+    <div class="bs-docs-social-buttons">
+      <span>
+        <iframe class="github-btn" src="http://ghbtns.com/github-btn.html?user=wejs&amp;repo=we&amp;type=watch&amp;count=true" width="100" height="20" title="Star on GitHub"></iframe>
+      </span>
+      <span>
+        <script src="https://apis.google.com/js/platform.js" async defer></script>
+        <g:plusone size="medium"></g:plusone>
+      </span>
+      <span class="fb-like" data-width="45px" data-layout="button_count" ></span>
+      <span class="follow-btn">
+        <iframe id="twitter-widget-1" scrolling="no" frameborder="0" allowtransparency="true" src="http://platform.twitter.com/widgets/follow_button.a5bbbb7216610af1306d56b0f28a67d7.en.html#_=1424192283453&amp;dnt=false&amp;id=twitter-widget-1&amp;lang=en&amp;screen_name=we_js&amp;show_count=true&amp;show_screen_name=true&amp;size=m" class="twitter-follow-button twitter-follow-button" title="Twitter Follow Button" data-twttr-rendered="true" style="width: 240px; height: 20px;"></iframe>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="bs-docs-featurette">
+  <div class="container">
+    <h2 class="bs-docs-featurette-title">Generate your app or full featured project.</h2>
+    <p class="lead">We.js core has many built-in features and you can install or create plugins and themes to extend your project.</p>
+
+    <hr class="half-rule">
+
+    <div class="row">
+      <div class="col-sm-4">
+        <a href="https://github.com/wejs?query=plugin" target="_blank">
+          <img alt="Generators" src="/public/theme/we-theme-site-wejs/images/plugins.png">
+        </a>
+        <h3>Plugins</h3>
+        <p>Extend your project with community or custom plugins.</p>
+      </div>
+      <div class="col-sm-4">
+        <a href="https://github.com/wejs?query=theme" target="_blank">
+          <img src="/public/theme/we-theme-site-wejs/images/themes.png">
+        </a>
+        <h3>Themes</h3>
+        <p>Be free to create beautiful themes for your own projects. Themes have the power to extend default plugin templates</p>
+      </div>
+
+      <div class="col-sm-4">
+        <a href="https://github.com/wejs/generator-wejs" target="_blank">
+          <img alt="Generators" src="/public/theme/we-theme-site-wejs/images/generators.png">
+        </a>
+        <h3>Generators</h3>
+        <p>Generate one functional project structure in seconds with <a alt="We.js plugins" href="https://github.com/wejs/generator-wejs">we.js generator</a>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bs-docs-featurette">
+  <div class="container">
+    <h2 id="features">Features</h2>
+    <br>
+    <div class="row">
+      <div class="col-sm-3">
+        <ul class="nav nav-pills nav-stacked">
+          <li role="presentation">
+            Plug and play, modules
+          </li>
+          <li role="presentation">
+            Theme modules
+          </li>
+          <li role="presentation">
+            Code with Javascript!
+          </li>
+        </ul>
+      </div>
+      <div class="col-sm-3">
+        <ul class="nav nav-pills nav-stacked">
+          <li role="presentation">
+            Object-relational mapping (ORM)
+          </li>
+          <li role="presentation">
+            Access Control List (ACL)
+          </li>
+          <li role="presentation">
+            Simpler structure
+          </li>
+        </ul>
+      </div>
+      <div class="col-sm-3">
+        <ul class="nav nav-pills nav-stacked">
+          <li role="presentation">
+            Extensive response formats
+          </li>
+          <li role="presentation">
+            Administrative interface
+          </li>
+          <li role="presentation">
+            Layout, regions and Widgets
+          </li>
+          <li role="presentation">
+            Url alias
+          </li>
+        </ul>
+      </div>
+      <div class="col-sm-3">
+        <ul class="nav nav-pills nav-stacked">
+          <li role="presentation">
+            Compatible with NPM modules
+          </li>
+          <li role="presentation">
+            Compatible with Express.js middleware
+          </li>
+          <li role="presentation">
+            Project distributions
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bs-docs-featurette">
+  <div class="container">
+    <h2 id="features">Example plugins</h2>
+    <hr class="half-rule">
+    <div class="row">
+      <div class="col-sm-3">
+        <a href="https://github.com/wejs/we-plugin-disqus">
+        <span class="glyphicon glyphicon glyphicon-comment bs-docs-booticon-lg bs-docs-booticon-outline"></span>
+        <h3>Disqus</h3></a>
+        <p>A simple way to add Disqus comments to your site.</p>
+      </div>
+      <div class="col-sm-3">
+        <a href="https://github.com/wejs/we-plugin-file">
+        <span class="glyphicon glyphicon-picture bs-docs-booticon-lg bs-docs-booticon-outline"></span>
+        <h3>Image</h3></a>
+        <p>Upload, resize and load images in multiple styles.</p>
+      </div>
+      <div class="col-sm-3">
+        <a href="https://github.com/wejs/we-plugin-article">
+        <span class="glyphicon glyphicon-list-alt bs-docs-booticon-lg bs-docs-booticon-outline"></span>
+        <h3>Article</h3></a>
+        <p>Write html texts with suport to tags, categories and images.</p>
+      </div>
+      <div class="col-sm-3">
+        <a href="https://github.com/wejs/we-plugin-vocabulary"><span class="glyphicon glyphicon-tag bs-docs-booticon-lg bs-docs-booticon-outline"></span>
+        <h3>Terms and Tags</h3></a>
+        <p>Configurable term field for any model with suport to vocabulary.</p>
+      </div>
+    </div>
+    <hr class="half-rule">
+
+    <div class="row">
+      <div class="col-sm-10 col-sm-offset-1">
+        <h2>Real time features like we.js chat box:</h2>
+        <br><br>
+        {{we-messenger-room roomId=1 heigth=300 iframeHeigth=400 width='100%'}}
+      </div>
+    </div>
+
+    <hr class="half-rule">
+
+    <p class="lead">We.js and related modules is open source. It's hosted, developed, and maintained on GitHub.</p>
+    <a href="https://github.com/wejs/we" class="btn btn-outline btn-lg">View the GitHub project</a>
+
+  </div>
+</div>
+
+
+<div class="bs-docs-featurette">
+  <div class="container">
+
+<h2 class="bs-docs-featurette-title">Suport and community</h2>
+<p class="lead">Come here if you have a issue, want help or talk about we.js!</p>
+
+<hr class="half-rule">
+
+<div class="row">
+  <div class="col-sm-4">
+    <a href="https://github.com/wejs/we" target="_blank">
+      <img height="128px" alt="github" src="/public/project/images/github-128-128.png">
+    </a>
+    <h3>
+      <a href="https://github.com/wejs/we" target="_blank">Github</a>
+    </h3>
+    <p>Open source code and issues.</p>
+  </div>
+  <div class="col-sm-4">
+    <a href="https://gitter.im/wejs/we?utm_source=share-link&utm_medium=link&utm_campaign=share-link" target="_blank">
+      <img alt="gitter" src="/public/project/images/gitter-128-128.png">
+    </a>
+    <h3>
+      <a href="https://gitter.im/wejs/we?utm_source=share-link&utm_medium=link&utm_campaign=share-link" target="_blank">Gitter</a>
+    </h3>
+    <p>Real time chat</p>
+  </div>
+  <div class="col-sm-4">
+    <a href="https://groups.google.com/forum/#!forum/we-js" target="_blank">
+      <img alt="Google groups" src="/public/project/images/google_groups-128-128.png">
+    </a>
+    <h3><a href="https://groups.google.com/forum/#!forum/we-js" target="_blank">Google Groups</a></h3>
+    <p>Our email group and newsletter</p>
+  </div>
+</div>
+
+  </div>
+</div>
