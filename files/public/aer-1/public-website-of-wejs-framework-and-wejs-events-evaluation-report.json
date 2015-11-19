@@ -1,0 +1,2605 @@
+{
+  "@graph": [
+    {
+      "@context": {
+        "@vocab": "http://www.w3.org/TR/WCAG-EM/#",
+        "wcag20": "http://www.w3.org/TR/WCAG20/#",
+        "earl": "http://www.w3.org/ns/earl#",
+        "dct": "http://purl.org/dc/terms/",
+        "reporter": "https://github.com/w3c/wcag-em-report-tool/blob/master/dataformat.md#",
+        "conformanceTarget": {
+          "id": "step1b",
+          "type": "id"
+        },
+        "evaluationScope": {
+          "id": "step1"
+        },
+        "accessibilitySupportBaseline": {
+          "id": "step1c"
+        },
+        "additionalEvalRequirement": {
+          "id": "step1d"
+        },
+        "siteScope": {
+          "id": "step1a"
+        },
+        "commonPages": {
+          "id": "step2a"
+        },
+        "essentialFunctionality": {
+          "id": "step2b"
+        },
+        "pageTypeVariety": {
+          "id": "step2c"
+        },
+        "otherRelevantPages": {
+          "id": "step2e"
+        },
+        "structuredSample": {
+          "id": "step3a"
+        },
+        "randomSample": {
+          "id": "step3b"
+        },
+        "specifics": {
+          "id": "step5b"
+        },
+        "auditResult": {
+          "id": "step4"
+        },
+        "outcome": {
+          "type": "id"
+        },
+        "subject": {
+          "type": "id"
+        },
+        "assertedBy": {
+          "type": "id"
+        },
+        "testRequirement": {
+          "type": "id"
+        },
+        "creator": {
+          "type": "id"
+        },
+        "handle": "reporter:handle",
+        "description": "reporter:description",
+        "tested": "reporter:tested",
+        "id": "@id",
+        "type": "@type",
+        "title": "dct:title",
+        "hasPart": "dct:hasPart",
+        "specs": "@id",
+        "reliedUponTechnology": "wcag20:reliedupondef"
+      },
+      "type": "evaluation",
+      "evaluationScope": {
+        "conformanceTarget": "wcag20:level_aa",
+        "additionalEvalRequirement": "The report will include a list of all errors identified by the evaluator, as well a description of the problem and proposals of improvement for both websites.",
+        "website": {
+          "id": "_:website",
+          "title": "Public Website of We.js Framework and We.js Events",
+          "siteScope": "All web content of the public website of We.js Framework and We.js Events located at http://wejs.org/ and http://events.wejs.org/, respectivelly. This evaluation also include restricted area of both websites, accessed via user login."
+        },
+        "accessibilitySupportBaseline": "Both websites were tested using Google Chrome v. 46.0.2490.80 m with NVDA and Firefox 42.0 with NVDA."
+      },
+      "auditResult": [
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:text-equiv-all",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:failed",
+            "description": "There are images without alternative text and images with alternative text that does not represent properly the contented presented in the image. Also, some ALT texts are duplicated in different images. In all pages, there are form fields without labels and title attributes."
+          },
+          "mode": "manual",
+          "hasPart": [
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_0"
+              ],
+              "result": {
+                "outcome": "earl:passed",
+                "description": "The webpage is mostly text based."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:text-equiv-all"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_1"
+              ],
+              "result": {
+                "outcome": "earl:passed",
+                "description": "The webpage is mostly text based."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:text-equiv-all"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_2"
+              ],
+              "result": {
+                "outcome": "earl:passed",
+                "description": "The webpage is mostly text based."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:text-equiv-all"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_3"
+              ],
+              "result": {
+                "outcome": "earl:passed",
+                "description": "The webpage is mostly text based."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:text-equiv-all"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_4"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "It was found the following errors:\n- Form controls without an associated label through the \"for\" attribute\n- Form controls without the \"title\" attribute"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:text-equiv-all"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_5"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "It was found the following errors:\n- Form controls without an associated label through the \"for\" attribute\n- Form controls without the \"title\" attribute"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:text-equiv-all"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_6"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "There are images without alternative text and images with alternative text that does not represent properly the contented presented in the image."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:text-equiv-all"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_7"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "There are images without alternative text and images with alternative text that does not represent properly the contented presented in the image. The alternative text should describe the content of the image."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:text-equiv-all"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_8"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "The autentication icons have no text alternative."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:text-equiv-all"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_9"
+              ],
+              "result": {
+                "outcome": "earl:passed",
+                "description": "The webpage is mostly text and form based."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:text-equiv-all"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_0"
+              ],
+              "result": {
+                "outcome": "earl:passed",
+                "description": "There are images without alternative text and images with alternative text that does not represent properly the contented presented in the image. The alternative text should describe the content of the image."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:text-equiv-all"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_1"
+              ],
+              "result": {
+                "outcome": "earl:passed",
+                "description": "The webpage is mostly text based."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:text-equiv-all"
+            }
+          ]
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:media-equiv-av-only-alt",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:failed",
+            "description": "At We.js Events home page, the tutorial video doesn't have equivalent sound description for people with visual disabilities and textual description for people with cognitive disabilities or people who can not understand the content through the video."
+          },
+          "mode": "manual",
+          "hasPart": [
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_0"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-av-only-alt"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_1"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-av-only-alt"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_2"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-av-only-alt"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_3"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-av-only-alt"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_4"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-av-only-alt"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_5"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-av-only-alt"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_6"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-av-only-alt"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_7"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "The tutorial video doesn't have equivalent sound description for people with visual disabilities and textual description for people with cognitive disabilities or people who can not understand the content through the video."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-av-only-alt"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_8"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-av-only-alt"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_9"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-av-only-alt"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_0"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-av-only-alt"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_1"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-av-only-alt"
+            }
+          ]
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:media-equiv-captions",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:failed",
+            "description": "We.js Events home page doesn't present captions for the video."
+          },
+          "mode": "manual",
+          "hasPart": [
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_0"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-captions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_1"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-captions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_2"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-captions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_3"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-captions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_4"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-captions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_5"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-captions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_6"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-captions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_7"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "We.js Events home page doesn't present captions for the video."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-captions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_8"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-captions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_9"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-captions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_0"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-captions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_1"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-captions"
+            }
+          ]
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:media-equiv-audio-desc",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:failed",
+            "description": "We.js Events home page doesn't present audio descriptions or media alternative for the video."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:media-equiv-real-time-captions",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:inapplicable",
+            "description": "There's not live media in both websites."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:media-equiv-audio-desc-only",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:failed",
+            "description": "We.js Events home page doesn't present audio descriptions or media alternative for the video."
+          },
+          "mode": "manual",
+          "hasPart": [
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_0"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-audio-desc-only"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_1"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-audio-desc-only"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_2"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-audio-desc-only"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_3"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-audio-desc-only"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_4"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-audio-desc-only"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_5"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-audio-desc-only"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_6"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-audio-desc-only"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_7"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "We.js Events home page doesn't present audio descriptions or media alternative for the video."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-audio-desc-only"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_8"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-audio-desc-only"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_9"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-audio-desc-only"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_0"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-audio-desc-only"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_1"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:media-equiv-audio-desc-only"
+            }
+          ]
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:content-structure-separation-programmatic",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:failed",
+            "description": "Landmark roles are not applied to the sections of both websites. Some elements present ARIA roles, however, they are not applied properly according ARIA specification (see Tab List with Presentation elements). In general, semantic elements are well applied on webpages."
+          },
+          "mode": "manual",
+          "hasPart": [
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_0"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "There is two heading titles with incorrect hierarch, which can make difficult to navigate using keyboard shortcuts and/or screen readers."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:content-structure-separation-programmatic"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_1"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "There is an element with a duplicated id attribute and a heading title with incorrect hierarch."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:content-structure-separation-programmatic"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_2"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "Tables need the caption or summary tags. Also, the page does not present the main heading (<h1>), which should represent the page title (not the website title). Some form controls doesn't have labels (perhaps it's a Disqus issue)."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:content-structure-separation-programmatic"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_3"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "Same issues observed in Plugins. Tables need the caption or summary tags. Also, the page does not present the main heading (<h1>), which should represent the page title (not the website title). Some form controls doesn't have labels (perhaps it's a Disqus issue)."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:content-structure-separation-programmatic"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_4"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "Three form controls doesn't have an associated label nor a title attribute, which can difficult the navigation using screen readers, mouse for people with motor disabilities and mobile interaction."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:content-structure-separation-programmatic"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_5"
+              ],
+              "result": {
+                "description": "Same observations of Register page."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:content-structure-separation-programmatic"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_6"
+              ],
+              "result": {
+                "description": "Semantic of elements used to structure the webpage content need to be reviewed, including heading title to match the logical structure of information."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:content-structure-separation-programmatic"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_7"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "Three elements present duplicated id attributes. Some form controls doesn't have an associated label nor a title attribute. Six heading elements present an incorrect hierarch definition."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:content-structure-separation-programmatic"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_8"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "Same observations of We.js Events home page. Also, the page doesn't present the main heading of the page (<h1>)."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:content-structure-separation-programmatic"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_9"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "Same observations of Register page in We.js website."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:content-structure-separation-programmatic"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_0"
+              ],
+              "result": {
+                "description": "Semantic of elements used to structure the webpage content need to be reviewed, including heading title to match the logical structure of information.",
+                "outcome": "earl:failed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:content-structure-separation-programmatic"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_1"
+              ],
+              "result": {
+                "description": "There is an element with a duplicated id attribute and a heading title with incorrect hierarch.",
+                "outcome": "earl:failed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:content-structure-separation-programmatic"
+            }
+          ]
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:content-structure-separation-sequence",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "The content can be follow in a linear, meaningful and logical sequence."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:content-structure-separation-understanding",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:inapplicable",
+            "description": ""
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:visual-audio-contrast-without-color",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "Color is not used as the primary information of webpages. Both websites have texts and labels adjacent to colored icons."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:visual-audio-contrast-dis-audio",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:inapplicable",
+            "description": ""
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:visual-audio-contrast-contrast",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:failed",
+            "description": "All pages in both websites have fail point in color contrast evaluation using automatic tools. The manual analysis performed by the evaluator point as critical issues: navigation menu for non selected items (grey item with dark grey background); text links with light green color; placeholder text at form controls."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:visual-audio-contrast-scale",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "Resize text can be done using native features of web browsers and the layout remains. It's suggested to allow page resize for mobile too."
+          },
+          "mode": "manual",
+          "hasPart": [
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_0"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:visual-audio-contrast-scale"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_1"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:visual-audio-contrast-scale"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_2"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:visual-audio-contrast-scale"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_3"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:visual-audio-contrast-scale"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_4"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:visual-audio-contrast-scale"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_5"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:visual-audio-contrast-scale"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_6"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:visual-audio-contrast-scale"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_7"
+              ],
+              "result": {
+                "outcome": "earl:cantTell",
+                "description": "The fixed menu make it difficult to analyze the resized content."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:visual-audio-contrast-scale"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_8"
+              ],
+              "result": {
+                "outcome": "earl:cantTell",
+                "description": "The fixed menu make it difficult to analyze the resized content."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:visual-audio-contrast-scale"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_9"
+              ],
+              "result": {
+                "outcome": "earl:cantTell",
+                "description": "The fixed menu make it difficult to analyze the resized content."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:visual-audio-contrast-scale"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_0"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:visual-audio-contrast-scale"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_1"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:visual-audio-contrast-scale"
+            }
+          ]
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:visual-audio-contrast-text-presentation",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "Visual presentation is controled via CSS."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:keyboard-operation-keyboard-operable",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "Most components are well accessible through keyboard and they highlight the same way as the mouse over, this is really important. Perhaps some improvements can me made to allow navigation using also arrow keys rather than only tab."
+          },
+          "mode": "manual",
+          "hasPart": [
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_0"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:keyboard-operation-keyboard-operable"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_1"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:keyboard-operation-keyboard-operable"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_2"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:keyboard-operation-keyboard-operable"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_3"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:keyboard-operation-keyboard-operable"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_4"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "The navigation through keyboard is happening, however, the form controls are not properly highlighted to indicate focus."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:keyboard-operation-keyboard-operable"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_5"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "The navigation through keyboard is happening, however, the form controls are not properly highlighted to indicate focus."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:keyboard-operation-keyboard-operable"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_6"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:keyboard-operation-keyboard-operable"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_7"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:keyboard-operation-keyboard-operable"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_8"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:keyboard-operation-keyboard-operable"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_9"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "The navigation through keyboard is happening, however, the form controls are not properly highlighted to indicate focus."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:keyboard-operation-keyboard-operable"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_0"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:keyboard-operation-keyboard-operable"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_1"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:keyboard-operation-keyboard-operable"
+            }
+          ]
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:keyboard-operation-trapping",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "Could not identify any critical point of keyboard navigation."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:time-limits-required-behaviors",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:inapplicable",
+            "description": ""
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:time-limits-pause",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:inapplicable",
+            "description": ""
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:seizure-does-not-violate",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:inapplicable",
+            "description": "There's no flashing content on webpages of both websites."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:navigation-mechanisms-skip",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:failed",
+            "description": "Issues observed are applied to all webpages in both websites:\n- Need a link to skip navigation and jump to content;\n- Landmark regions, such as header, footer, navigation, search and main content, need ARIA roles to allow quick navigation through keyboard;\n- It's need to add a link at the beginning of a block of repeated content to go to the end of the block (such as lists);\n- Some pages doesn't have heading or sub-heading."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:navigation-mechanisms-title",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:failed",
+            "description": "Some pages doesn't have a heading title (<h1>). Also, the <title> attribute is the same of all pages."
+          },
+          "mode": "manual",
+          "hasPart": [
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_0"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": ""
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-title"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_1"
+              ],
+              "result": {
+                "outcome": "earl:failed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-title"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_2"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "This page doesn't have any heading tag to inform the users which page they are."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-title"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_3"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "This page doesn't have any heading tag to inform the users which page they are."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-title"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_4"
+              ],
+              "result": {
+                "outcome": "earl:failed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-title"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_5"
+              ],
+              "result": {
+                "outcome": "earl:failed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-title"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_6"
+              ],
+              "result": {
+                "outcome": "earl:failed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-title"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_7"
+              ],
+              "result": {
+                "outcome": "earl:failed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-title"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_8"
+              ],
+              "result": {
+                "outcome": "earl:failed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-title"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_9"
+              ],
+              "result": {
+                "outcome": "earl:failed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-title"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_0"
+              ],
+              "result": {
+                "outcome": "earl:failed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-title"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_1"
+              ],
+              "result": {
+                "outcome": "earl:failed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-title"
+            }
+          ]
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:navigation-mechanisms-focus-order",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "Focus order is consistent in both websites."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:navigation-mechanisms-refs",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "Link texts are well defined in both websites."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:navigation-mechanisms-mult-loc",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "The website has a consistent navigation, link between internal pages and some pages present a contextual search box. A sitemap would be desireable to improve navigation in multiple ways."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:navigation-mechanisms-descriptive",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "Titles and labels seems intuitive and have a proper to the target audience."
+          },
+          "mode": "manual",
+          "hasPart": [
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_0"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-descriptive"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_1"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-descriptive"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_2"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "Page is missing title."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-descriptive"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_3"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "Page is missing title."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-descriptive"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_4"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-descriptive"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_5"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-descriptive"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_6"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-descriptive"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_7"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-descriptive"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_8"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-descriptive"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_9"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-descriptive"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_0"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-descriptive"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_1"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-descriptive"
+            }
+          ]
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:navigation-mechanisms-focus-visible",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "Except for form pages, all pages make the focus visible in their elements."
+          },
+          "mode": "manual",
+          "hasPart": [
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_0"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-focus-visible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_1"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-focus-visible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_2"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-focus-visible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_3"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-focus-visible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_4"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "Form controls need a visible focus."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-focus-visible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_5"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "Form controls need a visible focus."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-focus-visible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_6"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-focus-visible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_7"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-focus-visible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_8"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-focus-visible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_9"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "Form controls need a visible focus."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-focus-visible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_0"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-focus-visible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_1"
+              ],
+              "result": {
+                "outcome": "earl:passed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:navigation-mechanisms-focus-visible"
+            }
+          ]
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:meaning-doc-lang-id",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:failed",
+            "description": "The <html> tag need to have the lang attribute set to \"en\", to inform screen reader that the content of the page is in English. This helps the screen readers to callibrate the reading engine to read properly the content."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:meaning-other-lang-id",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:inapplicable",
+            "description": ""
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:consistent-behavior-receive-focus",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:inapplicable",
+            "description": "Could not identify any component related to this recommentation, such as dropdown menus with redirecting."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:consistent-behavior-unpredictable-change",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "All pages that have a form also have a correspondent submit button. The automatic tool pointed that some pages doesn't have the submit button, however, this could be caused by Disqus or the search box in Plugins and Theme pages."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:consistent-behavior-consistent-locations",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "The navigation is consistent through all webpages. It's highly recommended to add a \"skip to content\" link at the beginning of all pages."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:consistent-behavior-consistent-functionality",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "Icons used are compatible with their associated content and are usual representations. Some of the used icons have a skeumorphic style, which is particularly benefic for people with certain cognitive or learning disabilities."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:minimize-error-identified",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "Form validation occurs before (using HTML5 native validation) and after submit. When submitting forms, errors message are displayed at the top of the page and the incorrect fields are highlighted and have the error message showed below them."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:minimize-error-cues",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "Form labels are correct and mandatory fields are identified. There's no complex input field that need specific instructions, such as format, min and max characters."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:minimize-error-suggestions",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:failed",
+            "description": "Although the form pages (Register, Login) use HTML5 input validation, they need clear and custom messages, as well highlight properly the fields that need users attention."
+          },
+          "mode": "manual",
+          "hasPart": [
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_0"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-suggestions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_1"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-suggestions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_2"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-suggestions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_3"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-suggestions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_4"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": "Some errors are presented only when the user submit the form, such as when Password and Password Confirmation don't match. In this situation, the form control is correctly highlighted and the error message is presented near the input field."
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-suggestions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_5"
+              ],
+              "result": {
+                "outcome": "earl:failed",
+                "description": ""
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-suggestions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_6"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-suggestions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_7"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-suggestions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_8"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-suggestions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_9"
+              ],
+              "result": {
+                "outcome": "earl:failed"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-suggestions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_0"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-suggestions"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_1"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-suggestions"
+            }
+          ]
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:minimize-error-reversible",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:inapplicable",
+            "description": "This criterion doesn't apply to these websites."
+          },
+          "mode": "manual",
+          "hasPart": [
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_0"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable",
+                "description": ""
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-reversible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_1"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-reversible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_2"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-reversible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_3"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-reversible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_4"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-reversible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_5"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-reversible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_6"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-reversible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_7"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-reversible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_8"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-reversible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:struct_9"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-reversible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_0"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-reversible"
+            },
+            {
+              "type": "earl:assertion",
+              "assertedBy": "_:evaluator",
+              "subject": [
+                "_:rand_1"
+              ],
+              "result": {
+                "outcome": "earl:inapplicable"
+              },
+              "multiPage": false,
+              "mode": "manual",
+              "testcase": "wcag20:minimize-error-reversible"
+            }
+          ]
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:ensure-compat-parses",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": "The website is compatible with web browsers, mobile web browser and assistive technologies."
+          },
+          "mode": "manual",
+          "hasPart": []
+        },
+        {
+          "type": "earl:assertion",
+          "testRequirement": "wcag20:ensure-compat-rsv",
+          "assertedBy": "_:evaluator",
+          "subject": "_:website",
+          "result": {
+            "outcome": "earl:passed",
+            "description": ""
+          },
+          "mode": "manual",
+          "hasPart": []
+        }
+      ],
+      "creator": "_:evaluator",
+      "title": "Accessibility Evaluation Report for We.js and We.js Events",
+      "specifics": "Check Appendix A for Color Contrast evaluations, Appendix B for HTML and CSS validation and Appendix C for Screen Reader simulation of We.js home page.",
+      "summary": "This report describes the conformance of the We.js and We.js Events Web sites with W3C's Web Content Accessibility Guidelines (WCAG) 2.0. The review process is based on the W3C's Conformance Evaluation.\n\nConformance evaluation of Web accessibility requires a combination of semi-automated evaluation tools and manual evaluation by an experienced reviewer. The evaluation results in this report are based on evaluation conducted on the following date(s): October 27-28-29-30 and November 10-11 (2015). The Web site may have changed since that time.\n\nBased on this evaluation, the We.js and We.js Events Web site is close to meeting WCAG 2.0, Conformance Level AA. Detailed review results are available below. Resources for follow-up study are listed at the end of this document. Feedback on this evaluation is welcome.\n\nFrequently occurring issues and patterns observed include low contrast between text and background, missing focus indicator for elements and form controls, missing ARIA roles/states/attributes to improve content readability for screen readers and low performance of client-side scripts. Thus, these issues are high priority to be solved.",
+      "commissioner": "Alberto Souza - Head of We.js",
+      "structuredSample": {
+        "webpage": [
+          {
+            "type": "webpage",
+            "id": "_:struct_0",
+            "description": "http://wejs.org/docs/we/getstarted",
+            "handle": "We.js - Get Started",
+            "tested": false
+          },
+          {
+            "type": "webpage",
+            "id": "_:struct_1",
+            "description": "http://wejs.org/docs/we/about",
+            "handle": "We.js - Documentation",
+            "tested": false
+          },
+          {
+            "type": "webpage",
+            "id": "_:struct_2",
+            "description": "http://wejs.org/plugins",
+            "handle": "We.js - Plugins",
+            "tested": false
+          },
+          {
+            "type": "webpage",
+            "id": "_:struct_3",
+            "description": "http://wejs.org/themes",
+            "handle": "We.js - Themes",
+            "tested": false
+          },
+          {
+            "type": "webpage",
+            "id": "_:struct_4",
+            "description": "http://wejs.org/signup",
+            "handle": "We.js - Register",
+            "tested": false
+          },
+          {
+            "type": "webpage",
+            "id": "_:struct_5",
+            "description": "http://wejs.org/login",
+            "handle": "We.js - Login",
+            "tested": false
+          },
+          {
+            "type": "webpage",
+            "id": "_:struct_6",
+            "description": "http://wejs.org/",
+            "handle": "We.js - Home",
+            "tested": false
+          },
+          {
+            "type": "webpage",
+            "id": "_:struct_7",
+            "description": "http://events.wejs.org/",
+            "handle": "We.js Events - Home",
+            "tested": false
+          },
+          {
+            "type": "webpage",
+            "id": "_:struct_8",
+            "description": "http://events.wejs.org/event",
+            "handle": "We.js Events - Events",
+            "tested": false
+          },
+          {
+            "type": "webpage",
+            "id": "_:struct_9",
+            "description": "http://events.wejs.org/signup",
+            "handle": "We.js Events - Register",
+            "tested": false
+          }
+        ]
+      },
+      "randomSample": {
+        "webpage": [
+          {
+            "type": "webpage",
+            "id": "_:rand_0",
+            "description": "http://wejs.org/",
+            "handle": "We.js - Home",
+            "tested": false
+          },
+          {
+            "type": "webpage",
+            "id": "_:rand_1",
+            "description": "http://wejs.org/docs/we/about",
+            "handle": "We.js - Documentation",
+            "tested": false
+          }
+        ]
+      },
+      "reliedUponTechnology": [
+        {
+          "id": "http://www.w3.org/TR/html5/",
+          "title": "HTML5"
+        },
+        {
+          "id": "http://www.w3.org/Style/CSS/specs/",
+          "title": "CSS"
+        },
+        {
+          "id": "http://www.ecma-international.org/publications/standards/Ecma-262.htm",
+          "title": "ECMAScript 5"
+        },
+        {
+          "id": "http://www.w3.org/DOM/",
+          "title": "DOM"
+        },
+        {
+          "id": "http://www.w3.org/TR/wai-aria/",
+          "title": "WAI-ARIA"
+        }
+      ],
+      "essentialFunctionality": "Essential functionalities on We.js:\nConsult the framework documentation\nCheck the list os available plugins for the framework\nCheck the list os available interface themes for the framework\nSearch for plugins and themes\nAdd comments via Disqus\n\nEssential functionalities on We.js Events:\nInstall We.js Events\nCheck main features of this framework\nCheck the list of events created with We.js Events\nLogin on the restricted area",
+      "pageTypeVariety": "Both websites are relatively simple in variety of web pages types. We.js has the following page types: landing page, grid page, help style page (sidebar menu with topics and navigation button), form pages. We.js events has only a landing page and simple text pages.",
+      "commonPages": [],
+      "otherRelevantPages": []
+    },
+    {
+      "@context": {
+        "@vocab": "http://xmlns.com/foaf/spec/#",
+        "id": "@id",
+        "type": "@type"
+      },
+      "id": "_:evaluator",
+      "type": "Person",
+      "name": "Talita Pagani"
+    }
+  ]
+}
