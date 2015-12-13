@@ -4,9 +4,9 @@
   "private": true,
   "main": "./app.js",
   "scripts": {
-    "dev": "node app.js",
+    "dev": "node app.js --dev",
     "verbose": "LOG_LV=verbose node app.js",
-    "prod": "NODE_ENV=prod node app.js",
+    "prod": "node app.js --prod",
     "deps": "npm install && bower install",
     "start": "node app.js",
     "build": "gulp build",
