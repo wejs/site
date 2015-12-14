@@ -8,7 +8,6 @@ module.exports = {
    */
   index: function(req, res) {
     res.locals.template = 'home/index';
-    res.title = 'We.js site';
 
     res.ok();
   },
