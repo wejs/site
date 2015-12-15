@@ -30,7 +30,7 @@
     "we-plugin-passport-oauth2": "0.3.0",
     "we-plugin-socketio": "0.3.2",
     "we-plugin-vocabulary": "^0.3.20",
-    "we-theme-admin-default": "0.3.10",
+    "we-theme-admin-default": "0.3.11",
     "we-theme-site-wejs": "0.3.30"
   },
   "devDependencies": {
