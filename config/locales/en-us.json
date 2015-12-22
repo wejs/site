@@ -206,6 +206,7 @@
   "message.find": "message.find",
   "messenger.roomId.required": "messenger.roomId.required",
   "paginate.sumary": "{{recordsLength}} of {{count}}",
+  "passport.strategy.local": "Login with system email and password",
   "permission.link": "Permissions",
   "permission_manage": "Permissions",
   "role.create": "Create role",

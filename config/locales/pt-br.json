@@ -151,6 +151,7 @@
   "menu.user.edit": "Editar perfil",
   "menu.user.view": "Ver perfil",
   "paginate.sumary": "Exibindo {{recordsLength}} de {{count}}",
+  "passport.strategy.local": "Se autenticar usando o email e senha criados no sistema",
   "permission.link": "Permissões",
   "term.create": "Criar termo",
   "term.delete.confirm.msg": "Você tem certeza que deseja deletar esse termo?",

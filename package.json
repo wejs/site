@@ -16,7 +16,7 @@
   "dependencies": {
     "async": "^1.5.0",
     "lodash": "^3.10.1",
-    "we-core": "0.3.110",
+    "we-core": "^0.3.111",
     "we-plugin-bootstrap3": "^0.3.2",
     "we-plugin-contact": "0.3.3",
     "we-plugin-disqus": "^0.3.0",
@@ -30,8 +30,8 @@
     "we-plugin-passport-oauth2": "0.3.0",
     "we-plugin-socketio": "0.3.2",
     "we-plugin-vocabulary": "^0.3.20",
-    "we-theme-admin-default": "0.3.11",
-    "we-theme-site-wejs": "0.3.30"
+    "we-theme-admin-default": "^0.3.12",
+    "we-theme-site-wejs": "^0.3.31"
   },
   "devDependencies": {
     "gulp": "^3.9.0",
