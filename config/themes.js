@@ -1,8 +1,8 @@
 module.exports.themes = {
     enabled: [
-      'we-theme-site-wejs',
+      'we-theme-cluster',
       'we-theme-admin-default'
     ],
-    app: 'we-theme-site-wejs',
+    app: 'we-theme-cluster',
     admin: 'we-theme-admin-default'
 };

@@ -16173,3 +16173,127 @@ button.note-editor .close {
 		background-size: 24px 24px; /*The size of the normal image, half the size of the hi-res image*/
 	}
 }
+
+
+/* sharebox */
+#sharebox-label {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 5px 0px 15px;
+}
+
+
+#sharebox {
+  border: 1px dashed #ccc;
+  margin: 3px 0 10px;
+  padding: 10px;
+}
+
+.sharebox-area #sharebox-label,
+.sharebox-area.open #sharebox {
+  display: block;
+}
+
+.sharebox-area #sharebox,
+.sharebox-area.open #sharebox-label {
+  display: none;
+}
+
+#sharebox #accordion-createdAt-and-updatedAt,
+#sharebox #accordion-post-setAlias {
+  display: none;
+}
+
+/* session */
+
+body.post.findOne h1,
+body.post.find h1 {
+  display: none;
+}
+
+body.post.findOne .post-teaser {
+  padding-top: 15px;
+}
+
+/* post teaser*/
+
+.post-teaser {,
+  padding: 5px 0px;
+  margin: 5px 0px 15px 5px;
+}
+
+.highlighted {
+  border-right: 3px solid red;
+}
+
+.post-body {
+  font-size: 1.2em;
+  white-space: pre-line;
+}
+
+/*.post-teaser .post-creator img {
+  float: left;
+  margin-top: 3px;
+  margin-left: -58px;
+}*/
+
+.post-header,
+.post-body {
+  margin-bottom: 5px;
+}
+
+.post-teaser .post-creator img {
+  vertical-align: top;
+}
+
+.post-actions {
+  margin: 10px 0px 15px;
+
+}
+
+.post-actions form {
+  display: inline-table;
+}
+
+/* posts */
+.posts > .post-teaser {
+  box-shadow: 2px 1px 2px 2px #ccc;
+  padding: 10px;
+}
+
+.post-search {
+  margin-bottom: 10px;
+}
+.groups-menu {
+  margin: 5px 0px;
+}
+
+.groups-search form {
+  margin-bottom: 10px;
+}
+
+.groups-search label {
+  text-transform: capitalize;
+}
+
+
+.group-actions form{
+  display: inline-table;
+}
+
+.group-members {
+  margin-top: 5px;
+}
+
+.group-teaser .logo {
+  float: left;
+  margin: 0px 10px 5px 0px;
+}
+
+.group-content {
+  display: table;
+}
+
+.group-actions {
+  margin-top: 8px;
+}
