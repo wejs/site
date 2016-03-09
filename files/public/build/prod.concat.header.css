@@ -100,6 +100,14 @@ a.tabledrag-handle .handle {
   height: auto;
   overflow: visible;
 }
+
+.tab-content {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-top: 0px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
 /*! jQuery UI - v1.11.4 - 2015-06-16
 * http://jqueryui.com
 * Includes: core.css, draggable.css, resizable.css, selectable.css, sortable.css, autocomplete.css, button.css, datepicker.css, menu.css, progressbar.css, selectmenu.css, slider.css, spinner.css
