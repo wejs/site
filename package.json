@@ -31,7 +31,7 @@
     "we-plugin-socketio": "0.3.3",
     "we-plugin-vocabulary": "^0.3.22",
     "we-theme-admin-default": "^1.0.0",
-    "we-theme-cluster": "^1.0.5"
+    "we-theme-cluster": "^1.0.6"
   },
   "devDependencies": {
     "gulp": "3.9.1",
