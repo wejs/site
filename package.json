@@ -34,7 +34,7 @@
     "we-plugin-passport-oauth2": "0.3.0",
     "we-plugin-socketio": "0.3.3",
     "we-plugin-vocabulary": "^0.3.22",
-    "we-plugin-wembed-server": "^1.0.0",
+    "we-plugin-wembed-server": "^1.0.1",
     "we-theme-admin-default": "^1.0.0",
     "we-theme-cluster": "^1.0.6"
   },
