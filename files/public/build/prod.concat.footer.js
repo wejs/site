@@ -51003,8 +51003,12 @@ we.structure = {
   setForDataValuesWithVisibility: function(formData) {
     switch(formData.visibility) {
       case 'in-page':
-        formData.modelName = we.config.modelName;
-        formData.modelId = we.config.modelId;
+        if (we.config.modelName && we.config.modelId) {
+          formData.modelName = we.config.modelName;
+          formData.modelId = we.config.modelId;
+        } else {
+          formData.path = location.pathname;
+        }
         break;
       case 'in-session':
         formData.modelName = we.config.modelName;
@@ -51055,6 +51059,8 @@ we.structure = {
     modal.find('.steps-body .step1').show();
   },
   goToStep2: function goToStep2() {
+    var self = this;
+
     var modal = $(we.structure.addWidgetModalFormId);
     var regionWidgetsTag = $('#region-'+ this.newWidgetObj.regionName +'-widgets');
 
@@ -51085,20 +51091,24 @@ we.structure = {
           formData[d.name] = d.value;
         });
 
-        var url = we.config.structure.widgetCreateUrl;
-        if (!url) url = '/api/v1/widget';
-        url+='?responseType=json';
-
         we.structure.setForDataValuesWithVisibility(formData);
 
-        $.post(url, formData)
-        .then(function (r) {
+        formData.theme = self.newWidgetObj.theme;
+        formData.regionName = self.newWidgetObj.regionName;
+        formData.context = we.config.widgetContext;
+
+        $.ajax({
+          headers: { 'we-widget-action': 'add' },
+          url: location.pathname+'?responseType=json',
+          method: 'POST',
+          data: {
+            widget: JSON.stringify(formData)
+          }
+        }).then(function (r) {
           // insert after regions actions
           regionWidgetsTag.prepend(r.widget.html);
-        }).always(function(){
+        }).always(function() {
           modal.modal('hide');
-
-          modal.find('form').off( event );
         });
       });
     });
@@ -51121,51 +51131,42 @@ we.structure = {
 
       modalForm.find('form').submit(function( event ) {
         event.preventDefault();
-        var formData = {};
+        var formData = { id: id };
 
         modalForm.find('form').serializeArray().forEach(function (d) {
           formData[d.name] = d.value;
         });
 
-        var url = '/api/v1/widget/'+id+'?responseType=json';
-        if (we.config.structure.widgetUpdateUrl) {
-          url = we.config.structure.widgetUpdateUrl+id+'?responseType=json'
-        }
-
         we.structure.setForDataValuesWithVisibility(formData);
 
         $.ajax({
-          url: url,
+          headers: { 'we-widget-action': 'update' },
+          url: location.pathname+'?responseType=json',
           method: 'POST',
-          dataType: 'json',
-          contentType: 'application/json; charset=utf-8',
-          data: JSON.stringify(formData)
+          data: {
+            widget: JSON.stringify(formData)
+          }
         }).then(function (r) {
           we.events.emit('model-update', 'widget', r.widget);
           widgetTag.after(r.widget.html);
           widgetTag.remove();
         }).always(function(){
           modalForm.modal('hide');
-        })
+        });
       });
     });
   },
   deleteWidget: function deleteWidget(id) {
     if (!id) return console.warn('data-id attribute is required for deleteWidget');
 
-    var url;
-    if (we.config.structure.widgetDeleteUrl) {
-      url = we.config.structure.widgetDeleteUrl+id
-    } else {
-      url = '/api/v1/widget/'+id;
-    }
-    url += '/delete?responseType=json';
-
     if (confirm(we.config.structure.deleteWidgetConfirm)) {
       $.ajax({
-        url: url,
+        headers: { 'we-widget-action': 'delete' },
+        url: location.pathname+'?responseType=json',
         method: 'POST',
-        contentType: 'application/json; charset=utf-8'
+        data: {
+          widgetId: id
+        }
       }).then(function (r) {
         we.events.emit('model-update-after', 'widget', r);
         $('#widget-'+id).remove();
@@ -51178,15 +51179,18 @@ we.structure = {
     if (!modal) throw new Error('sort widget modal not found!', we.structure.sortWidgetModalFormId);
    modal.modal('show');
 
-    var url = '/api/v1/widget-sort/';
-    if (we.config.structure.widgetSortUrl)
-      url = we.config.structure.widgetSortUrl;
+    var url = location.pathname;
 
-    url += we.config.theme + '/'+
-      $('#we-layout').attr('data-we-layout')+
-      '/'+regionName  + '?skipHTML=true&context='+
-      $('#we-layout').attr('data-we-widgetcontext');
-    $.get(url).then(function (f) {
+    $.ajax({
+      headers: { 'we-widget-action': 'getWidgetsToSort' },
+      url: url+'?responseType=modal&skipHTML=true',
+      method: 'POST',
+      data: {
+        params: JSON.stringify({
+          regionName: regionName
+        })
+      }
+    }).then(function (f) {
       modal.find('.modal-body').html(f);
     });
   }
@@ -51278,7 +51282,7 @@ we.admin.layouts = {
     var sortableList = $(selector);
     // Sortable rows
     sortableList.sortable({
-      update: function( event, ui ) {
+      update: function updateSort() {
         saveOrder(this);
       }
     });
@@ -51294,21 +51298,20 @@ we.admin.layouts = {
         $(list[i]).attr('data-weight', i);
       }
 
-      var url = '/api/v1/widget-sort/';
-      if (we.config.structure.widgetSortUrl)
-        url = we.config.structure.widgetSortUrl;
-
-      url += we.config.theme + '/'+
-        $('#we-layout').attr('data-we-layout')+
-        '/'+regionName + '?skipHTML=true&responseType=JSON&context='+$('#we-layout').attr('data-we-widgetcontext');
-
       $.ajax({
-        url: url,
+        headers: { 'we-widget-action': 'updateSort' },
+        url: location.pathname+'?responseType=json',
         method: 'POST',
-        dataType: 'json',
-        contentType: 'application/json; charset=utf-8',
-        data: JSON.stringify({ widgets: widgets })
-      }).done(function(r) {
+        // dataType: 'json',
+        // contentType: 'application/json; charset=utf-8',
+        data: {
+          params: JSON.stringify({
+            regionName: regionName,
+            layout: $('#we-layout').attr('data-we-layout')
+          }),
+          widgets: JSON.stringify(widgets)
+        }
+      }).done(function (r) {
         var region = $('#region-'+regionName);
         var widget;
         var lastWidget = null;
@@ -51321,8 +51324,6 @@ we.admin.layouts = {
           }
           lastWidget = widget;
         }
-
-        // console.log('Done sort widgets', r);
       });
     }
   }
@@ -52168,6 +52169,22 @@ d[0].offsetTop||15===d[0].offsetTop;d.remove();a.fixedPosition=e}f.extend(b.defa
  */
 
 (function (we, $) {
+if (!we.cache) we.cache = {};
+
+we.cache.images = {};
+
+we.cache.findImage = function findImage(id) {
+  if (we.cache.images[id]) return we.cache.images[id];
+
+  we.cache.images[id] = $.ajax({
+    method: 'get',
+    url: '/api/v1/image/'+id+'/data',
+    dataType: 'json',
+    headers: { Accept : 'application/json' }
+  });
+
+  return we.cache.images[id];
+};
 
 we.components.imageSelector = {
   host: '',
@@ -52412,13 +52429,80 @@ we.components.imageSelector = {
   }
 }
 
+
 })(window.we, window.jQuery);
 
+window.addEventListener('WebComponentsReady', function() {
+  var we = window.we;
+
+  // -- Image component
+  // usage: <we-image data-id="{{id}}" data-style="thumbnail"></we-image>
+  var WeImagePrototype = Object.create(HTMLElement.prototype);
+  WeImagePrototype.createdCallback = function() {
+    var self = this;
+
+    var id = this.dataset.id;
+    var style = this.dataset.style || 'original';
+
+    if (!id) return console.warn('data-id is required for we-image');
+
+    we.cache.findImage(id).then(function (result) {
+      var img = document.createElement('img');
+      img.src = result.image.urls[style];
+
+      if (result.image.description)
+        img.alt = result.image.description;
+
+      self.appendChild(img);
+    });
+  };
+  document.registerElement('we-image', {
+    prototype: WeImagePrototype
+  });
+
+  /**
+   *  -- Image description component
+   *  usage: <we-image-description data-id="{{id}}"></we-image-description>
+   */
+  var WeImageDescriptionPrototype = Object.create(HTMLElement.prototype);
+  WeImageDescriptionPrototype.createdCallback = function() {
+    var self = this;
+
+    var id = this.dataset.id;
+    if (!id) return console.warn('data-id is required for we-image-description');
+
+    we.cache.findImage(id).then(function (result) {
+      self.textContent = result.image.originalname;
+
+      if (result.image.description) {
+        self.textContent += ': ' + result.image.description;
+      }
+    });
+  };
+  document.registerElement('we-image-description', {
+    prototype: WeImageDescriptionPrototype
+  });
+});
 /**
  * We.js client side lib
  */
 
 (function (we) {
+
+if (!we.cache) we.cache = {};
+we.cache.files = {};
+we.cache.findFile = function findFile(id) {
+  if (we.cache.files[id]) return we.cache.files[id];
+
+  we.cache.files[id] = $.ajax({
+    method: 'get',
+    url: '/api/v1/file/'+id,
+    dataType: 'json',
+    headers: { Accept : 'application/json' }
+  });
+
+  return we.cache.files[id];
+};
 
 we.components.fileSelector = {
   formModalContentIsLoad: true,
@@ -52538,3 +52622,26 @@ we.components.fileSelector = {
 }
 
 })(window.we);
+
+window.addEventListener('WebComponentsReady', function() {
+  var we = window.we;
+
+  /**
+   *  -- Image description component
+   *  usage: <we-image-description data-id="{{id}}"></we-image-description>
+   */
+  var WeFileDescriptionPrototype = Object.create(HTMLElement.prototype);
+  WeFileDescriptionPrototype.createdCallback = function() {
+    var self = this;
+
+    var id = this.dataset.id;
+    if (!id) return console.warn('data-id is required for we-file-description');
+
+    we.cache.findFile(id).then(function (result) {
+      self.textContent = result.file.originalname;
+    });
+  };
+  document.registerElement('we-file-description', {
+    prototype: WeFileDescriptionPrototype
+  });
+});
