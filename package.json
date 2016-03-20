@@ -20,7 +20,7 @@
     "mysql": "^2.10.2",
     "redis": "^2.5.2",
     "socket.io-redis": "^1.0.0",
-    "we-core": "^1.1.0",
+    "we-core": "^1.1.1",
     "we-plugin-article": "^0.3.13",
     "we-plugin-bootstrap3": "^0.3.2",
     "we-plugin-contact": "1.0.0",
