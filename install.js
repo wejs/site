@@ -18,7 +18,7 @@ module.exports = {
           displayName: 'Administrator',
           language: 'en-us',
           active: true,
-
+          roles: ['administrator']
         };
 
         we.log.info('I will create the user: ', user1);
@@ -33,26 +33,10 @@ module.exports = {
             userId: user.id,
             password: user1.password,
             confirmPassword: user1.password
-          }).then(function (password) {
-            // add as admin
-            // check if the role exists
-            we.db.models.role.find({
-              where: { name: 'administrator' }
-            }).then(function (role) {
-              if (!role) return done('administrator role not found');
-              user.addRole(role).then(function() {
-                we.log.info('role ' +role.name+ ' set to user ' + user.username);
-                return done();
-              });
-            });
-
+          }).then(function () {
+            return done();
           }).catch(done);
         });
-      },
-
-      function setDefaultRolePermissions(done) {
-        var setRolePermissions = require('./bin/install/4_setRolePermissions.js');
-        setRolePermissions(we, done);
       },
       function createExampleRoom(done) {
         var fn = require('./bin/install/7_createExampleRoom.js');
