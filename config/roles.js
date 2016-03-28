@@ -23,7 +23,8 @@ module.exports = {
 			'find_room',
 			'find_message',
 			'create_message',
-			'find_urlAlias'
+			'find_urlAlias',
+			'create_room'
 		],
 		'isSystemRole': true
 	},
@@ -40,7 +41,8 @@ module.exports = {
 			'find_menu',
 			'find_article',
 			'find_vocabulary',
-			'find_term'
+			'find_term',
+			'use_messenger'
 		],
 		'isSystemRole': true
 	},
