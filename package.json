@@ -37,7 +37,7 @@
     "we-plugin-vocabulary": "^0.3.23",
     "we-plugin-wembed-server": "^1.0.3",
     "we-theme-admin-default": "^1.0.1",
-    "we-theme-cluster": "^1.0.7"
+    "we-theme-cluster": "1.0.8"
   },
   "devDependencies": {
     "gulp": "3.9.1",
