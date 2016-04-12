@@ -36,7 +36,7 @@ module.exports = {
           }).then(function () {
             return done();
           }).catch(done);
-        });
+        }).catch(done);
       },
       function createExampleRoom(done) {
         var fn = require('./bin/install/7_createExampleRoom.js');
