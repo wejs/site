@@ -13,7 +13,7 @@ module.exports = {
     var description = 'Server side javascript framework for build accessible '+
         'real time applications, sites or blogs';
 
-    res.locals.metatag +=
+    res.locals.metatag =
       '<meta property="og:url" content="https://wejs.org" />'+
       '<meta property="og:title" content="We.js framework site" />' +
       '<meta property="og:site_name" content="We.js framework" />'+
