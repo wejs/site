@@ -9,6 +9,23 @@ module.exports = {
   index: function(req, res) {
     res.locals.template = 'home/index';
     res.locals.title = '';
+
+    var description = 'Server side javascript framework for build accessible '+
+        'real time applications, sites or blogs';
+
+    res.locals.metatag +=
+      '<meta property="og:url" content="https://wejs.org" />'+
+      '<meta property="og:title" content="We.js framework site" />' +
+      '<meta property="og:site_name" content="We.js framework" />'+
+      '<meta property="og:description" content="'+description+'" />'+
+
+      '<meta property="og:image" content="https://wejs.org/public/plugin/we-core/files/images/logo.png">'+
+      '<meta property="og:image:type" content="image/png">'+
+
+      '<meta name="description" content="'+description+'" />'+
+
+      '<meta property="og:type" content="website" />';
+
     res.ok();
   },
 
