@@ -38,10 +38,10 @@ module.exports = {
           }).catch(done);
         }).catch(done);
       },
-      function createExampleRoom(done) {
-        var fn = require('./bin/install/7_createExampleRoom.js');
-        fn(we, done);
-      },
+      // function createExampleRoom(done) {
+      //   var fn = require('./bin/install/7_createExampleRoom.js');
+      //   fn(we, done);
+      // },
       function createDefaultMenus(done) {
         we.db.models.menu.findOrCreate({
           where: { 'name': 'main'},

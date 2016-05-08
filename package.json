@@ -1,6 +1,6 @@
 {
   "name": "wejs-site",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "main": "./app.js",
   "scripts": {
@@ -31,9 +31,7 @@
     "we-plugin-github": "0.3.2",
     "we-plugin-google-analytics": "0.3.3",
     "we-plugin-menu": "1.1.1",
-    "we-plugin-messenger": "0.3.11",
     "we-plugin-passport-oauth2": "0.3.0",
-    "we-plugin-socketio": "0.3.6",
     "we-plugin-vocabulary": "^0.3.23",
     "we-plugin-wembed-server": "^1.0.3",
     "we-theme-admin-default": "^1.0.1",
