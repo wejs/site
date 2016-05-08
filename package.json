@@ -33,7 +33,7 @@
     "we-plugin-menu": "1.1.1",
     "we-plugin-messenger": "0.3.11",
     "we-plugin-passport-oauth2": "0.3.0",
-    "we-plugin-socketio": "0.3.4",
+    "we-plugin-socketio": "0.3.5",
     "we-plugin-vocabulary": "^0.3.23",
     "we-plugin-wembed-server": "^1.0.3",
     "we-theme-admin-default": "^1.0.1",
