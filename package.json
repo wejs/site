@@ -18,9 +18,9 @@
     "express-mysql-session": "^1.0.0",
     "express-session": "^1.13.0",
     "mysql": "^2.10.2",
-    "redis": "^2.6.0-1",
+    "redis": "^2.6.0-2",
     "socket.io-redis": "^1.0.0",
-    "we-core": "1.2.7",
+    "we-core": "1.2.9",
     "we-plugin-article": "^0.3.13",
     "we-plugin-bootstrap3": "^0.3.2",
     "we-plugin-contact": "1.0.0",
@@ -42,7 +42,7 @@
   "devDependencies": {
     "gulp": "3.9.1",
     "mocha": "2.4.5",
-    "sinon": "1.17.3",
+    "sinon": "1.17.4",
     "supertest": "^1.2.0",
     "we-gulp-tasks-default": "1.1.0",
     "we-test-tools": "^0.3.14"
