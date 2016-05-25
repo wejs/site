@@ -1,6 +1,6 @@
 {
   "name": "wejs-site",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "main": "./app.js",
   "scripts": {
@@ -40,7 +40,7 @@
     "we-plugin-wembed-server": "^1.0.3",
     "we-plugin-widget": "^1.0.1",
     "we-theme-admin-default": "^1.0.1",
-    "we-theme-cluster": "1.0.9"
+    "we-theme-cluster": "1.0.11"
   },
   "devDependencies": {
     "gulp": "3.9.1",
