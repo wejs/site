@@ -21,5 +21,15 @@ module.exports = {
       username: 'root',
       password: ''
     }
+  },
+  github: {
+    version: '3.0.0', // API version
+    debug: true, // console.log,
+    authentication: { //via token (Personal access token)
+      type: 'token',
+      token: 'yourtoken'
+    },
+    expireDate: (60 * 60 * 60), // an hour
+    orgName: 'wejs' //organization name
   }
 }
