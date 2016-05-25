@@ -40,7 +40,7 @@
     "we-plugin-wembed-server": "^1.0.3",
     "we-plugin-widget": "^1.0.1",
     "we-theme-admin-default": "^1.0.1",
-    "we-theme-cluster": "1.0.11"
+    "we-theme-cluster": "1.0.12"
   },
   "devDependencies": {
     "gulp": "3.9.1",
