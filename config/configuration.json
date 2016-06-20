@@ -1,1 +1,82 @@
-{}
+{
+  "roles": {
+    "administrator": {
+      "name": "administrator",
+      "permissions": []
+    },
+    "authenticated": {
+      "name": "authenticated",
+      "permissions": [
+        "find_user",
+        "use_flag",
+        "use_follow",
+        "find_image",
+        "upload_image",
+        "find_file",
+        "upload_file",
+        "use_messenger",
+        "find_term",
+        "find_vocabulary",
+        "find_article",
+        "find_menu",
+        "find_link",
+        "find_room",
+        "find_message",
+        "create_message",
+        "find_urlAlias",
+        "create_room"
+      ],
+      "isSystemRole": true
+    },
+    "unAuthenticated": {
+      "name": "unAuthenticated",
+      "permissions": [
+        "find_user",
+        "find_image",
+        "find_file",
+        "find_urlAlias",
+        "find_message",
+        "find_room",
+        "find_link",
+        "find_menu",
+        "find_article",
+        "find_vocabulary",
+        "find_term",
+        "use_messenger"
+      ],
+      "isSystemRole": true
+    },
+    "owner": {
+      "name": "owner",
+      "permissions": [
+        "update_user",
+        "delete_user",
+        "crop_image",
+        "delete_image",
+        "delete_file",
+        "update_term",
+        "delete_term",
+        "update_vocabulary",
+        "delete_vocabulary",
+        "update_article",
+        "delete_article",
+        "update_menu",
+        "delete_menu",
+        "update_room",
+        "delete_room",
+        "update_message",
+        "delete_message"
+      ],
+      "isSystemRole": true
+    },
+    "rh": {
+      "name": "rh",
+      "permissions": [
+        "find_user"
+      ]
+    }
+  },
+  "oi": {
+    "mundo": "11"
+  }
+}

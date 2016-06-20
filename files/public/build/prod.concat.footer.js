@@ -894,6 +894,8 @@ window.CustomElements.addModule(function(scope) {
     }
   }
   function createElement(tag, typeExtension) {
+    if (!tag) return;
+
     if (tag) {
       tag = tag.toLowerCase();
     }
@@ -53599,34 +53601,11 @@ we.components.imageSelector = {
 
   formModalContentIsLoad: false,
 
-  selectImage: function(cb) {
-    this.imageSelectedHandler = cb;
-
-    this.loadFormModalContentFromServer(function() {
-      this.modal.modal('show');
-    }.bind(this));
-  },
   imageSelected: function(err, image) {
     this.imageSelectedHandler(err, image);
 
     this.modal.modal('hide');
     this.imageSelectedHandler = null;
-  },
-  loadFormModalContentFromServer: function(cb) {
-    var self = this;
-
-    if (self.formModalContentCache) return cb(null);
-
-    $.ajax({
-      url: '/api/v1/image/get-form-modal-content'
-    }).then(function (html) {
-      self.formModalContentIsLoad = true;
-
-      $('body').append(html);
-      we.components.imageSelector.init('#imageSelectorFormModal');
-
-      cb(null);
-    });
   },
 
   /**
@@ -53641,6 +53620,8 @@ we.components.imageSelector = {
     this.uploader = this.modal.find('.fileupload');
     this.progress = this.modal.find('.progress');
     this.progressBar = this.progress.find('.progress-bar');
+
+    this.modal.modal('show');
 
     // Change this to the location of your server-side upload handler:
     this.uploader.fileupload({
@@ -53741,30 +53722,6 @@ we.components.imageSelector = {
       if (err) throw new Error('Error on select image.');
       self.showFieldImageData(selector, name, image);
     });
-  },
-
-  /**
-   * Show selected image from data
-   *
-   * @param  {String} fieldSelector field selector ID
-   * @param  {String} name          Field name
-   * @param  {[Object} image         Image object
-   */
-  showFieldImageData: function(fieldSelector, name, image) {
-    var row = $(fieldSelector + 'ImageFieldTemplates tr').clone();
-    row.find('td[data-image-name]').html(image.originalname + ' : ' +image.description);
-    row.find('td[data-image-thumbnail]').html(
-      '<img alt="'+image.description+'" src="'+ image.urls.thumbnail +'">' +
-      '<input name="'+name+'" type="hidden" value="'+image.id+'">'
-    );
-
-    if ($(fieldSelector).attr('data-multiple') !== 'true') {
-      console.log('>>', fieldSelector + 'ImageBTNSelector')
-      $(fieldSelector + 'ImageBTNSelector').hide();
-    }
-
-    $(fieldSelector + 'ImageTable tbody').append(row);
-    $(fieldSelector + 'ImageTable').show();
   },
 
   /**
@@ -53888,6 +53845,74 @@ window.addEventListener('WebComponentsReady', function() {
   document.registerElement('we-image-description', {
     prototype: WeImageDescriptionPrototype
   });
+
+  var WISBP = Object.create(HTMLElement.prototype);
+
+  var formModalContentIsLoad = false;
+
+  WISBP.createdCallback = function() {
+    var fieldid = this.dataset.fieldid;
+    this.fieldSelector = '#'+fieldid;
+    this.addEventListener('click', this.getForm);
+  };
+
+  WISBP.getForm = function() {
+    var self = this;
+    // callback after select image
+    we.components.imageSelector.imageSelectedHandler = self.afterSelectImage.bind(this);
+
+    if (formModalContentIsLoad) {
+      we.components.imageSelector.init('#imageSelectorFormModal');
+    } else {
+      this.showLoading();
+
+      $.ajax({
+        url: '/api/v1/image/get-form-modal-content'
+      })
+      .then(function (html) {
+        formModalContentIsLoad = true;
+        // append the form
+        $('body').append(html);
+
+        we.components.imageSelector.init('#imageSelectorFormModal');
+
+        self.hideLoading();
+      });
+    }
+  }
+
+  WISBP.afterSelectImage = function (err, image) {
+    if (err) throw new Error('Error on select image.');
+    var fieldSelector = this.fieldSelector;
+    var name = this.dataset.name;
+
+    var row = $(fieldSelector + 'ImageFieldTemplates tr').clone();
+    row.find('td[data-image-name]').html(image.originalname + ' : ' +image.description);
+    row.find('td[data-image-thumbnail]').html(
+      '<img alt="'+image.description+'" src="'+ image.urls.thumbnail +'">' +
+      '<input name="'+name+'" type="hidden" value="'+image.id+'">'
+    );
+
+    if ($(fieldSelector).attr('data-multiple') !== 'true') {
+      $(this).hide();
+    }
+
+    $(fieldSelector + 'ImageTable tbody').append(row);
+    $(fieldSelector + 'ImageTable').show();
+  }
+
+  WISBP.showLoading = function() {
+    this.setAttribute('disabled', 'disabled');
+  }
+
+  WISBP.hideLoading = function() {
+    this.removeAttribute('disabled');
+  }
+
+  document.registerElement('we-image-selector-btn', {
+    prototype: WISBP
+  });
+
 });
 /**
  * We.js client side lib

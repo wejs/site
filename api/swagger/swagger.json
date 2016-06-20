@@ -1,0 +1,2727 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.7.1",
+    "title": "We blog"
+  },
+  "host": "localhost:4000",
+  "basePath": "/",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "text/html",
+    "application/json",
+    "application/octet-stream",
+    "text/html"
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "get::/",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/swagger": {
+      "x-swagger-pipe": "swagger_raw"
+    },
+    "/contact": {
+      "get": {
+        "operationId": "get::/contact",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/contact"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/user/{userId}/contact": {
+      "get": {
+        "operationId": "get::/user/{userId}/contact",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/contact"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/get-user-to-add": {
+      "get": {
+        "operationId": "get::/api/v1/get-user-to-add",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/user"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/contact/requests": {
+      "get": {
+        "operationId": "get::/api/v1/contact/requests",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/contact"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/user/{userId}/contact-delete": {
+      "post": {
+        "operationId": "post::/api/v1/user/{userId}/contact-delete",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "contact",
+            "in": "body",
+            "description": "deleteContact contact",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/contact"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/user/{userId}/contact-ignore": {
+      "get": {
+        "operationId": "get::/api/v1/user/{userId}/contact-ignore",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/contact"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/user/{userId}/contact-accept": {
+      "get": {
+        "operationId": "get::/api/v1/user/{userId}/contact-accept",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/contact"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/user/{userId}/contact-request": {
+      "post": {
+        "operationId": "post::/api/v1/user/{userId}/contact-request",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "contact",
+            "in": "body",
+            "description": "requestContact contact",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/contact"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/user/{userId}/contact": {
+      "get": {
+        "operationId": "get::/api/v1/user/{userId}/contact",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/contact"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/docs/{project}/{page}": {
+      "get": {
+        "operationId": "get::/docs/{project}/{page}",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "page",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/docs/{project}": {
+      "get": {
+        "operationId": "get::/docs/{project}",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/docs/{project}/menu": {
+      "get": {
+        "operationId": "get::/api/v1/docs/{project}/menu",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/file/{name}": {
+      "delete": {
+        "operationId": "delete::/api/v1/file/{name}",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/{type}/get-form-modal-content": {
+      "get": {
+        "operationId": "get::/api/v1/{type}/get-form-modal-content",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/file"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/user/{userId}/image": {
+      "get": {
+        "operationId": "get::/user/{userId}/image",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/image"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/file": {
+      "post": {
+        "operationId": "post::/api/v1/file",
+        "parameters": [
+          {
+            "name": "file",
+            "in": "body",
+            "description": "create file",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/file"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/file"
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/file-download/{name}": {
+      "get": {
+        "operationId": "get::/api/v1/file-download/{name}",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/file"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/file/{id}": {
+      "get": {
+        "operationId": "get::/api/v1/file/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/file"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/image/{name}": {
+      "delete": {
+        "operationId": "delete::/api/v1/image/{name}",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "operationId": "get::/api/v1/image/{name}",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/image"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/image": {
+      "post": {
+        "operationId": "post::/api/v1/image",
+        "parameters": [
+          {
+            "name": "image",
+            "in": "body",
+            "description": "create image",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/image"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/image"
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "operationId": "get::/api/v1/image",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/image"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/image/{id}/data": {
+      "get": {
+        "operationId": "get::/api/v1/image/{id}/data",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/image"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/image/{style}/{name}": {
+      "get": {
+        "operationId": "get::/api/v1/image/{style}/{name}",
+        "parameters": [
+          {
+            "name": "style",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/image"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/user/{id}/avatar": {
+      "post": {
+        "operationId": "post::/api/v1/user/{id}/avatar",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "user",
+            "in": "body",
+            "description": "changeAvatar user",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/avatar/{id}": {
+      "get": {
+        "operationId": "get::/avatar/{id}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/oauth2/authorization": {
+      "post": {
+        "operationId": "post::/oauth2/authorization",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "operationId": "get::/oauth2/authorization",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/oauth2/token": {
+      "post": {
+        "operationId": "post::/oauth2/token",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/vocabulary/{vocabularyId}/tag-clound": {
+      "get": {
+        "operationId": "get::/vocabulary/{vocabularyId}/tag-clound",
+        "parameters": [
+          {
+            "name": "vocabularyId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/term"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/term-texts": {
+      "get": {
+        "operationId": "get::/api/v1/term-texts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/term"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/vocabulary/{vocabularyId}/term/{termId}": {
+      "get": {
+        "operationId": "get::/vocabulary/{vocabularyId}/term/{termId}",
+        "parameters": [
+          {
+            "name": "vocabularyId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "termId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/term"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/vocabulary/{vocabularyId}/term": {
+      "get": {
+        "operationId": "get::/vocabulary/{vocabularyId}/term",
+        "parameters": [
+          {
+            "name": "vocabularyId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/term"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/vocabulary/{vocabularyId}": {
+      "get": {
+        "operationId": "get::/vocabulary/{vocabularyId}",
+        "parameters": [
+          {
+            "name": "vocabularyId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/vocabulary"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/vocabulary": {
+      "get": {
+        "operationId": "get::/vocabulary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/vocabulary"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/{wembedType}": {
+      "get": {
+        "operationId": "get::/api/v1/{wembedType}",
+        "parameters": [
+          {
+            "name": "wembedType",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/wembed"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/widget-form/{theme}/{layout}/{type}": {
+      "get": {
+        "operationId": "get::/api/v1/widget-form/{theme}/{layout}/{type}",
+        "parameters": [
+          {
+            "name": "theme",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "layout",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/widget"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/auth/{id}/new-password": {
+      "post": {
+        "operationId": "post::/auth/{id}/new-password",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "operationId": "get::/auth/{id}/new-password",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/auth/auth-token": {
+      "post": {
+        "operationId": "post::/auth/auth-token",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/user/{id}/activate/{token}": {
+      "get": {
+        "operationId": "get::/user/{id}/activate/{token}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/auth/change-password": {
+      "get": {
+        "operationId": "get::/auth/change-password",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post::/auth/change-password",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/check-if-can-reset-password": {
+      "get": {
+        "operationId": "get::/api/v1/auth/check-if-can-reset-password",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/auth/{id}/reset-password/{token}": {
+      "get": {
+        "operationId": "get::/auth/{id}/reset-password/{token}",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "operationId": "post::/auth/forgot-password",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "operationId": "get::/auth/forgot-password",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "get": {
+        "operationId": "get::/auth/logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "post::/auth/login",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "operationId": "post::/login",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "operationId": "get::/login",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/signup": {
+      "post": {
+        "operationId": "post::/signup",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "operationId": "get::/signup",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/account": {
+      "get": {
+        "operationId": "get::/account",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/user"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/user/{userId}/edit/privacity": {
+      "post": {
+        "operationId": "post::/user/{userId}/edit/privacity",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "userPrivacity",
+            "in": "body",
+            "description": "findUserPrivacity userPrivacity",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/userPrivacity"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "operationId": "get::/user/{userId}/edit/privacity",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/userPrivacity"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/themes": {
+      "get": {
+        "operationId": "get::/themes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/plugins": {
+      "get": {
+        "operationId": "get::/plugins",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/article": {
+      "post": {
+        "operationId": "post::/article",
+        "parameters": [
+          {
+            "name": "article",
+            "in": "body",
+            "description": "create article",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/article"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/article"
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "operationId": "get::/article",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/article"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/article/{articleId}": {
+      "get": {
+        "operationId": "get::/article/{articleId}",
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/article"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "put": {
+        "operationId": "put::/article/{articleId}",
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "article",
+            "in": "body",
+            "description": "edit article",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/article"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/article"
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete::/article/{articleId}",
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/article/create": {
+      "get": {
+        "operationId": "get::/article/create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/article"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post::/article/create",
+        "parameters": [
+          {
+            "name": "article",
+            "in": "body",
+            "description": "create article",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/article"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/article"
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/article/{articleId}/edit": {
+      "get": {
+        "operationId": "get::/article/{articleId}/edit",
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/article"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post::/article/{articleId}/edit",
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "article",
+            "in": "body",
+            "description": "edit article",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/article"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/article/{articleId}/delete": {
+      "get": {
+        "operationId": "get::/article/{articleId}/delete",
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/article"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post::/article/{articleId}/delete",
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "article",
+            "in": "body",
+            "description": "delete article",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/article"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/oauth2Client": {
+      "post": {
+        "operationId": "post::/oauth2Client",
+        "parameters": [
+          {
+            "name": "oauth2Client",
+            "in": "body",
+            "description": "create oauth2Client",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/oauth2Client"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/oauth2Client"
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "operationId": "get::/oauth2Client",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/oauth2Client"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/oauth2Client/{oauth2ClientId}": {
+      "get": {
+        "operationId": "get::/oauth2Client/{oauth2ClientId}",
+        "parameters": [
+          {
+            "name": "oauth2ClientId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/oauth2Client"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "put": {
+        "operationId": "put::/oauth2Client/{oauth2ClientId}",
+        "parameters": [
+          {
+            "name": "oauth2ClientId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "oauth2Client",
+            "in": "body",
+            "description": "edit oauth2Client",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/oauth2Client"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/oauth2Client"
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete::/oauth2Client/{oauth2ClientId}",
+        "parameters": [
+          {
+            "name": "oauth2ClientId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/oauth2Client/create": {
+      "get": {
+        "operationId": "get::/oauth2Client/create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/oauth2Client"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post::/oauth2Client/create",
+        "parameters": [
+          {
+            "name": "oauth2Client",
+            "in": "body",
+            "description": "create oauth2Client",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/oauth2Client"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/oauth2Client"
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/oauth2Client/{oauth2ClientId}/edit": {
+      "get": {
+        "operationId": "get::/oauth2Client/{oauth2ClientId}/edit",
+        "parameters": [
+          {
+            "name": "oauth2ClientId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/oauth2Client"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post::/oauth2Client/{oauth2ClientId}/edit",
+        "parameters": [
+          {
+            "name": "oauth2ClientId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "oauth2Client",
+            "in": "body",
+            "description": "edit oauth2Client",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/oauth2Client"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/oauth2Client/{oauth2ClientId}/delete": {
+      "get": {
+        "operationId": "get::/oauth2Client/{oauth2ClientId}/delete",
+        "parameters": [
+          {
+            "name": "oauth2ClientId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/oauth2Client"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post::/oauth2Client/{oauth2ClientId}/delete",
+        "parameters": [
+          {
+            "name": "oauth2ClientId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "oauth2Client",
+            "in": "body",
+            "description": "delete oauth2Client",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/oauth2Client"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/user": {
+      "post": {
+        "operationId": "post::/user",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "description": "create user",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "get": {
+        "operationId": "get::/user",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/user"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/user/{userId}": {
+      "get": {
+        "operationId": "get::/user/{userId}",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/user"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "put": {
+        "operationId": "put::/user/{userId}",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "user",
+            "in": "body",
+            "description": "edit user",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete::/user/{userId}",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/user/create": {
+      "get": {
+        "operationId": "get::/user/create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/user"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post::/user/create",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "description": "create user",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/user/{userId}/edit": {
+      "get": {
+        "operationId": "get::/user/{userId}/edit",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/user"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post::/user/{userId}/edit",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "user",
+            "in": "body",
+            "description": "edit user",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/user/{userId}/delete": {
+      "get": {
+        "operationId": "get::/user/{userId}/delete",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/user"
+              }
+            }
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "operationId": "post::/user/{userId}/delete",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "user",
+            "in": "body",
+            "description": "delete user",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/user"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "article": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "number"
+        },
+        "published": {
+          "type": "number"
+        },
+        "title": {
+          "type": "string"
+        },
+        "about": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        },
+        "setAlias": {
+          "type": "boolean"
+        }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "number"
+        },
+        "to": {
+          "type": "number"
+        }
+      }
+    },
+    "file": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "number"
+        },
+        "encoding": {
+          "type": "string"
+        },
+        "active": {
+          "type": "number"
+        },
+        "originalname": {
+          "type": "string"
+        },
+        "mime": {
+          "type": "string"
+        },
+        "extension": {
+          "type": "string"
+        },
+        "storageName": {
+          "type": "string"
+        },
+        "isLocalStorage": {
+          "type": "number"
+        },
+        "urls": {
+          "type": "boolean"
+        },
+        "extraData": {
+          "type": "boolean"
+        }
+      }
+    },
+    "fileassoc": {
+      "type": "object",
+      "properties": {
+        "modelName": {
+          "type": "string"
+        },
+        "modelId": {
+          "type": "number"
+        },
+        "field": {
+          "type": "string"
+        },
+        "order": {
+          "type": "number"
+        }
+      }
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "number"
+        },
+        "encoding": {
+          "type": "string"
+        },
+        "active": {
+          "type": "number"
+        },
+        "originalname": {
+          "type": "string"
+        },
+        "mime": {
+          "type": "string"
+        },
+        "extension": {
+          "type": "string"
+        },
+        "storageName": {
+          "type": "string"
+        },
+        "isLocalStorage": {
+          "type": "number"
+        },
+        "urls": {
+          "type": "boolean"
+        },
+        "extraData": {
+          "type": "boolean"
+        }
+      }
+    },
+    "imageassoc": {
+      "type": "object",
+      "properties": {
+        "modelName": {
+          "type": "string"
+        },
+        "modelId": {
+          "type": "number"
+        },
+        "field": {
+          "type": "string"
+        },
+        "order": {
+          "type": "number"
+        }
+      }
+    },
+    "github-cache": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "response": {
+          "type": "string"
+        },
+        "expires": {
+          "type": "number"
+        }
+      }
+    },
+    "link": {
+      "type": "object",
+      "properties": {
+        "href": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "class": {
+          "type": "string"
+        },
+        "style": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "rel": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "depth": {
+          "type": "number"
+        },
+        "weight": {
+          "type": "number"
+        },
+        "parent": {
+          "type": "number"
+        }
+      }
+    },
+    "menu": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "class": {
+          "type": "string"
+        }
+      }
+    },
+    "oauth2AccessToken": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "ttl": {
+          "type": "string"
+        }
+      }
+    },
+    "oauth2Client": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "secret": {
+          "type": "string"
+        },
+        "redirectUri": {
+          "type": "string"
+        }
+      }
+    },
+    "oauth2Code": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "ttl": {
+          "type": "string"
+        }
+      }
+    },
+    "oauth2RefreshToken": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "ttl": {
+          "type": "string"
+        }
+      }
+    },
+    "urlAlias": {
+      "type": "object",
+      "properties": {
+        "alias": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "locale": {
+          "type": "string"
+        }
+      }
+    },
+    "modelsterms": {
+      "type": "object",
+      "properties": {
+        "modelName": {
+          "type": "string"
+        },
+        "modelId": {
+          "type": "number"
+        },
+        "field": {
+          "type": "string"
+        },
+        "isTag": {
+          "type": "string"
+        },
+        "order": {
+          "type": "number"
+        },
+        "vocabularyName": {
+          "type": "string"
+        }
+      }
+    },
+    "term": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "vocabularyName": {
+          "type": "string"
+        }
+      }
+    },
+    "vocabulary": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "wembed": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "cacheTime": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "pageType": {
+          "type": "string"
+        }
+      }
+    },
+    "wembedImage": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "number"
+        },
+        "active": {
+          "type": "number"
+        },
+        "originalFilename": {
+          "type": "string"
+        },
+        "mime": {
+          "type": "string"
+        },
+        "extension": {
+          "type": "string"
+        },
+        "width": {
+          "type": "string"
+        },
+        "orderNumber": {
+          "type": "string"
+        },
+        "height": {
+          "type": "string"
+        }
+      }
+    },
+    "widget": {
+      "type": "object",
+      "properties": {
+        "creatorId": {
+          "type": "number"
+        },
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "modelName": {
+          "type": "string"
+        },
+        "modelId": {
+          "type": "number"
+        },
+        "inRecord": {
+          "type": "number"
+        },
+        "layout": {
+          "type": "string"
+        },
+        "regionName": {
+          "type": "string"
+        },
+        "context": {
+          "type": "string"
+        },
+        "theme": {
+          "type": "string"
+        },
+        "weight": {
+          "type": "boolean"
+        },
+        "configuration": {
+          "type": "string"
+        }
+      }
+    },
+    "accesstoken": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "number"
+        },
+        "providerUserId": {
+          "type": "string"
+        },
+        "tokenProviderId": {
+          "type": "string"
+        },
+        "tokenType": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "isValid": {
+          "type": "number"
+        }
+      }
+    },
+    "authtoken": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "number"
+        },
+        "providerUserId": {
+          "type": "number"
+        },
+        "tokenProviderId": {
+          "type": "string"
+        },
+        "tokenType": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "isValid": {
+          "type": "number"
+        },
+        "redirectUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "passport": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "string"
+        },
+        "accessToken": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "identifier": {
+          "type": "string"
+        },
+        "tokens": {
+          "type": "string"
+        }
+      }
+    },
+    "password": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "number"
+        },
+        "active": {
+          "type": "number"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "user": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "fullName": {
+          "type": "string"
+        },
+        "biography": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "active": {
+          "type": "number"
+        },
+        "language": {
+          "type": "string"
+        },
+        "acceptTerms": {
+          "type": "number"
+        },
+        "roles": {
+          "type": "string"
+        },
+        "setAlias": {
+          "type": "boolean"
+        }
+      }
+    },
+    "userPrivacity": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "privacity": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "We.js site and documentation",
+    "url": "https://wejs.org"
+  }
+}
