@@ -18,7 +18,7 @@
     "mysql": "^2.11.1",
     "redis": "^2.6.2",
     "socket.io-redis": "^1.0.0",
-    "we-core": "^1.8.2",
+    "we-core": "^1.8.3",
     "we-plugin-acl": "^1.2.4",
     "we-plugin-article": "^1.0.0",
     "we-plugin-auth": "^1.1.3",
