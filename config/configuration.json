@@ -78,5 +78,6 @@
   },
   "oi": {
     "mundo": "11"
-  }
+  },
+  "enableRequestLog": false
 }
