@@ -21,6 +21,13 @@ module.exports = function loadPlugin(projectPath, Plugin) {
       layoutName : 'fullwidth',
       githubOrgName: 'wejs',
       githubFilterName: 'we-theme'
+    },
+    'get /suport': {
+      title      : 'Support We.js Development',
+      controller : 'main',
+      action     : 'suport',
+      template   : 'main/suport',
+      layoutName : 'fullwidth'
     }
   });
 

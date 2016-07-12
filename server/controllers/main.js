@@ -89,5 +89,25 @@ module.exports = {
 
       res.ok();
     });
+  },
+
+  suport: function suport(req, res) {
+
+    var description = 'Suport We.js development and help it be awesome';
+
+    res.locals.metatag =
+      '<meta property="og:url" content="https://wejs.org" />'+
+      '<meta property="og:title" content="We.js framework site" />' +
+      '<meta property="og:site_name" content="Support We.js development" />'+
+      '<meta property="og:description" content="'+description+'" />'+
+
+      '<meta property="og:image" content="https://wejs.org/public/plugin/we-core/files/images/logo.png">'+
+      '<meta property="og:image:type" content="image/png">'+
+
+      '<meta name="description" content="'+description+'" />'+
+
+      '<meta property="og:type" content="website" />';
+
+    res.ok();
   }
 };
