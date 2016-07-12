@@ -32,7 +32,7 @@
     "we-plugin-form": "^1.1.1",
     "we-plugin-github": "1.0.0",
     "we-plugin-google-analytics": "1.1.0",
-    "we-plugin-menu": "1.3.0",
+    "we-plugin-menu": "1.3.1",
     "we-plugin-passport-oauth2": "^1.2.0",
     "we-plugin-url-alias": "^1.1.0",
     "we-plugin-user": "^1.1.0",
