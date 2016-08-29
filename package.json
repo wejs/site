@@ -23,7 +23,6 @@
     "we-plugin-article": "^1.0.0",
     "we-plugin-auth": "^1.1.4",
     "we-plugin-bootstrap3": "^1.0.0",
-    "we-plugin-contact": "1.1.0",
     "we-plugin-disqus": "^1.1.1",
     "we-plugin-doc-git": "1.1.0",
     "we-plugin-editor-summernote": "^1.1.0",
@@ -57,7 +56,6 @@
     "plugins": {
       "we-plugin-article": true,
       "we-plugin-bootstrap3": true,
-      "we-plugin-contact": true,
       "we-plugin-disqus": true,
       "we-plugin-doc-git": true,
       "we-plugin-editor-summernote": true,
