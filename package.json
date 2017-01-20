@@ -9,7 +9,8 @@
     "prod": "node app.js --prod",
     "deps": "npm install && bower install",
     "start": "node app.js",
-    "build": "gulp build"
+    "build": "gulp build",
+    "deploy":"npm build && git push prod master:master && git push prod master:prod"
   },
   "dependencies": {
     "connect-redis": "^3.1.0",
