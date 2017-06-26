@@ -11,7 +11,7 @@
     "start": "node app.js",
     "build": "gulp build",
     "deploy": "npm build && git push prod master:master && git push prod master:prod",
-    "watch": "supervisor -w server,config,bin -i files/public -e node,js,json app.js"
+    "watch": "supervisor -w server,config,bin -i files,config/configuration.json,config/locales -e js,json app.js"
   },
   "dependencies": {
     "connect-redis": "^3.1.0",
