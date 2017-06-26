@@ -10,7 +10,8 @@
     "deps": "npm install && bower install",
     "start": "node app.js",
     "build": "gulp build",
-    "deploy":"npm build && git push prod master:master && git push prod master:prod"
+    "deploy": "npm build && git push prod master:master && git push prod master:prod",
+    "watch": "supervisor -w server,config,bin -i files/public -e node,js,json app.js"
   },
   "dependencies": {
     "connect-redis": "^3.1.0",
@@ -50,6 +51,7 @@
     "mocha": "3.0.2",
     "sinon": "1.17.5",
     "supertest": "^2.0.0",
+    "supervisor": "^0.12.0",
     "we-gulp-tasks-default": "1.1.0",
     "we-test-tools": "^0.3.18"
   },
